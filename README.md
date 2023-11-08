@@ -58,7 +58,7 @@ xmlns:admob="clr-namespace:Plugin.AdMob;assembly=Plugin.AdMob"
 and then place the banner in your page. *Note: the `AdUnitId` is optional when using test ads - `AdConfig.UseTestAdUnitIds = true`.*
 
 ```
-<admob:BannerAd AdUnitId=""ca-app-pub-xxxxxxxxxxxxxxxx/xxxxxxxxxx"" />
+<admob:BannerAd AdUnitId="ca-app-pub-xxxxxxxxxxxxxxxx/xxxxxxxxxx" />
 ```
 
 # Samples
