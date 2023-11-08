@@ -10,7 +10,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Version>1.0.1-beta.$([System.DateTime]::UtcNow.ToString("yyyyMMddHHmmss"))</Version>
 		<Description>.NET MAUI plugin for AdMob.</Description>
-		<PackageProjectUrl>https://github.com/marius-bughiu/plugin-admob</PackageProjectUrl>
+		<PackageProjectUrl>https://github.com/marius-bughiu/Plugin.AdMob</PackageProjectUrl>
 
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">11.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">13.1</SupportedOSPlatformVersion>
