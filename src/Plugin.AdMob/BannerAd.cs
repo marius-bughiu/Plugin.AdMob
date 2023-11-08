@@ -2,7 +2,7 @@
 
 namespace Plugin.AdMob;
 
-public class BannerAd : View
+public class BannerAd : ContentView
 {
     public static readonly BindableProperty AdUnitIdProperty =
         BindableProperty.Create("AdUnitId", typeof(string), typeof(BannerAd), null);
