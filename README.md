@@ -38,7 +38,7 @@ You need to update your app's manifest (`Platforms/Android/AndroidManifest.xml`)
 
 ## iOS setup
 
-WIP
+https://developers.google.com/admob/ios/quick-start
 
 ## Configuration
 
@@ -66,3 +66,5 @@ and then place the banner in your page. *Note: the `AdUnitId` is optional when u
 Check out the [samples](https://github.com/marius-bughiu/Plugin.AdMob/tree/main/samples/Samples) folder for fully functional plugin integration examples.
 
 ![image](https://github.com/marius-bughiu/Plugin.AdMob/assets/11870708/f95ad204-8366-4a6d-81e8-2c46bf06cd2c)
+![image](https://github.com/marius-bughiu/Plugin.AdMob/assets/11870708/50bda781-0d5a-43b4-9ee8-ecc9fc62444a)
+
