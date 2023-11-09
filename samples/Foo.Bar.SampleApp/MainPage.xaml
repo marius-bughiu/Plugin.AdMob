@@ -40,6 +40,11 @@
                 SemanticProperties.Hint="Counts the number of times you click"
                 Clicked="OnCounterClicked"
                 HorizontalOptions="Center" />
+            <Button
+                Text="Show interstitial ad"
+                SemanticProperties.Hint="Shows a test interstitial ad"
+                Clicked="OnShowInterstitialClicked"
+                HorizontalOptions="Center" />
 
             </VerticalStackLayout>
         </ScrollView>

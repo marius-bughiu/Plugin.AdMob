@@ -59,7 +59,10 @@
 		<PackageReference Include="Microsoft.Maui.Controls" Version="8.0.0-rc.2.9530" />
 		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="8.0.0-rc.2.9530" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0-rc.2.23479.6" />
-		<PackageReference Include="Plugin.AdMob" Version="1.0.3-beta.2311091852" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\..\src\Plugin.AdMob\Plugin.AdMob.csproj" />
 	</ItemGroup>
 
 	<!-- Build Properties must be defined within these property groups to ensure successful publishing

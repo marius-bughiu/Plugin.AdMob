@@ -14,7 +14,7 @@ namespace Foo.Bar.SampleApp
 
             builder
                 .UseMauiApp<App>()
-                .UseAdMobHandlers()
+                .UseAdMob()
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
