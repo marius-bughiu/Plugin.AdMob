@@ -1,12 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace Plugin.AdMob.Handlers;
 
-namespace Plugin.AdMob.Handlers
+internal partial class BannerAdHandler
 {
-    public partial class BannerAdHandler
-    {
-    }
 }

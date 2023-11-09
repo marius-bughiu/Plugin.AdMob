@@ -6,7 +6,7 @@ using UIKit;
 
 namespace Plugin.AdMob.Handlers;
 
-public partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
+internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
 {
     //private bool _viewOnScreen;
 
