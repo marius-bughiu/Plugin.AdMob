@@ -43,7 +43,7 @@
 
             </VerticalStackLayout>
         </ScrollView>
-        <admob:BannerAd Grid.Row="1" AdSize="Custom" WidthRequest="320" HeightRequest="100" />
+        <admob:BannerAd Grid.Row="1" />
     </Grid>
 
 </ContentPage>

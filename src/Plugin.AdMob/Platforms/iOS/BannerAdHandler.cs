@@ -8,8 +8,6 @@ namespace Plugin.AdMob.Handlers;
 
 internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
 {
-    //private bool _viewOnScreen;
-
     public static IPropertyMapper<BannerAd, BannerAdHandler> PropertyMapper = new PropertyMapper<BannerAd, BannerAdHandler>(ViewMapper)
     {
 
@@ -51,16 +49,6 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
         {
             adView.AdUnitId = AdMobTestAdUnits.Banner;
         }
-
-        //adView.AdReceived += (sender, args) =>
-        //{
-        //    if (!_viewOnScreen)
-        //    {
-        //        PlatformView.AddSubview(adView);
-        //    }
-
-        //    _viewOnScreen = true;
-        //};
 
         var request = Request.GetDefaultRequest();
 
@@ -104,8 +92,8 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
             case AdSize.MediumRectangle: return AdSizeCons.MediumRectangle;
             case AdSize.FullBanner: return AdSizeCons.FullBanner;
             case AdSize.Leaderboard: return AdSizeCons.Leaderboard;
-            case AdSize.Custom: return new Google.MobileAds.AdSize { Size = new CoreGraphics.CGSize(VirtualView.Width, VirtualView.Height) };
-            default: return AdSizeCons.SmartBannerPortrait;
+            case AdSize.Custom: return new Google.MobileAds.AdSize { Size = new CoreGraphics.CGSize(VirtualView.CustomAdWidth, VirtualView.CustomAdHeight) };
+            default: return AdSizeCons.GetCurrentOrientationAnchoredAdaptiveBannerAdSize((float)UIScreen.MainScreen.Bounds.Width);
         }
     }
 }
