@@ -12,7 +12,7 @@
 In your `MauiProgram.cs` call the following method on your app builder:
 
 ```
-builder.UseAdMobHandlers()
+builder.UseAdMob()
 ```
 
 ## Android setup
