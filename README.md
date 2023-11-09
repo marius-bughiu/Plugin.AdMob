@@ -35,10 +35,26 @@ You need to update your app's manifest (`Platforms/Android/AndroidManifest.xml`)
   <uses-permission android:name="android.permission.INTERNET" />
 </manifest>
 ```
+For more details you can check the official docs: https://developers.google.com/admob/android/quick-start
 
 ## iOS setup
 
-https://developers.google.com/admob/ios/quick-start
+1. Modify your `Platforms/iOS/Info.plist` by adding your `GADApplicationIdentifier` and `SKAdNetworkItems` as described here: https://developers.google.com/admob/ios/quick-start
+2. Go to your `Platforms/iOS/AppDelegate.cs` and make a call to `Google.MobileAds.MobileAds.SharedInstance.Start(completionHandler: null)`. Your `AppDelegate` should look similar to this:
+```
+[Register("AppDelegate")]
+public class AppDelegate : MauiUIApplicationDelegate
+{
+    protected override MauiApp CreateMauiApp()
+    {
+        var app = MauiProgram.CreateMauiApp();
+
+        Google.MobileAds.MobileAds.SharedInstance.Start(completionHandler: null);
+
+        return app;
+    }
+}
+```
 
 ## Configuration
 
