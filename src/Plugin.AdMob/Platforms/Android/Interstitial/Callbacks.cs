@@ -3,6 +3,7 @@ using Android.Runtime;
 
 namespace Android.Gms.Ads.Hack
 {
+    // https://github.com/xamarin/GooglePlayServicesComponents/issues/425
     public abstract class InterstitialCallback : Android.Gms.Ads.Interstitial.InterstitialAdLoadCallback
     {
         [Register("onAdLoaded", "(Lcom/google/android/gms/ads/interstitial/InterstitialAd;)V", "GetOnAdLoadedHandler")]
