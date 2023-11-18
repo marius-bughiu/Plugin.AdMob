@@ -11,21 +11,26 @@ internal partial class InterstitialAdService : IInterstitialAdService
 
     public void PrepareAd(string adUnitId)
     {
-        if (string.IsNullOrEmpty(adUnitId) && !string.IsNullOrEmpty(AdConfig.DefaultInterstitialAdUnitId))
-        {
-            adUnitId = AdConfig.DefaultInterstitialAdUnitId;
-        }
+        adUnitId ??= AdConfig.DefaultInterstitialAdUnitId;
 
         if (AdConfig.UseTestAdUnitIds)
         {
             adUnitId = AdMobTestAdUnits.Interstitial;
         }
 
-        AdRequest adRequest = new AdRequest.Builder().Build();
+        var requestBuilder = new AdRequest.Builder();
+
+        var configBuilder = new RequestConfiguration.Builder();
+
+        configBuilder.SetTestDeviceIds(AdConfig.TestDevices);
+
+        MobileAds.RequestConfiguration = configBuilder.Build();
+
+        var adRequest = requestBuilder.Build();
 
         var callback = new MyCallback();
         callback.WhenAdLoaded += ad => _ad = ad;
-        
+
         InterstitialAd.Load(Android.App.Application.Context, adUnitId, adRequest, callback);
     }
 

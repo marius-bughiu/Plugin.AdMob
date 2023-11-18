@@ -8,56 +8,44 @@ namespace Plugin.AdMob.Handlers;
 
 internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
 {
-    public static IPropertyMapper<BannerAd, BannerAdHandler> PropertyMapper = new PropertyMapper<BannerAd, BannerAdHandler>(ViewMapper)
-    {
+    public static IPropertyMapper<BannerAd, BannerAdHandler> PropertyMapper =
+        new PropertyMapper<BannerAd, BannerAdHandler>(ViewMapper);
 
-    };
-
-    public BannerAdHandler() : base(PropertyMapper)
-    {
-
-    }
-
-    protected override void ConnectHandler(AdView platformView)
-    {
-        base.ConnectHandler(platformView);
-
-        // Perform any control setup here
-    }
+    public BannerAdHandler() : base(PropertyMapper) { }
 
     protected override void DisconnectHandler(AdView platformView)
     {
-        // Perform any native view cleanup here
         platformView.Dispose();
         base.DisconnectHandler(platformView);
     }
 
     protected override AdView CreatePlatformView()
     {
-        var adView = new AdView(Context)
-        {
-            AdSize = GetAdSize(),
-            AdUnitId = VirtualView.AdUnitId
-        };
-
-        if (string.IsNullOrEmpty(adView.AdUnitId) && !string.IsNullOrEmpty(AdConfig.DefaultBannerAdUnitId))
-        {
-            adView.AdUnitId = AdConfig.DefaultBannerAdUnitId;
-        }
+        var adUnitId = VirtualView.AdUnitId;
+        adUnitId ??= AdConfig.DefaultBannerAdUnitId;
 
         if (AdConfig.UseTestAdUnitIds)
         {
-            adView.AdUnitId = AdMobTestAdUnits.Banner;
+            adUnitId = AdMobTestAdUnits.Banner;
         }
+
+        var adView = new AdView(Context) 
+        { 
+            AdSize = GetAdSize(),
+            AdUnitId = adUnitId
+        };
 
         var requestBuilder = new AdRequest.Builder();
-        foreach (var testDeviceId in AdConfig.TestDevices)
-        {
-            // TODO: is this a broken library binding or was the method removed?
-            // requestBuilder.AddTestDevice(testDeviceId);
-        }
 
-        adView.LoadAd(requestBuilder.Build());
+        var configBuilder = new RequestConfiguration.Builder();
+
+        configBuilder.SetTestDeviceIds(AdConfig.TestDevices);
+
+        MobileAds.RequestConfiguration = configBuilder.Build();
+
+        var adRequest = requestBuilder.Build();
+
+        adView.LoadAd(adRequest);
 
         VirtualView.HeightRequest = GetSmartBannerHeightDp();
 
@@ -72,6 +60,7 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
         var screenHeightDp = displayMetrics.HeightPixels / displayMetrics.Density;
         return BannerSizeHelper.GetSmartBannerHeight(screenHeightDp);
     }
+
     private Android.Gms.Ads.AdSize GetAdSize()
     {
         // TODO: Use GetCurrentOrientationAnchoredAdaptiveBannerAdSize instead of SmartBanner

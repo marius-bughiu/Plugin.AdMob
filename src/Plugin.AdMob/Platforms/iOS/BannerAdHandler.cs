@@ -8,26 +8,12 @@ namespace Plugin.AdMob.Handlers;
 
 internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
 {
-    public static IPropertyMapper<BannerAd, BannerAdHandler> PropertyMapper = new PropertyMapper<BannerAd, BannerAdHandler>(ViewMapper)
-    {
+    public static IPropertyMapper<BannerAd, BannerAdHandler> PropertyMapper = new PropertyMapper<BannerAd, BannerAdHandler>(ViewMapper);
 
-    };
-
-    public BannerAdHandler() : base(PropertyMapper)
-    {
-
-    }
-
-    protected override void ConnectHandler(BannerView platformView)
-    {
-        base.ConnectHandler(platformView);
-
-        // Perform any control setup here
-    }
+    public BannerAdHandler() : base(PropertyMapper) { }
 
     protected override void DisconnectHandler(BannerView platformView)
     {
-        // Perform any native view cleanup here
         platformView.Dispose();
         base.DisconnectHandler(platformView);
     }
@@ -36,7 +22,6 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
     {
         var adView = new BannerView(GetAdSize())
         {
-            AdUnitId = VirtualView.AdUnitId,
             RootViewController = GetRootViewController()
         };
 
@@ -52,11 +37,7 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
 
         var request = Request.GetDefaultRequest();
 
-        // TODO: test devices are missing
-        //if (AdConfig.TestDevices.Any())
-        //{
-        //    request.TestDevices = AdConfig.TestDevices.ToArray();
-        //}
+        MobileAds.SharedInstance.RequestConfiguration.TestDeviceIdentifiers = AdConfig.TestDevices.ToArray();
 
         VirtualView.HeightRequest = GetSmartBannerHeightDp();
         adView.LoadRequest(request);
