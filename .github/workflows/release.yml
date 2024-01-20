@@ -1,0 +1,35 @@
+name: Release
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        working-directory: src
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 8.0.x
+    - name: Restore workloads
+      run: dotnet workload restore
+    - name: Install android workload
+      run: dotnet workload install android
+    - name: Install ios workload
+      run: dotnet workload install ios
+    - name: Install maccatalyst workload
+      run: dotnet workload install maccatalyst
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --no-restore
