@@ -39,9 +39,7 @@ internal partial class InterstitialAdService : IInterstitialAdService
         if (_ad != null)
         {
             _ad.Show(ActivityStateManager.Default.GetCurrentActivity());
-
             _ad = null;
-            PrepareAd();
         }
         else
         {
