@@ -21,9 +21,9 @@ internal partial class InterstitialAdService : IInterstitialAdService
             adUnitId = AdMobTestAdUnits.Interstitial;
         }
 
-        var request = Request.GetDefaultRequest();
-
         MobileAds.SharedInstance.RequestConfiguration.TestDeviceIdentifiers = AdConfig.TestDevices.ToArray();
+
+        var request = Request.GetDefaultRequest();
 
         InterstitialAd.Load(adUnitId, request, OnAdLoaded);
     }

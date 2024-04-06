@@ -1,7 +1,6 @@
 ﻿using Google.MobileAds;
 using Microsoft.Maui.Handlers;
 using Plugin.AdMob.Configuration;
-using Plugin.AdMob.Helpers;
 using UIKit;
 
 namespace Plugin.AdMob.Handlers;
@@ -20,7 +19,8 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
 
     protected override BannerView CreatePlatformView()
     {
-        var adView = new BannerView(GetAdSize())
+        var adSize = GetAdSize();
+        var adView = new BannerView()
         {
             RootViewController = GetRootViewController()
         };
@@ -35,20 +35,15 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
             adView.AdUnitId = AdMobTestAdUnits.Banner;
         }
 
-        var request = Request.GetDefaultRequest();
-
         MobileAds.SharedInstance.RequestConfiguration.TestDeviceIdentifiers = AdConfig.TestDevices.ToArray();
 
-        VirtualView.HeightRequest = GetSmartBannerHeightDp();
+        var request = Request.GetDefaultRequest();
+
+        VirtualView.HeightRequest = adSize.Size.Height;
+        VirtualView.WidthRequest = adSize.Size.Width;
         adView.LoadRequest(request);
 
         return adView;
-    }
-
-    private int GetSmartBannerHeightDp()
-    {
-        var screenHeightDp = (float)UIScreen.MainScreen.Bounds.Height;
-        return BannerSizeHelper.GetSmartBannerHeight(screenHeightDp);
     }
 
     private UIViewController GetRootViewController()
@@ -68,13 +63,18 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
     {
         switch (VirtualView.AdSize)
         {
-            case AdSize.Banner: return AdSizeCons.Banner;
-            case AdSize.LargeBanner: return AdSizeCons.LargeBanner;
-            case AdSize.MediumRectangle: return AdSizeCons.MediumRectangle;
-            case AdSize.FullBanner: return AdSizeCons.FullBanner;
-            case AdSize.Leaderboard: return AdSizeCons.Leaderboard;
-            case AdSize.Custom: return new Google.MobileAds.AdSize { Size = new CoreGraphics.CGSize(VirtualView.CustomAdWidth, VirtualView.CustomAdHeight) };
+            case AdSize.Banner: return GetSize(320, 50);
+            case AdSize.LargeBanner: return GetSize(320, 100);
+            case AdSize.MediumRectangle: return GetSize(300, 250);
+            case AdSize.FullBanner: return GetSize(468, 60);
+            case AdSize.Leaderboard: return GetSize(728, 90);
+            case AdSize.Custom: return GetSize(VirtualView.CustomAdWidth, VirtualView.CustomAdHeight);
+
+            case AdSize.SmartBanner:
             default: return AdSizeCons.GetCurrentOrientationAnchoredAdaptiveBannerAdSize((float)UIScreen.MainScreen.Bounds.Width);
         }
     }
+
+    private Google.MobileAds.AdSize GetSize(int width, int height)
+        => new Google.MobileAds.AdSize { Size = new CoreGraphics.CGSize(width, height) };
 }
