@@ -10,45 +10,41 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <ScrollView>
-        <VerticalStackLayout
-            Spacing="25"
-            Padding="30,0"
-            VerticalOptions="Center">
+            <VerticalStackLayout
+                Spacing="25"
+                Padding="0,25"
+                VerticalOptions="Center">
 
-            <Image
-                Source="dotnet_bot.png"
-                SemanticProperties.Description="Cute dot net bot waving hi to you!"
-                HeightRequest="200"
-                HorizontalOptions="Center" />
+                <Label Padding="25,0" Text="Interstitial:" />
+                <Button
+                    Text="Show interstitial ad"
+                    SemanticProperties.Hint="Shows a test interstitial ad"
+                    Clicked="OnShowInterstitialClicked"
+                    HorizontalOptions="Center" />
 
-            <Label
-                Text="Hello, World!"
-                SemanticProperties.HeadingLevel="Level1"
-                FontSize="32"
-                HorizontalOptions="Center" />
+                <Label Padding="25,0" Text="SmartBanner:" />
+                <admob:BannerAd />
 
-            <Label
-                Text="Welcome to .NET Multi-platform App UI"
-                SemanticProperties.HeadingLevel="Level2"
-                SemanticProperties.Description="Welcome to dot net Multi platform App U I"
-                FontSize="18"
-                HorizontalOptions="Center" />
+                <Label Padding="25,0" Text="Banner:" />
+                <admob:BannerAd AdSize="Banner" />
 
-            <Button
-                x:Name="CounterBtn"
-                Text="Click me"
-                SemanticProperties.Hint="Counts the number of times you click"
-                Clicked="OnCounterClicked"
-                HorizontalOptions="Center" />
-            <Button
-                Text="Show interstitial ad"
-                SemanticProperties.Hint="Shows a test interstitial ad"
-                Clicked="OnShowInterstitialClicked"
-                HorizontalOptions="Center" />
+                <Label Padding="25,0" Text="FullBanner:" />
+                <admob:BannerAd AdSize="FullBanner" />
+
+                <Label Padding="25,0" Text="LargeBanner:" />
+                <admob:BannerAd AdSize="LargeBanner" />
+
+                <Label Padding="25,0" Text="Leaderboard:" />
+                <admob:BannerAd AdSize="Leaderboard" />
+
+                <Label Padding="25,0" Text="MediumRectangle:" />
+                <admob:BannerAd AdSize="MediumRectangle" />
+
+                <Label Padding="25,0" Text="Custom (200x200):" />
+                <admob:BannerAd AdSize="Custom" CustomAdWidth="200" CustomAdHeight="200" />
 
             </VerticalStackLayout>
         </ScrollView>
-        <admob:BannerAd Grid.Row="1" />
     </Grid>
 
 </ContentPage>

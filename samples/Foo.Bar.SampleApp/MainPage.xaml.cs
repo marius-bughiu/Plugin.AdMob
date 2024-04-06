@@ -6,8 +6,6 @@ namespace Foo.Bar.SampleApp
     {
         private readonly IInterstitialAdService _interstitialAdService;
 
-        int count = 0;
-
         public MainPage()
         {
             InitializeComponent();
@@ -19,18 +17,6 @@ namespace Foo.Bar.SampleApp
         private void OnShowInterstitialClicked(object sender, EventArgs e)
         {
             _interstitialAdService.ShowAd();
-        }
-
-        private void OnCounterClicked(object sender, EventArgs e)
-        {
-            count++;
-
-            if (count == 1)
-                CounterBtn.Text = $"Clicked {count} time";
-            else
-                CounterBtn.Text = $"Clicked {count} times";
-
-            SemanticScreenReader.Announce(CounterBtn.Text);
         }
     }
 
