@@ -1,4 +1,5 @@
-﻿using Plugin.AdMob.Services;
+﻿using Plugin.AdMob;
+using Plugin.AdMob.Services;
 
 namespace Foo.Bar.SampleApp
 {
@@ -16,7 +17,20 @@ namespace Foo.Bar.SampleApp
 
         private void OnShowInterstitialClicked(object sender, EventArgs e)
         {
-            _interstitialAdService.ShowAd();
+            _interstitialAdService.ShowAd(); 
+            _interstitialAdService.PrepareAd();
+        }
+
+        private void OnCreateInterstitialClicked(object sender, EventArgs e)
+        {
+            var interstitialAd = _interstitialAdService.CreateAd();
+            interstitialAd.OnAdLoaded += InterstitialAd_OnAdLoaded;
+            interstitialAd.Load();
+        }
+
+        private void InterstitialAd_OnAdLoaded(object sender, EventArgs e)
+        {
+            (sender as IInterstitialAd).Show();
         }
     }
 
