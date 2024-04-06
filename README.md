@@ -77,10 +77,22 @@ and then place the banner in your page. *Note: the `AdUnitId` is optional when u
 <admob:BannerAd AdUnitId="ca-app-pub-xxxxxxxxxxxxxxxx/xxxxxxxxxx" />
 ```
 
+## Displaying an interstitial ad
+
+Interstitial ads are displayed using the `IInterstitialAdService` service. The service is registered by the plugin and can be either injected or retrieved from the service provider as follows:
+
+```
+var interstitialAdService = Services.ServiceProvider.GetService<IInterstitialAdService>()
+```
+
+Once you grab hold of the service instance, the next step is to preload the interstitial ad. You can do so by calling the `PrepareAd` method. You can pass your `adUnitId` as a parameter, or call it without any parameters to use the configured `AdConfig.DefaultInterstitialAdUnitId`. After the ad is prepared, simply call `ShowAd()` to display the interstitial ad.
+
 # Samples
 
 Check out the [samples](https://github.com/marius-bughiu/Plugin.AdMob/tree/main/samples/Samples) folder for fully functional plugin integration examples.
 
-![image](https://github.com/marius-bughiu/Plugin.AdMob/assets/11870708/f95ad204-8366-4a6d-81e8-2c46bf06cd2c)
-![image](https://github.com/marius-bughiu/Plugin.AdMob/assets/11870708/50bda781-0d5a-43b4-9ee8-ecc9fc62444a)
+| Type | iOS | Android |
+|---|---|---|
+| Banner | ![Simulator Screenshot - iPhone 15 - 2024-04-06 at 19 08 41](https://github.com/marius-bughiu/Plugin.AdMob/assets/11870708/3ae7f1e2-fefb-4f83-aa2d-7a0bcea2a2a5) | ![Screenshot_1712419847](https://github.com/marius-bughiu/Plugin.AdMob/assets/11870708/3dd097d0-dc5e-484e-93be-078edbfc6134) |
+| Interstitial | ![Simulator Screenshot - iPhone 15 - 2024-04-06 at 19 08 48](https://github.com/marius-bughiu/Plugin.AdMob/assets/11870708/107cdaa1-b52b-461b-98a3-222ff2451a9b) | ![Screenshot_1712419852](https://github.com/marius-bughiu/Plugin.AdMob/assets/11870708/84f7f44e-1aad-4a45-81e2-efef702317d3) |
 
