@@ -2,7 +2,6 @@
 using Android.Util;
 using Microsoft.Maui.Handlers;
 using Plugin.AdMob.Configuration;
-using Plugin.AdMob.Helpers;
 
 namespace Plugin.AdMob.Handlers;
 
@@ -29,9 +28,10 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
             adUnitId = AdMobTestAdUnits.Banner;
         }
 
+        var adSize = GetAdSize();
         var adView = new AdView(Context) 
         { 
-            AdSize = GetAdSize(),
+            AdSize = adSize,
             AdUnitId = adUnitId
         };
 
@@ -47,19 +47,11 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
 
         adView.LoadAd(adRequest);
 
-        VirtualView.HeightRequest = GetSmartBannerHeightDp();
+        VirtualView.HeightRequest = adSize.Height;
+        VirtualView.WidthRequest = adSize.Width;
 
         return adView;
-    }
-
-    private int GetSmartBannerHeightDp()
-    {
-        var displayMetrics = new DisplayMetrics();
-        Context.Display.GetMetrics(displayMetrics);
-
-        var screenHeightDp = displayMetrics.HeightPixels / displayMetrics.Density;
-        return BannerSizeHelper.GetSmartBannerHeight(screenHeightDp);
-    }
+    }   
 
     private Android.Gms.Ads.AdSize GetAdSize()
     {
@@ -73,7 +65,17 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
             case AdSize.FullBanner: return Android.Gms.Ads.AdSize.FullBanner;
             case AdSize.Leaderboard: return Android.Gms.Ads.AdSize.Leaderboard;
             case AdSize.Custom: return new Android.Gms.Ads.AdSize(VirtualView.CustomAdWidth, VirtualView.CustomAdHeight);
-            default: return Android.Gms.Ads.AdSize.SmartBanner;
+
+            case AdSize.SmartBanner:
+            default: return Android.Gms.Ads.AdSize.GetCurrentOrientationAnchoredAdaptiveBannerAdSize(Context, GetScreenWidth());
         }
+    }
+
+    private int GetScreenWidth()
+    {
+        var displayMetrics = new DisplayMetrics();
+        Context.Display.GetMetrics(displayMetrics);
+
+        return (int)(displayMetrics.WidthPixels / displayMetrics.Density);
     }
 }
