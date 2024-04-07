@@ -2,6 +2,7 @@
 using Android.Util;
 using Microsoft.Maui.Handlers;
 using Plugin.AdMob.Configuration;
+using Plugin.AdMob.Platforms.Android.Banner;
 
 namespace Plugin.AdMob.Handlers;
 
@@ -36,6 +37,16 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
         var requestBuilder = new AdRequest.Builder();
         var adRequest = requestBuilder.Build();
 
+        var listener = new BannerAdListener();
+        listener.AdLoaded += VirtualView.RaiseOnAdLoaded;
+        listener.AdFailedToLoad += (s, e) => VirtualView.RaiseOnAdFailedToLoad(s, new AdError(e.Message));
+        listener.AdImpression += VirtualView.RaiseOnAdImpression;
+        listener.AdClicked += VirtualView.RaiseOnAdClicked;
+        listener.AdSwiped += VirtualView.RaiseOnAdSwiped;
+        listener.AdOpened += VirtualView.RaiseOnAdOpened;
+        listener.AdClosed += VirtualView.RaiseOnAdClosed;
+
+        adView.AdListener = listener;
         adView.LoadAd(adRequest);
 
         VirtualView.HeightRequest = adSize.Height;

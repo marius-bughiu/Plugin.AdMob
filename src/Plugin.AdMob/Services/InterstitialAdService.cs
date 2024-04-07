@@ -37,13 +37,11 @@ internal class InterstitialAdService : IInterstitialAdService
 
     private string GetAdUnitId(string adUnitId)
     {
-        adUnitId ??= AdConfig.DefaultInterstitialAdUnitId;
-
         if (AdConfig.UseTestAdUnitIds)
         {
-            adUnitId = AdMobTestAdUnits.Interstitial;
+            return AdMobTestAdUnits.Interstitial;
         }
 
-        return adUnitId;
+        return adUnitId ?? AdConfig.DefaultInterstitialAdUnitId;
     }
 }

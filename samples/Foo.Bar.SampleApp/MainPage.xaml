@@ -28,7 +28,7 @@
                     HorizontalOptions="Center" />
 
                 <Label Padding="25,0" Text="SmartBanner:" />
-                <admob:BannerAd />
+                <admob:BannerAd OnAdLoaded="BannerAd_OnAdLoaded" />
 
                 <Label Padding="25,0" Text="Banner:" />
                 <admob:BannerAd AdSize="Banner" />

@@ -41,6 +41,14 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
 
         VirtualView.HeightRequest = adSize.Size.Height;
         VirtualView.WidthRequest = adSize.Size.Width;
+
+        adView.AdReceived += VirtualView.RaiseOnAdLoaded;
+        adView.ReceiveAdFailed += (s, e) => VirtualView.RaiseOnAdFailedToLoad(this, new AdError(e.Error.DebugDescription));
+        adView.ImpressionRecorded += VirtualView.RaiseOnAdImpression;
+        adView.ClickRecorded += VirtualView.RaiseOnAdClicked;
+        adView.WillPresentScreen += VirtualView.RaiseOnAdOpened;
+        adView.ScreenDismissed += VirtualView.RaiseOnAdClosed;
+
         adView.LoadRequest(request);
 
         return adView;

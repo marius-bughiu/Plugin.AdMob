@@ -1,5 +1,6 @@
 ﻿using Plugin.AdMob;
 using Plugin.AdMob.Services;
+using System.Diagnostics;
 
 namespace Foo.Bar.SampleApp
 {
@@ -31,6 +32,11 @@ namespace Foo.Bar.SampleApp
         private void InterstitialAd_OnAdLoaded(object sender, EventArgs e)
         {
             (sender as IInterstitialAd).Show();
+        }
+
+        private void BannerAd_OnAdLoaded(object sender, EventArgs e)
+        {
+            Debug.WriteLine("Banner ad loaded.");
         }
     }
 

@@ -1,9 +1,15 @@
-﻿using Microsoft.Maui.Controls;
-
-namespace Plugin.AdMob;
+﻿namespace Plugin.AdMob;
 
 public class BannerAd : ContentView
 {
+    public event EventHandler OnAdLoaded;
+    public event EventHandler<IAdError> OnAdFailedToLoad;
+    public event EventHandler OnAdImpression;
+    public event EventHandler OnAdClicked;
+    public event EventHandler OnAdSwiped;
+    public event EventHandler OnAdOpened;
+    public event EventHandler OnAdClosed;
+
     public static readonly BindableProperty AdUnitIdProperty =
         BindableProperty.Create("AdUnitId", typeof(string), typeof(BannerAd), null);
 
@@ -39,4 +45,12 @@ public class BannerAd : ContentView
         get { return (int)GetValue(AdHeightProperty); }
         set { SetValue(AdHeightProperty, value); }
     }
+
+    internal void RaiseOnAdLoaded(object sender, EventArgs e) => OnAdLoaded?.Invoke(sender, e);
+    internal void RaiseOnAdFailedToLoad(object sender, IAdError e) => OnAdFailedToLoad?.Invoke(sender, e);
+    internal void RaiseOnAdImpression(object sender, EventArgs e) => OnAdImpression?.Invoke(sender, e);
+    internal void RaiseOnAdClicked(object sender, EventArgs e) => OnAdClicked?.Invoke(sender, e);
+    internal void RaiseOnAdSwiped(object sender, EventArgs e) => OnAdSwiped?.Invoke(sender, e);
+    internal void RaiseOnAdOpened(object sender, EventArgs e) => OnAdOpened?.Invoke(sender, e);
+    internal void RaiseOnAdClosed(object sender, EventArgs e) => OnAdClosed?.Invoke(sender, e);
 }
