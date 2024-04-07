@@ -6,12 +6,39 @@ public interface IInterstitialAd
 
     bool IsLoaded { get; }
 
+    /// <summary>
+    /// Raised when an ad is loaded.
+    /// </summary>
     event EventHandler OnAdLoaded;
+
+    /// <summary>
+    /// Raised when an ad request failed.
+    /// </summary>
     event EventHandler<IAdError> OnAdFailedToLoad;
+
+    /// <summary>
+    /// Raised when the ad showed the full screen content.
+    /// </summary>
     event EventHandler OnAdShowed;
+
+    /// <summary>
+    /// Raised when the ad failed to show full screen content.
+    /// </summary>
     event EventHandler<IAdError> OnAdFailedToShow;
+
+    /// <summary>
+    /// Raised when an impression is recorded for an ad.
+    /// </summary>
     event EventHandler OnAdImpression;
+
+    /// <summary>
+    /// Raised when a click is recorded for an ad.
+    /// </summary>
     event EventHandler OnAdClicked;
+
+    /// <summary>
+    /// Raised when the ad dismissed full screen content.
+    /// </summary>
     event EventHandler OnAdDismissed;
 
     void Load() => throw new NotImplementedException();

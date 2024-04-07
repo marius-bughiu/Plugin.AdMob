@@ -2,12 +2,39 @@
 
 public class BannerAd : ContentView
 {
+    /// <summary>
+    /// Raised when an ad is received.
+    /// </summary>
     public event EventHandler OnAdLoaded;
+
+    /// <summary>
+    /// Raised when an ad request failed.
+    /// </summary>
     public event EventHandler<IAdError> OnAdFailedToLoad;
+
+    /// <summary>
+    /// Raised when an impression is recorded for an ad.
+    /// </summary>
     public event EventHandler OnAdImpression;
+
+    /// <summary>
+    /// Raised when a click is recorded for an ad.
+    /// </summary>
     public event EventHandler OnAdClicked;
+
+    /// <summary>
+    /// Raised when a swipe gesture on an ad is recorded as a click. Supported only by Android.
+    /// </summary>
     public event EventHandler OnAdSwiped;
+
+    /// <summary>
+    /// Raised when an ad opens an overlay that covers the screen.
+    /// </summary>
     public event EventHandler OnAdOpened;
+
+    /// <summary>
+    /// Raised when the user is about to return to the application after clicking on an ad.
+    /// </summary>
     public event EventHandler OnAdClosed;
 
     public static readonly BindableProperty AdUnitIdProperty =
