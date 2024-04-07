@@ -20,29 +20,20 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
 
     protected override AdView CreatePlatformView()
     {
-        var adUnitId = VirtualView.AdUnitId;
-        adUnitId ??= AdConfig.DefaultBannerAdUnitId;
-
-        if (AdConfig.UseTestAdUnitIds)
-        {
-            adUnitId = AdMobTestAdUnits.Banner;
-        }
-
+        var adUnitId = GetAdUnitId();
         var adSize = GetAdSize();
-        var adView = new AdView(Context) 
-        { 
+
+        var adView = new AdView(Context)
+        {
             AdSize = adSize,
             AdUnitId = adUnitId
         };
 
-        var requestBuilder = new AdRequest.Builder();
-
         var configBuilder = new RequestConfiguration.Builder();
-
         configBuilder.SetTestDeviceIds(AdConfig.TestDevices);
-
         MobileAds.RequestConfiguration = configBuilder.Build();
 
+        var requestBuilder = new AdRequest.Builder();
         var adRequest = requestBuilder.Build();
 
         adView.LoadAd(adRequest);
@@ -51,12 +42,20 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
         VirtualView.WidthRequest = adSize.Width;
 
         return adView;
-    }   
+    }
+
+    private string GetAdUnitId()
+    {
+        if (AdConfig.UseTestAdUnitIds)
+        {
+            return AdMobTestAdUnits.Banner;
+        }
+
+        return VirtualView.AdUnitId ?? AdConfig.DefaultBannerAdUnitId;
+    }
 
     private Android.Gms.Ads.AdSize GetAdSize()
     {
-        // TODO: Use GetCurrentOrientationAnchoredAdaptiveBannerAdSize instead of SmartBanner
-
         switch (VirtualView.AdSize)
         {
             case AdSize.Banner: return Android.Gms.Ads.AdSize.Banner;

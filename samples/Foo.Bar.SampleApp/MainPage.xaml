@@ -17,9 +17,14 @@
 
                 <Label Padding="25,0" Text="Interstitial:" />
                 <Button
-                    Text="Show interstitial ad"
+                    Text="Show interstitial (Prepare+Show)"
                     SemanticProperties.Hint="Shows a test interstitial ad"
                     Clicked="OnShowInterstitialClicked"
+                    HorizontalOptions="Center" />
+                <Button
+                    Text="Show interstitial (Create+Load+Show)"
+                    SemanticProperties.Hint="Shows a test interstitial ad"
+                    Clicked="OnCreateInterstitialClicked"
                     HorizontalOptions="Center" />
 
                 <Label Padding="25,0" Text="SmartBanner:" />

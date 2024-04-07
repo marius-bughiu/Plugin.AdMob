@@ -37,14 +37,4 @@
 	    <Version>122.3.0.2</Version>
 	  </PackageReference>
 	</ItemGroup>
-
-	<ItemGroup>
-	  <Compile Update="Platforms\iOS\BannerAdHandler.cs">
-	    <ExcludeFromCurrentConfiguration>false</ExcludeFromCurrentConfiguration>
-	  </Compile>
-	  <Compile Update="Platforms\iOS\InterstitialAdService.cs">
-	    <ExcludeFromCurrentConfiguration>false</ExcludeFromCurrentConfiguration>
-	  </Compile>
-	</ItemGroup>
-
 </Project>
