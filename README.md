@@ -1,8 +1,12 @@
 # AdMob plugin for .NET MAUI
 
-[![NuGet version (Plugin.AdMob)](https://img.shields.io/nuget/v/Plugin.AdMob.svg?style=flat-square)](https://www.nuget.org/packages/Plugin.AdMob/)
+[![NuGet version (Plugin.AdMob)](https://img.shields.io/nuget/v/Plugin.AdMob.svg?style=flat-square)](https://www.nuget.org/packages/Plugin.AdMob/) [![NuGet version (Plugin.AdMob)](https://img.shields.io/nuget/vpre/Plugin.AdMob.svg?style=flat-square)](https://www.nuget.org/packages/Plugin.AdMob/)
 
 *This project has no affiliation with Microsoft or the Maui/Xamarin teams.*
+
+```
+dotnet add package Plugin.AdMob
+```
 
 ## Features
 
