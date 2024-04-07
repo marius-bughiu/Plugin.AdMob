@@ -34,9 +34,6 @@ jobs:
     - name: Install ios workload
       run: dotnet workload install ios
 
-    - name: Install maccatalyst workload
-      run: dotnet workload install maccatalyst
-
     - name: Restore dependencies
       run: dotnet restore
 
