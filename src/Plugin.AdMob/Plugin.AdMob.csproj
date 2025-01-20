@@ -26,7 +26,6 @@
 		<PackageReference Include="Microsoft.Maui.Controls" Version="8.0.14" />
 		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="8.0.14" />
 		<PackageReference Include="Xamarin.Build.Download" Version="0.11.4" />
-		<PackageReference Include="Xamarin.Google.iOS.MobileAds" Version="8.13.0.3" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0-android'">
@@ -36,6 +35,10 @@
 		<PackageReference Include="Xamarin.GooglePlayServices.Ads.Lite">
 			<Version>122.3.0.3</Version>
 		</PackageReference>
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0-ios'">
+		<PackageReference Include="Jc.GMA.iOS" Version="9.14.0" />
 	</ItemGroup>
 
 	<ItemGroup>
