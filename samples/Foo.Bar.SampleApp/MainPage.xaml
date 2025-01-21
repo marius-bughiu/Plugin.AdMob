@@ -15,6 +15,13 @@
                 Padding="0,25"
                 VerticalOptions="Center">
 
+                <Label Padding="25, 0" Text="Rewarded:" />
+                <Button
+                    Text="Show rewarded (Create+Load+Show)"
+                    SemanticProperties.Hint="Shows a test rewarded ad"
+                    Clicked="OnCreateRewardedAdClicked"
+                    HorizontalOptions="Center"></Button>
+                
                 <Label Padding="25,0" Text="Interstitial:" />
                 <Button
                     Text="Show interstitial (Prepare+Show)"
