@@ -7,6 +7,8 @@ public static class AdConfig
     public static string DefaultInterstitialAdUnitId { get; set; }
     
     public static string DefaultRewardedAdUnitId { get; set; }
+    
+    public static string DefaultRewardedInterstitialAdUnitId { get; set; }
 
     public static IList<string> TestDevices { get; } = new List<string>();
 

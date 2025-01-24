@@ -6,7 +6,7 @@ public interface IRewardedAdService
 {
     IRewardedAd CreateAd(string adUnitId = null);
     
-    void PrepareAd(string adUnitId = null);
+    void PrepareAd(string adUnitId = null, Action<RewardItem> onUserEarnedReward = null);
     
     void ShowAd();
 }
@@ -22,9 +22,14 @@ internal class RewardedAdService : IRewardedAdService
         return new RewardedAd(adUnitId);
     }
 
-    public void PrepareAd(string adUnitId = null)
+    public void PrepareAd(string adUnitId = null, Action<RewardItem> onUserEarnedReward = null)
     {
         var rewardedAd = CreateAd(adUnitId);
+        
+        if (onUserEarnedReward != null)
+        {
+            rewardedAd.OnUserEarnedReward += (_, reward) => onUserEarnedReward(reward);
+        }
         rewardedAd.Load();
         
         _rewardedAd = rewardedAd;
