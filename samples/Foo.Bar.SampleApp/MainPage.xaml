@@ -17,10 +17,27 @@
 
                 <Label Padding="25, 0" Text="Rewarded:" />
                 <Button
+                    Text="Show rewarded (Prepare+Show)"
+                    SemanticProperties.Hint="Shows a test rewarded ad"
+                    Clicked="OnShowRewardedAdClicked"
+                    HorizontalOptions="Center"></Button>
+                <Button
                     Text="Show rewarded (Create+Load+Show)"
                     SemanticProperties.Hint="Shows a test rewarded ad"
                     Clicked="OnCreateRewardedAdClicked"
                     HorizontalOptions="Center"></Button>
+                
+                <Label Padding="25,0" Text="Rewarded Interstitial:" />
+                <Button
+                    Text="Show rewarded interstitial (Prepare+Show)"
+                    SemanticProperties.Hint="Shows a test rewarded interstitial ad"
+                    Clicked="OnShowRewardedInterstitialClicked"
+                    HorizontalOptions="Center" />
+                <Button
+                    Text="Show rewarded interstitial (Create+Load+Show)"
+                    SemanticProperties.Hint="Shows a test rewarded interstitial ad"
+                    Clicked="OnCreateRewardedInterstitialClicked"
+                    HorizontalOptions="Center" />
                 
                 <Label Padding="25,0" Text="Interstitial:" />
                 <Button
