@@ -1,12 +1,14 @@
-﻿namespace Foo.Bar.SampleApp
-{
-    public partial class App : Application
-    {
-        public App()
-        {
-            InitializeComponent();
+﻿namespace Foo.Bar.SampleApp;
 
-            MainPage = new AppShell();
-        }
-    }
+public partial class App : Application
+{
+	public App()
+	{
+		InitializeComponent();
+	}
+
+	protected override Window CreateWindow(IActivationState? activationState)
+	{
+		return new Window(new AppShell());
+	}
 }
