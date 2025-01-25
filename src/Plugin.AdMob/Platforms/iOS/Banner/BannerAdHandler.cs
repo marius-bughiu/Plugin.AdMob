@@ -22,7 +22,7 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
         var adSize = GetAdSize();
         var adView = new BannerView()
         {
-            RootViewController = GetRootViewController()
+            RootViewController = Platform.GetCurrentUIViewController()
         };
 
         if (string.IsNullOrEmpty(adView.AdUnitId) && !string.IsNullOrEmpty(AdConfig.DefaultBannerAdUnitId))
@@ -52,19 +52,6 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
         adView.LoadRequest(request);
 
         return adView;
-    }
-
-    private UIViewController GetRootViewController()
-    {
-        foreach (UIWindow window in UIApplication.SharedApplication.Windows)
-        {
-            if (window.RootViewController != null)
-            {
-                return window.RootViewController;
-            }
-        }
-
-        return null;
     }
 
     private Google.MobileAds.AdSize GetAdSize()
