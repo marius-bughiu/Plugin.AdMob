@@ -11,7 +11,8 @@ public interface IRewardedAdService
     void ShowAd();
 }
 
-internal class RewardedAdService : IRewardedAdService
+internal class RewardedAdService(IAdConsentService _adConsentService) 
+    : IRewardedAdService
 {
     private IRewardedAd _rewardedAd;
     
@@ -24,6 +25,11 @@ internal class RewardedAdService : IRewardedAdService
 
     public void PrepareAd(string adUnitId = null, Action<RewardItem> onUserEarnedReward = null)
     {
+        if (CanRequestAds() is false)
+        {
+            return;
+        }
+
         var rewardedAd = CreateAd(adUnitId);
         
         if (onUserEarnedReward != null)
@@ -48,5 +54,15 @@ internal class RewardedAdService : IRewardedAdService
         }
 
         return adUnitId ?? AdConfig.DefaultRewardedAdUnitId;
+    }
+
+    private bool CanRequestAds()
+    {
+        if (AdConfig.DisableConsentCheck)
+        {
+            return true;
+        }
+
+        return _adConsentService.CanRequestAds();
     }
 }

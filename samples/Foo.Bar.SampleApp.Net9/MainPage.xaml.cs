@@ -1,6 +1,7 @@
 ﻿using Plugin.AdMob;
 using Plugin.AdMob.Services;
 using System.Diagnostics;
+using ServiceProvider = Foo.Bar.SampleApp.Services.ServiceProvider;
 
 namespace Foo.Bar.SampleApp
 {
@@ -9,19 +10,23 @@ namespace Foo.Bar.SampleApp
         private readonly IInterstitialAdService _interstitialAdService;
         private readonly IRewardedInterstitialAdService _rewardedInterstitialAdService;
         private readonly IRewardedAdService _rewardedAdService;
+        private readonly IAdConsentService _adConsentService;
 
         public MainPage()
         {
             InitializeComponent();
 
-            _interstitialAdService = Services.ServiceProvider.GetService<IInterstitialAdService>();
+            _interstitialAdService = ServiceProvider.GetRequiredService<IInterstitialAdService>();
+            _rewardedAdService = ServiceProvider.GetRequiredService<IRewardedAdService>();
+            _rewardedInterstitialAdService = ServiceProvider.GetRequiredService<IRewardedInterstitialAdService>();
+            _adConsentService = ServiceProvider.GetRequiredService<IAdConsentService>();
+
             _interstitialAdService.PrepareAd();
-
-            _rewardedAdService = Services.ServiceProvider.GetService<IRewardedAdService>();
             _rewardedAdService.PrepareAd(onUserEarnedReward: UserDidEarnReward);
-
-            _rewardedInterstitialAdService = Services.ServiceProvider.GetService<IRewardedInterstitialAdService>();
             _rewardedInterstitialAdService.PrepareAd(onUserEarnedReward: UserDidEarnReward);
+
+            _adConsentService.OnConsentInfoUpdated += OnConsentInfoUpdated;
+            UpdateCanRequestAds();
         }
 
         private void OnShowInterstitialClicked(object sender, EventArgs e)
@@ -70,6 +75,31 @@ namespace Foo.Bar.SampleApp
             };
             rewardedInterstitialAd.OnAdLoaded += RewardedInterstitialAd_OnAdLoaded;
             rewardedInterstitialAd.Load();
+        }
+
+        private void OnShowIfRequiredClicked(object sender, EventArgs e)
+        {
+            _adConsentService.LoadAndShowConsentFormIfRequired();
+        }
+
+        private void OnShowPrivacyOptionsClicked(object sender, EventArgs e)
+        {
+            _adConsentService.ShowPrivacyOptionsForm();
+        }
+
+        private void OnResetClicked(object sender, EventArgs e)
+        {
+            _adConsentService.Reset();
+        }
+
+        private void UpdateCanRequestAds()
+        {
+            CanRequestAdsLabel.Text = _adConsentService.CanRequestAds().ToString();
+        }
+
+        private void OnConsentInfoUpdated(object? sender, IConsentInformation e)
+        {
+            UpdateCanRequestAds();
         }
 
         private void InterstitialAd_OnAdLoaded(object sender, EventArgs e)

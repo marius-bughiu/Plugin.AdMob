@@ -3,11 +3,14 @@ using Android.Util;
 using Microsoft.Maui.Handlers;
 using Plugin.AdMob.Configuration;
 using Plugin.AdMob.Platforms.Android.Banner;
+using Plugin.AdMob.Services;
 
 namespace Plugin.AdMob.Handlers;
 
 internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
 {
+    private IAdConsentService _adConsentService;
+
     public static IPropertyMapper<BannerAd, BannerAdHandler> PropertyMapper =
         new PropertyMapper<BannerAd, BannerAdHandler>(ViewMapper);
 
@@ -21,6 +24,9 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
 
     protected override AdView CreatePlatformView()
     {
+        _adConsentService = IPlatformApplication.Current.Services.GetService<IAdConsentService>();
+        _adConsentService.OnConsentInfoUpdated += (_,_) => LoadAd(PlatformView);
+
         var adUnitId = GetAdUnitId();
         var adSize = GetAdSize();
 
@@ -29,13 +35,6 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
             AdSize = adSize,
             AdUnitId = adUnitId
         };
-
-        var configBuilder = new RequestConfiguration.Builder();
-        configBuilder.SetTestDeviceIds(AdConfig.TestDevices);
-        MobileAds.RequestConfiguration = configBuilder.Build();
-
-        var requestBuilder = new AdRequest.Builder();
-        var adRequest = requestBuilder.Build();
 
         var listener = new BannerAdListener();
         listener.AdLoaded += VirtualView.RaiseOnAdLoaded;
@@ -47,12 +46,40 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
         listener.AdClosed += VirtualView.RaiseOnAdClosed;
 
         adView.AdListener = listener;
-        adView.LoadAd(adRequest);
 
-        VirtualView.HeightRequest = adSize.Height;
-        VirtualView.WidthRequest = adSize.Width;
+        if (CanRequestAds() is true)
+        {
+            LoadAd(adView);
+        }
+        else
+        {
+            VirtualView.HeightRequest = 0;
+            VirtualView.WidthRequest = 0;
+        }
 
         return adView;
+    }
+
+    private void LoadAd(AdView adView)
+    {
+        if (CanRequestAds() is false)
+        {
+            VirtualView.HeightRequest = 0;
+            VirtualView.WidthRequest = 0;
+            return;
+        }
+
+        var configBuilder = new RequestConfiguration.Builder();
+        configBuilder.SetTestDeviceIds(AdConfig.TestDevices);
+        MobileAds.RequestConfiguration = configBuilder.Build();
+
+        var requestBuilder = new AdRequest.Builder();
+        var adRequest = requestBuilder.Build();
+
+        adView.LoadAd(adRequest);
+
+        VirtualView.HeightRequest = adView.AdSize.Height;
+        VirtualView.WidthRequest = adView.AdSize.Width;
     }
 
     private string GetAdUnitId()
@@ -87,5 +114,15 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
         Context.Display.GetMetrics(displayMetrics);
 
         return (int)(displayMetrics.WidthPixels / displayMetrics.Density);
+    }
+
+    private bool CanRequestAds()
+    {
+        if (AdConfig.DisableConsentCheck)
+        {
+            return true;
+        }
+
+        return _adConsentService.CanRequestAds();
     }
 }

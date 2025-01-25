@@ -11,7 +11,8 @@ public interface IRewardedInterstitialAdService
     void ShowAd();
 }
 
-internal class RewardedInterstitialAdService : IRewardedInterstitialAdService
+internal class RewardedInterstitialAdService(IAdConsentService _adConsentService) 
+    : IRewardedInterstitialAdService
 {
     private IRewardedInterstitialAd _rewardedInterstitialAd;
     
@@ -24,6 +25,11 @@ internal class RewardedInterstitialAdService : IRewardedInterstitialAdService
     
     public void PrepareAd(string adUnitId = null, Action<RewardItem> onUserEarnedReward = null)
     {
+        if (CanRequestAds() is false)
+        {
+            return;
+        }
+
         var rewardedInterstitialAd = CreateAd(adUnitId);
         
         if (onUserEarnedReward != null)
@@ -48,5 +54,15 @@ internal class RewardedInterstitialAdService : IRewardedInterstitialAdService
         }
 
         return adUnitId ?? AdConfig.DefaultRewardedInterstitialAdUnitId;
+    }
+
+    private bool CanRequestAds()
+    {
+        if (AdConfig.DisableConsentCheck)
+        {
+            return true;
+        }
+
+        return _adConsentService.CanRequestAds();
     }
 }

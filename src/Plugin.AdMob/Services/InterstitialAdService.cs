@@ -11,7 +11,8 @@ public interface IInterstitialAdService
     void ShowAd();
 }
 
-internal class InterstitialAdService : IInterstitialAdService
+internal class InterstitialAdService(IAdConsentService _adConsentService) 
+    : IInterstitialAdService
 {
     private IInterstitialAd _interstitialAd;
 
@@ -24,6 +25,11 @@ internal class InterstitialAdService : IInterstitialAdService
 
     public void PrepareAd(string adUnitId = null)
     {
+        if (CanRequestAds() is false)
+        {
+            return;
+        }
+
         var interstitialAd = CreateAd(adUnitId);
         interstitialAd.Load();
 
@@ -43,5 +49,15 @@ internal class InterstitialAdService : IInterstitialAdService
         }
 
         return adUnitId ?? AdConfig.DefaultInterstitialAdUnitId;
+    }
+
+    private bool CanRequestAds()
+    {
+        if (AdConfig.DisableConsentCheck)
+        {
+            return true;
+        }
+
+        return _adConsentService.CanRequestAds();
     }
 }
