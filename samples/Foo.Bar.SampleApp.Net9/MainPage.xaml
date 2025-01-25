@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:admob="clr-namespace:Plugin.AdMob;assembly=Plugin.AdMob"
+             x:Class="Foo.Bar.SampleApp.MainPage">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <ScrollView>
+            <VerticalStackLayout
+                Spacing="25"
+                Padding="0,25"
+                VerticalOptions="Center">
+
+                <Label Padding="25, 0" Text="Rewarded:" />
+                <Button
+                    Text="Show rewarded (Prepare+Show)"
+                    SemanticProperties.Hint="Shows a test rewarded ad"
+                    Clicked="OnShowRewardedAdClicked"
+                    HorizontalOptions="Center"></Button>
+                <Button
+                    Text="Show rewarded (Create+Load+Show)"
+                    SemanticProperties.Hint="Shows a test rewarded ad"
+                    Clicked="OnCreateRewardedAdClicked"
+                    HorizontalOptions="Center"></Button>
+
+                <Label Padding="25,0" Text="Rewarded Interstitial:" />
+                <Button
+                    Text="Show rewarded interstitial (Prepare+Show)"
+                    SemanticProperties.Hint="Shows a test rewarded interstitial ad"
+                    Clicked="OnShowRewardedInterstitialClicked"
+                    HorizontalOptions="Center" />
+                <Button
+                    Text="Show rewarded interstitial (Create+Load+Show)"
+                    SemanticProperties.Hint="Shows a test rewarded interstitial ad"
+                    Clicked="OnCreateRewardedInterstitialClicked"
+                    HorizontalOptions="Center" />
+
+                <Label Padding="25,0" Text="Interstitial:" />
+                <Button
+                    Text="Show interstitial (Prepare+Show)"
+                    SemanticProperties.Hint="Shows a test interstitial ad"
+                    Clicked="OnShowInterstitialClicked"
+                    HorizontalOptions="Center" />
+                <Button
+                    Text="Show interstitial (Create+Load+Show)"
+                    SemanticProperties.Hint="Shows a test interstitial ad"
+                    Clicked="OnCreateInterstitialClicked"
+                    HorizontalOptions="Center" />
+
+                <Label Padding="25,0" Text="SmartBanner:" />
+                <admob:BannerAd OnAdLoaded="BannerAd_OnAdLoaded" />
+
+                <Label Padding="25,0" Text="Banner:" />
+                <admob:BannerAd AdSize="Banner" />
+
+                <Label Padding="25,0" Text="FullBanner:" />
+                <admob:BannerAd AdSize="FullBanner" />
+
+                <Label Padding="25,0" Text="LargeBanner:" />
+                <admob:BannerAd AdSize="LargeBanner" />
+
+                <Label Padding="25,0" Text="Leaderboard:" />
+                <admob:BannerAd AdSize="Leaderboard" />
+
+                <Label Padding="25,0" Text="MediumRectangle:" />
+                <admob:BannerAd AdSize="MediumRectangle" />
+
+                <Label Padding="25,0" Text="Custom (200x200):" />
+                <admob:BannerAd AdSize="Custom" CustomAdWidth="200" CustomAdHeight="200" />
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+
+</ContentPage>
