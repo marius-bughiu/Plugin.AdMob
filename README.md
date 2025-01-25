@@ -19,8 +19,13 @@ dotnet add package Plugin.AdMob
 
 For setup instructions and usage documentation, check out the [Wiki](https://github.com/marius-bughiu/Plugin.AdMob/wiki):
 
-- [Setup](https://github.com/marius-bughiu/Plugin.AdMob/wiki/1.-Setup)
-- [Configuration](https://github.com/marius-bughiu/Plugin.AdMob/wiki/2.-Configuration)
-- [Banner ads](https://github.com/marius-bughiu/Plugin.AdMob/wiki/3.-Banner-ads)
-- [Interstitial ads](https://github.com/marius-bughiu/Plugin.AdMob/wiki/4.-Interstitial-ads)
-- [Samples](https://github.com/marius-bughiu/Plugin.AdMob/wiki/5.-Samples)
+1. [Setup](https://github.com/marius-bughiu/Plugin.AdMob/wiki/Setup)
+1. [Configuration](https://github.com/marius-bughiu/Plugin.AdMob/wiki/Configuration)
+1. [Consent](https://github.com/marius-bughiu/Plugin.AdMob/wiki/Consent)
+1. [Banner ads](https://github.com/marius-bughiu/Plugin.AdMob/wiki/Banner-ads)
+1. [Interstitial ads](https://github.com/marius-bughiu/Plugin.AdMob/wiki/Interstitial-ads)
+1. [Rewarded ads](https://github.com/marius-bughiu/Plugin.AdMob/wiki/Rewarded-ads)
+1. [Rewarded interstitial ads](https://github.com/marius-bughiu/Plugin.AdMob/wiki/Rewarded-interstitial-ads)
+1. Native ads
+1. App open ads
+1. [Samples](https://github.com/marius-bughiu/Plugin.AdMob/wiki/Samples)
