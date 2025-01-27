@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Foo.Bar.SampleApp.Net8", "F
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Foo.Bar.SampleApp.Net9", "Foo.Bar.SampleApp.Net9\Foo.Bar.SampleApp.Net9.csproj", "{604A45AF-2D66-46A9-BF23-A7A9944C14BF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Foo.Bar.SampleApp.Hybrid", "Foo.Bar.SampleApp.Hybrid\Foo.Bar.SampleApp.Hybrid.csproj", "{C07F479D-2CFF-4975-B7F1-BFD0C1A370EA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -31,6 +33,12 @@ Global
 		{604A45AF-2D66-46A9-BF23-A7A9944C14BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{604A45AF-2D66-46A9-BF23-A7A9944C14BF}.Release|Any CPU.Build.0 = Release|Any CPU
 		{604A45AF-2D66-46A9-BF23-A7A9944C14BF}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{C07F479D-2CFF-4975-B7F1-BFD0C1A370EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C07F479D-2CFF-4975-B7F1-BFD0C1A370EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C07F479D-2CFF-4975-B7F1-BFD0C1A370EA}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{C07F479D-2CFF-4975-B7F1-BFD0C1A370EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C07F479D-2CFF-4975-B7F1-BFD0C1A370EA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C07F479D-2CFF-4975-B7F1-BFD0C1A370EA}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
