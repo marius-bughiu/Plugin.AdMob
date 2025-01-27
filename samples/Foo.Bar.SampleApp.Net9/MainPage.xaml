@@ -11,65 +11,120 @@
         </Grid.RowDefinitions>
         <ScrollView>
             <VerticalStackLayout
-                Spacing="25"
-                Padding="0,25"
+                Spacing="16"
+                Padding="0,16"
                 VerticalOptions="Center">
 
-                <Label Padding="25, 0" Text="Rewarded:" />
-                <Button
-                    Text="Show rewarded (Prepare+Show)"
-                    SemanticProperties.Hint="Shows a test rewarded ad"
-                    Clicked="OnShowRewardedAdClicked"
-                    HorizontalOptions="Center"></Button>
-                <Button
-                    Text="Show rewarded (Create+Load+Show)"
-                    SemanticProperties.Hint="Shows a test rewarded ad"
-                    Clicked="OnCreateRewardedAdClicked"
-                    HorizontalOptions="Center"></Button>
+                <HorizontalStackLayout Padding="16,0">
+                    <Label Text="Consent - Can request ads: " />
+                    <Label x:Name="CanRequestAdsLabel" Text="unknown" />
+                </HorizontalStackLayout>
 
-                <Label Padding="25,0" Text="Rewarded Interstitial:" />
-                <Button
-                    Text="Show rewarded interstitial (Prepare+Show)"
-                    SemanticProperties.Hint="Shows a test rewarded interstitial ad"
-                    Clicked="OnShowRewardedInterstitialClicked"
-                    HorizontalOptions="Center" />
-                <Button
-                    Text="Show rewarded interstitial (Create+Load+Show)"
-                    SemanticProperties.Hint="Shows a test rewarded interstitial ad"
-                    Clicked="OnCreateRewardedInterstitialClicked"
-                    HorizontalOptions="Center" />
+                <Grid Padding="16,0" ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*" />
+                        <ColumnDefinition Width="2*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
 
-                <Label Padding="25,0" Text="Interstitial:" />
-                <Button
-                    Text="Show interstitial (Prepare+Show)"
-                    SemanticProperties.Hint="Shows a test interstitial ad"
-                    Clicked="OnShowInterstitialClicked"
-                    HorizontalOptions="Center" />
-                <Button
-                    Text="Show interstitial (Create+Load+Show)"
-                    SemanticProperties.Hint="Shows a test interstitial ad"
-                    Clicked="OnCreateInterstitialClicked"
-                    HorizontalOptions="Center" />
+                    <Button
+                        Text="Show if required"
+                        SemanticProperties.Hint="Shows the consent form only if required"
+                        Clicked="OnShowIfRequiredClicked"
+                        HorizontalOptions="Fill" />
+                    <Button
+                        Text="Privacy options"
+                        Grid.Column="1"
+                        SemanticProperties.Hint="Shows the privacy options form"
+                        Clicked="OnShowPrivacyOptionsClicked"
+                        HorizontalOptions="Fill" />
+                    <Button
+                        Text="Reset"
+                        Grid.Column="2"
+                        SemanticProperties.Hint="Resets the consent information"
+                        Clicked="OnResetClicked"
+                        HorizontalOptions="Fill" />
+                </Grid>
 
-                <Label Padding="25,0" Text="SmartBanner:" />
+                <Label Padding="16,0" Text="Rewarded:" />
+                <Grid Padding="16,0" ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Button
+                        Text="Prepare + Show"
+                        SemanticProperties.Hint="Shows a test rewarded ad"
+                        Clicked="OnShowRewardedAdClicked"
+                        HorizontalOptions="Fill" />
+                    <Button
+                        Text="Create + Load + Show"
+                        Grid.Column="1"
+                        SemanticProperties.Hint="Shows a test rewarded ad"
+                        Clicked="OnCreateRewardedAdClicked"
+                        HorizontalOptions="Fill" />
+                </Grid>
+
+                <Label Padding="16,0" Text="Rewarded Interstitial:" />
+
+                <Grid Padding="16,0" ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Button
+                        Text="Prepare + Show"
+                        SemanticProperties.Hint="Shows a test rewarded interstitial ad"
+                        Clicked="OnShowRewardedInterstitialClicked"
+                        HorizontalOptions="Fill" />
+                    <Button
+                        Text="Create + Load + Show"
+                        Grid.Column="1"
+                        SemanticProperties.Hint="Shows a test rewarded interstitial ad"
+                        Clicked="OnCreateRewardedInterstitialClicked"
+                        HorizontalOptions="Fill" />
+                </Grid>
+
+
+                <Label Padding="16,0" Text="Interstitial:" />
+                <Grid Padding="16, 0" ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Button
+                        Text="Prepare + Show"
+                        SemanticProperties.Hint="Shows a test interstitial ad"
+                        Clicked="OnShowInterstitialClicked"
+                        HorizontalOptions="Fill" />
+                    <Button
+                        Text="Create + Load + Show"
+                        Grid.Column="1"
+                        SemanticProperties.Hint="Shows a test interstitial ad"
+                        Clicked="OnCreateInterstitialClicked"
+                        HorizontalOptions="Fill" />
+                </Grid>
+
+                <Label Padding="16,0" Text="SmartBanner:" />
                 <admob:BannerAd OnAdLoaded="BannerAd_OnAdLoaded" />
 
-                <Label Padding="25,0" Text="Banner:" />
+                <Label Padding="16,0" Text="Banner:" />
                 <admob:BannerAd AdSize="Banner" />
 
-                <Label Padding="25,0" Text="FullBanner:" />
+                <Label Padding="16,0" Text="FullBanner:" />
                 <admob:BannerAd AdSize="FullBanner" />
 
-                <Label Padding="25,0" Text="LargeBanner:" />
+                <Label Padding="16,0" Text="LargeBanner:" />
                 <admob:BannerAd AdSize="LargeBanner" />
 
-                <Label Padding="25,0" Text="Leaderboard:" />
+                <Label Padding="16,0" Text="Leaderboard:" />
                 <admob:BannerAd AdSize="Leaderboard" />
 
-                <Label Padding="25,0" Text="MediumRectangle:" />
+                <Label Padding="16,0" Text="MediumRectangle:" />
                 <admob:BannerAd AdSize="MediumRectangle" />
 
-                <Label Padding="25,0" Text="Custom (200x200):" />
+                <Label Padding="16,0" Text="Custom (200x200):" />
                 <admob:BannerAd AdSize="Custom" CustomAdWidth="200" CustomAdHeight="200" />
 
             </VerticalStackLayout>
