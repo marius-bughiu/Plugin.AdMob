@@ -55,7 +55,6 @@ jobs:
         path: ${{ env.NuGetDirectory }}/*.nupkg
   
   deploy:
-    if: false
     runs-on: ubuntu-latest
     needs: [ build ]
     steps:
