@@ -2,12 +2,27 @@
 
 namespace Plugin.AdMob.Services;
 
+/// <summary>
+/// A service used for managing interstitial ads.
+/// </summary>
 public interface IInterstitialAdService
 {
+    /// <summary>
+    /// Creates an interstitial ad instance given the specified ad unit ID. If no ad unit ID is specified, <see cref="AdConfig.DefaultInterstitialAdUnitId" /> will be used.
+    /// </summary>
+    /// <param name="adUnitId">The ad unit ID.</param>
+    /// <returns>An interstitial ad instance.</returns>
     IInterstitialAd CreateAd(string adUnitId = null);
 
+    /// <summary>
+    /// Preloads an ad given the specified ad unit ID. If no ad unit ID is specified, <see cref="AdConfig.DefaultInterstitialAdUnitId" /> will be used.
+    /// </summary>
+    /// <param name="adUnitId">The ad unit ID.</param>
     void PrepareAd(string adUnitId = null);
 
+    /// <summary>
+    /// Displays the already prepared ad. Does nothing if no ad was prepared.
+    /// </summary>
     void ShowAd();
 }
 
