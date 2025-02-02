@@ -1,7 +1,13 @@
 ﻿namespace Plugin.AdMob;
 
+/// <summary>
+/// An error which occurred while loading the consent form.
+/// </summary>
 public interface IConsentError
 {
+    /// <summary>
+    /// The error message.
+    /// </summary>
     string Message { get; }
 }
 
