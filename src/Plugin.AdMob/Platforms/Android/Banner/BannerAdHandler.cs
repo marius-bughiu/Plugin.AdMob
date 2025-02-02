@@ -9,7 +9,7 @@ namespace Plugin.AdMob.Handlers;
 
 internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
 {
-    private IAdConsentService _adConsentService;
+    private IAdConsentService? _adConsentService;
 
     public static IPropertyMapper<BannerAd, BannerAdHandler> PropertyMapper =
         new PropertyMapper<BannerAd, BannerAdHandler>(ViewMapper);
@@ -24,10 +24,16 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
 
     protected override AdView CreatePlatformView()
     {
-        _adConsentService = IPlatformApplication.Current.Services.GetService<IAdConsentService>();
+        _adConsentService = IPlatformApplication.Current!.Services.GetRequiredService<IAdConsentService>();
         _adConsentService.OnConsentInfoUpdated += (_,_) => LoadAd(PlatformView);
 
         var adUnitId = GetAdUnitId();
+
+        if (adUnitId is null)
+        {
+            throw new ArgumentNullException(nameof(adUnitId), "No ad unit ID was specified, and no default banner ad unit ID has been configured.");
+        }
+
         var adSize = GetAdSize();
 
         var adView = new AdView(Context)
@@ -78,11 +84,11 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
 
         adView.LoadAd(adRequest);
 
-        VirtualView.HeightRequest = adView.AdSize.Height;
-        VirtualView.WidthRequest = adView.AdSize.Width;
+        VirtualView.HeightRequest = adView.AdSize!.Height;
+        VirtualView.WidthRequest = adView.AdSize!.Width;
     }
 
-    private string GetAdUnitId()
+    private string? GetAdUnitId()
     {
         if (AdConfig.UseTestAdUnitIds)
         {
@@ -111,7 +117,7 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
     private int GetScreenWidth()
     {
         var displayMetrics = new DisplayMetrics();
-        Context.Display.GetMetrics(displayMetrics);
+        Context.Display!.GetMetrics(displayMetrics);
 
         return (int)(displayMetrics.WidthPixels / displayMetrics.Density);
     }
@@ -123,6 +129,6 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
             return true;
         }
 
-        return _adConsentService.CanRequestAds();
+        return _adConsentService?.CanRequestAds() ?? false;
     }
 }

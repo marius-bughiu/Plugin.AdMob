@@ -7,7 +7,7 @@ namespace Plugin.AdMob;
 
 internal partial class InterstitialAd
 {
-    private Google.MobileAds.InterstitialAd _ad;
+    private Google.MobileAds.InterstitialAd? _ad;
 
     public void Load()
     {
@@ -24,11 +24,11 @@ internal partial class InterstitialAd
             return;
         }
 
-        var viewController = UIApplication.SharedApplication.KeyWindow.RootViewController;
-        _ad.Present(viewController);
+        var viewController = UIApplication.SharedApplication.KeyWindow!.RootViewController;
+        _ad!.Present(viewController);
     }
 
-    private void AdLoaded(Google.MobileAds.InterstitialAd interstitialAd, NSError error)
+    private void AdLoaded(Google.MobileAds.InterstitialAd? interstitialAd, NSError? error)
     {
         if (error is not null)
         {
@@ -36,7 +36,7 @@ internal partial class InterstitialAd
             return;
         }
 
-        _ad = interstitialAd;
+        _ad = interstitialAd!;
 
         _ad.PresentedContent += (s, e) => OnAdShowed?.Invoke(s, e);
         _ad.FailedToPresentContent += (s, e) => OnAdFailedToShow?.Invoke(s, new AdError(e.Error.DebugDescription));

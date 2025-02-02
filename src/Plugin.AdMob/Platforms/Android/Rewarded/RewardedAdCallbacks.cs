@@ -5,9 +5,9 @@ namespace Plugin.AdMob.Rewarded;
 
 internal sealed class RewardedAdCallbacks : Android.Gms.Ads.Workarounds.RewardedAdLoadCallback, IOnUserEarnedRewardListener
 {
-    public event EventHandler<global::Android.Gms.Ads.Rewarded.RewardedAd> WhenAdLoaded;
-    public event EventHandler<LoadAdError> WhenAdFailedToLoad;
-    public event EventHandler<IRewardItem> WhenUserEarnedReward;
+    public event EventHandler<global::Android.Gms.Ads.Rewarded.RewardedAd>? WhenAdLoaded;
+    public event EventHandler<LoadAdError>? WhenAdFailedToLoad;
+    public event EventHandler<IRewardItem>? WhenUserEarnedReward;
 
     public override void OnAdLoaded(global::Android.Gms.Ads.Rewarded.RewardedAd rewardedAd)
     {

@@ -10,22 +10,22 @@ public interface IAdConsentService
     /// <summary>
     /// Raised when the consent information has been updated. This does not guarantee that consent has been obtained.
     /// </summary>
-    event EventHandler<IConsentInformation> OnConsentInfoUpdated;
+    event EventHandler<IConsentInformation?>? OnConsentInfoUpdated;
 
     /// <summary>
     /// Raised when we failed to update the consent information.
     /// </summary>
-    event EventHandler<IConsentError> OnConsentInfoFailedToUpdate;
+    event EventHandler<IConsentError>? OnConsentInfoFailedToUpdate;
 
     /// <summary>
     /// Raised after the user has dismissed the consent form.
     /// </summary>
-    event EventHandler OnConsentFormDismissed;
+    event EventHandler? OnConsentFormDismissed;
 
     /// <summary>
     /// Raised when we fail to show the consent form.
     /// </summary>
-    event EventHandler<IConsentError> OnConsentFormError;
+    event EventHandler<IConsentError>? OnConsentFormError;
 
     /// <summary>
     /// Updates the consent information and shows the consent form if required.
@@ -55,8 +55,8 @@ public interface IAdConsentService
 
 internal partial class AdConsentService : IAdConsentService
 {
-    public event EventHandler<IConsentInformation> OnConsentInfoUpdated;
-    public event EventHandler<IConsentError> OnConsentInfoFailedToUpdate;
-    public event EventHandler OnConsentFormDismissed;
-    public event EventHandler<IConsentError> OnConsentFormError;
+    public event EventHandler<IConsentInformation?>? OnConsentInfoUpdated;
+    public event EventHandler<IConsentError>? OnConsentInfoFailedToUpdate;
+    public event EventHandler? OnConsentFormDismissed;
+    public event EventHandler<IConsentError>? OnConsentFormError;
 }

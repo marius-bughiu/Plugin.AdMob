@@ -97,29 +97,29 @@ namespace Foo.Bar.SampleApp
             CanRequestAdsLabel.Text = _adConsentService.CanRequestAds().ToString();
         }
 
-        private void OnConsentInfoUpdated(object? sender, IConsentInformation e)
+        private void OnConsentInfoUpdated(object? sender, IConsentInformation? e)
         {
             UpdateCanRequestAds();
         }
 
-        private void InterstitialAd_OnAdLoaded(object sender, EventArgs e)
+        private void InterstitialAd_OnAdLoaded(object? sender, EventArgs e)
         {
-            (sender as IInterstitialAd).Show();
+            ((IInterstitialAd)sender!).Show();
         }
 
-        private void BannerAd_OnAdLoaded(object sender, EventArgs e)
+        private void BannerAd_OnAdLoaded(object? sender, EventArgs e)
         {
             Debug.WriteLine("Banner ad loaded.");
         }
         
-        private void RewardedAd_OnAdLoaded(object sender, EventArgs e)
+        private void RewardedAd_OnAdLoaded(object? sender, EventArgs e)
         {
-            (sender as IRewardedAd).Show();
+            ((IRewardedAd)sender!).Show();
         }
         
-        private void RewardedInterstitialAd_OnAdLoaded(object sender, EventArgs e)
+        private void RewardedInterstitialAd_OnAdLoaded(object? sender, EventArgs e)
         {
-            (sender as IRewardedInterstitialAd).Show();
+            ((IRewardedInterstitialAd)sender!).Show();
         }
 
         private static void UserDidEarnReward(RewardItem rewardItem)

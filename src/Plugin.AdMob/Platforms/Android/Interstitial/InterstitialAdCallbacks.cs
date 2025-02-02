@@ -5,8 +5,8 @@ namespace Plugin.AdMob.Platforms.Android.Interstitial;
 
 internal class InterstitialAdCallbacks : InterstitialAdLoadCallback
 {
-    public event EventHandler<global::Android.Gms.Ads.Interstitial.InterstitialAd> WhenAdLoaded;
-    public event EventHandler<LoadAdError> WhenAdFailedToLoaded;
+    public event EventHandler<global::Android.Gms.Ads.Interstitial.InterstitialAd>? WhenAdLoaded;
+    public event EventHandler<LoadAdError>? WhenAdFailedToLoaded;
 
     public override void OnAdLoaded(global::Android.Gms.Ads.Interstitial.InterstitialAd interstitialAd)
     {

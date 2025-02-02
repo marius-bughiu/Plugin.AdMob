@@ -6,7 +6,7 @@ namespace Plugin.AdMob;
 
 internal partial class InterstitialAd
 {
-    private Android.Gms.Ads.Interstitial.InterstitialAd _ad;
+    private Android.Gms.Ads.Interstitial.InterstitialAd? _ad;
 
     public void Load()
     {
@@ -39,11 +39,13 @@ internal partial class InterstitialAd
         listener.AdClicked += (s, e) => OnAdClicked?.Invoke(s, EventArgs.Empty);
         listener.AdDismissed += (s, e) => OnAdDismissed?.Invoke(s, EventArgs.Empty);
 
-        _ad.FullScreenContentCallback = listener;
-        _ad.Show(ActivityStateManager.Default.GetCurrentActivity());
+        _ad!.FullScreenContentCallback = listener;
+
+        var activity = ActivityStateManager.Default.GetCurrentActivity()!;
+        _ad.Show(activity);
     }
 
-    private void AdLoaded(object sender, Android.Gms.Ads.Interstitial.InterstitialAd interstitialAd)
+    private void AdLoaded(object? sender, Android.Gms.Ads.Interstitial.InterstitialAd interstitialAd)
     {
         _ad = interstitialAd;
         IsLoaded = true;

@@ -10,22 +10,22 @@ public static class AdConfig
     /// <summary>
     /// Optional banner ad unit ID to be used by default.
     /// </summary>
-    public static string DefaultBannerAdUnitId { get; set; }
+    public static string? DefaultBannerAdUnitId { get; set; }
 
     /// <summary>
     /// Optional interstitial ad unit ID to be used by default.
     /// </summary>
-    public static string DefaultInterstitialAdUnitId { get; set; }
+    public static string? DefaultInterstitialAdUnitId { get; set; }
 
     /// <summary>
     /// Optional rewarded ad unit ID to be used by default
     /// </summary>
-    public static string DefaultRewardedAdUnitId { get; set; }
+    public static string? DefaultRewardedAdUnitId { get; set; }
 
     /// <summary>
     /// Optional rewarded interstitial ad unit ID to be used by default
     /// </summary>
-    public static string DefaultRewardedInterstitialAdUnitId { get; set; }
+    public static string? DefaultRewardedInterstitialAdUnitId { get; set; }
 
     /// <summary>
     /// A list of test device IDs.

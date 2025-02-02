@@ -6,8 +6,8 @@ namespace Plugin.AdMob;
 
 internal partial class RewardedAd
 {
-    private Android.Gms.Ads.Rewarded.RewardedAd _ad;
-    private RewardedAdCallbacks _callbacks;
+    private Android.Gms.Ads.Rewarded.RewardedAd? _ad;
+    private RewardedAdCallbacks? _callbacks;
 
     public void Load()
     {
@@ -22,8 +22,9 @@ internal partial class RewardedAd
         _callbacks.WhenAdLoaded += AdLoaded;
         _callbacks.WhenAdFailedToLoad += (s, e) => OnAdFailedToLoad?.Invoke(s, new AdError(e.Message));
         _callbacks.WhenUserEarnedReward += (s, e) => OnUserEarnedReward?.Invoke(s, new RewardItem(e.Amount, e.Type));
-        
-        Android.Gms.Ads.Rewarded.RewardedAd.Load(ActivityStateManager.Default.GetCurrentActivity(), AdUnitId, adRequest, _callbacks);
+
+        var activity = ActivityStateManager.Default.GetCurrentActivity()!;
+        Android.Gms.Ads.Rewarded.RewardedAd.Load(activity, AdUnitId, adRequest, _callbacks);
     }
 
     public void Show()
@@ -42,10 +43,12 @@ internal partial class RewardedAd
         listener.AdClosed += (s, _) => OnAdDismissed?.Invoke(s, EventArgs.Empty);
 
         _ad.FullScreenContentCallback = listener;
-        _ad.Show(ActivityStateManager.Default.GetCurrentActivity(), _callbacks);
+
+        var activity = ActivityStateManager.Default.GetCurrentActivity()!;
+        _ad.Show(activity, _callbacks!);
     }
     
-    private void AdLoaded(object sender, global::Android.Gms.Ads.Rewarded.RewardedAd rewardedAd)
+    private void AdLoaded(object? sender, global::Android.Gms.Ads.Rewarded.RewardedAd rewardedAd)
     {
         _ad = rewardedAd;
         IsLoaded = true;
