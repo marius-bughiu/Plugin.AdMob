@@ -7,7 +7,7 @@ namespace Plugin.AdMob;
 
 internal partial class RewardedInterstitialAd
 {
-    private Google.MobileAds.RewardedInterstitialAd _ad;
+    private Google.MobileAds.RewardedInterstitialAd? _ad;
     
     public void Load()
     {
@@ -24,11 +24,11 @@ internal partial class RewardedInterstitialAd
             return;
         }
         
-        var viewController = UIApplication.SharedApplication.KeyWindow.RootViewController;
-        _ad.Present(viewController, () => OnUserEarnedReward?.Invoke(this, new RewardItem(_ad.Reward.Amount.Int32Value, _ad.Reward.Type)));
+        var viewController = UIApplication.SharedApplication.KeyWindow!.RootViewController!;
+        _ad!.Present(viewController, () => OnUserEarnedReward?.Invoke(this, new RewardItem(_ad.Reward.Amount.Int32Value, _ad.Reward.Type)));
     }
     
-    private void AdLoaded(Google.MobileAds.RewardedInterstitialAd rewardedAd, NSError error)
+    private void AdLoaded(Google.MobileAds.RewardedInterstitialAd? rewardedAd, NSError? error)
     {
         if (error is not null)
         {
@@ -36,7 +36,7 @@ internal partial class RewardedInterstitialAd
             return;
         }
         
-        _ad = rewardedAd;
+        _ad = rewardedAd!;
         
         _ad.PresentedContent += (s, e) => OnAdShowed?.Invoke(s, e);
         _ad.FailedToPresentContent += (s, e) => OnAdFailedToShow?.Invoke(s, new AdError(e.Error.DebugDescription));

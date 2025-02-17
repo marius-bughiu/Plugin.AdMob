@@ -12,14 +12,14 @@ public interface IRewardedInterstitialAdService
     /// </summary>
     /// <param name="adUnitId">The ad unit ID.</param>
     /// <returns>A rewarded interstitial ad instance.</returns>
-    IRewardedInterstitialAd CreateAd(string adUnitId = null);
+    IRewardedInterstitialAd CreateAd(string? adUnitId = null);
     
     /// <summary>
     /// Preloads an ad given the specified ad unit ID. If no ad unit ID is specified, <see cref="AdConfig.DefaultRewardedInterstitialAdUnitId" /> will be used.
     /// </summary>
     /// <param name="adUnitId">The ad unit ID.</param>
     /// <param name="onUserEarnedReward">A callback which is invoked when the user has earned a reward.</param>
-    void PrepareAd(string adUnitId = null, Action<RewardItem> onUserEarnedReward = null);
+    void PrepareAd(string? adUnitId = null, Action<RewardItem>? onUserEarnedReward = null);
     
     /// <summary>
     /// Displays the already prepared ad. Does nothing if no ad was prepared.
@@ -30,16 +30,21 @@ public interface IRewardedInterstitialAdService
 internal class RewardedInterstitialAdService(IAdConsentService _adConsentService) 
     : IRewardedInterstitialAdService
 {
-    private IRewardedInterstitialAd _rewardedInterstitialAd;
+    private IRewardedInterstitialAd? _rewardedInterstitialAd;
     
-    public IRewardedInterstitialAd CreateAd(string adUnitId = null)
+    public IRewardedInterstitialAd CreateAd(string? adUnitId = null)
     {
         adUnitId = GetAdUnitId(adUnitId);
-        
+
+        if (adUnitId is null)
+        {
+            throw new ArgumentNullException(nameof(adUnitId), "No ad unit ID was specified, and no default rewarded interstitial ad unit ID has been configured.");
+        }
+
         return new RewardedInterstitialAd(adUnitId);
     }
     
-    public void PrepareAd(string adUnitId = null, Action<RewardItem> onUserEarnedReward = null)
+    public void PrepareAd(string? adUnitId = null, Action<RewardItem>? onUserEarnedReward = null)
     {
         if (CanRequestAds() is false)
         {
@@ -62,7 +67,7 @@ internal class RewardedInterstitialAdService(IAdConsentService _adConsentService
         _rewardedInterstitialAd?.Show();
     }
     
-    private string GetAdUnitId(string adUnitId)
+    private static string? GetAdUnitId(string? adUnitId)
     {
         if (AdConfig.UseTestAdUnitIds)
         {

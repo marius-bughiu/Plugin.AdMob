@@ -8,7 +8,7 @@ namespace Plugin.AdMob.Handlers;
 
 internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
 {
-    private IAdConsentService _adConsentService;
+    private IAdConsentService? _adConsentService;
 
     public static IPropertyMapper<BannerAd, BannerAdHandler> PropertyMapper 
         = new PropertyMapper<BannerAd, BannerAdHandler>(ViewMapper);
@@ -22,7 +22,7 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
 
     protected override BannerView CreatePlatformView()
     {
-        _adConsentService = IPlatformApplication.Current.Services.GetService<IAdConsentService>();
+        _adConsentService = IPlatformApplication.Current!.Services.GetRequiredService<IAdConsentService>();
         _adConsentService.OnConsentInfoUpdated += (_, _) => LoadAd(PlatformView);
 
         var adSize = GetAdSize();
@@ -108,6 +108,6 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
             return true;
         }
 
-        return _adConsentService.CanRequestAds();
+        return _adConsentService?.CanRequestAds() ?? false;
     }
 }

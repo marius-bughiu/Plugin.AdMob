@@ -12,14 +12,14 @@ public interface IRewardedAdService
     /// </summary>
     /// <param name="adUnitId">The ad unit ID.</param>
     /// <returns>A rewarded ad instance.</returns>
-    IRewardedAd CreateAd(string adUnitId = null);
+    IRewardedAd CreateAd(string? adUnitId = null);
 
     /// <summary>
     /// Preloads an ad given the specified ad unit ID. If no ad unit ID is specified, <see cref="AdConfig.DefaultRewardedAdUnitId" /> will be used.
     /// </summary>
     /// <param name="adUnitId">The ad unit ID.</param>
     /// <param name="onUserEarnedReward">A callback which is invoked when the user has earned a reward.</param>
-    void PrepareAd(string adUnitId = null, Action<RewardItem> onUserEarnedReward = null);
+    void PrepareAd(string? adUnitId = null, Action<RewardItem>? onUserEarnedReward = null);
 
     /// <summary>
     /// Displays the already prepared ad. Does nothing if no ad was prepared.
@@ -30,16 +30,21 @@ public interface IRewardedAdService
 internal class RewardedAdService(IAdConsentService _adConsentService) 
     : IRewardedAdService
 {
-    private IRewardedAd _rewardedAd;
+    private IRewardedAd? _rewardedAd;
     
-    public IRewardedAd CreateAd(string adUnitId = null)
+    public IRewardedAd CreateAd(string? adUnitId = null)
     {
         adUnitId = GetAdUnitId(adUnitId);
-        
+
+        if (adUnitId is null)
+        {
+            throw new ArgumentNullException(nameof(adUnitId), "No ad unit ID was specified, and no default rewarded ad unit ID has been configured.");
+        }
+
         return new RewardedAd(adUnitId);
     }
 
-    public void PrepareAd(string adUnitId = null, Action<RewardItem> onUserEarnedReward = null)
+    public void PrepareAd(string? adUnitId = null, Action<RewardItem>? onUserEarnedReward = null)
     {
         if (CanRequestAds() is false)
         {
@@ -62,7 +67,7 @@ internal class RewardedAdService(IAdConsentService _adConsentService)
         _rewardedAd?.Show();
     }
     
-    private string GetAdUnitId(string adUnitId)
+    private static string? GetAdUnitId(string? adUnitId)
     {
         if (AdConfig.UseTestAdUnitIds)
         {

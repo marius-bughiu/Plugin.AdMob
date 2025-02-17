@@ -5,7 +5,7 @@
 /// </summary>
 public class ConsentDebugSettings
 {
-    internal static ConsentDebugSettings Current { get; set; }
+    internal static ConsentDebugSettings? Current { get; set; }
 
     /// <summary>
     /// The debug geography used for testing purposes.

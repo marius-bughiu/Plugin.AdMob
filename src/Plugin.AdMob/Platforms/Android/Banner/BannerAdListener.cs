@@ -4,13 +4,13 @@ namespace Plugin.AdMob.Platforms.Android.Banner
 {
     internal class BannerAdListener : AdListener
     {
-        public event EventHandler AdLoaded;
-        public event EventHandler<global::Android.Gms.Ads.AdError> AdFailedToLoad;
-        public event EventHandler AdImpression;
-        public event EventHandler AdClicked;
-        public event EventHandler AdOpened;
-        public event EventHandler AdClosed;
-        public event EventHandler AdSwiped;
+        public event EventHandler? AdLoaded;
+        public event EventHandler<global::Android.Gms.Ads.AdError>? AdFailedToLoad;
+        public event EventHandler? AdImpression;
+        public event EventHandler? AdClicked;
+        public event EventHandler? AdOpened;
+        public event EventHandler? AdClosed;
+        public event EventHandler? AdSwiped;
 
         public override void OnAdLoaded()
         {

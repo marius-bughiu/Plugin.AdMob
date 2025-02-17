@@ -72,12 +72,12 @@ internal partial class RewardedAd(string adUnitId) : IRewardedAd
 
     public bool IsLoaded { get; private set;  }
     
-    public event EventHandler OnAdLoaded;
-    public event EventHandler<IAdError> OnAdFailedToLoad;
-    public event EventHandler OnAdShowed;
-    public event EventHandler<IAdError> OnAdFailedToShow;
-    public event EventHandler OnAdImpression;
-    public event EventHandler OnAdClicked;
-    public event EventHandler OnAdDismissed;
-    public event EventHandler<RewardItem> OnUserEarnedReward;
+    public event EventHandler? OnAdLoaded;
+    public event EventHandler<IAdError>? OnAdFailedToLoad;
+    public event EventHandler? OnAdShowed;
+    public event EventHandler<IAdError>? OnAdFailedToShow;
+    public event EventHandler? OnAdImpression;
+    public event EventHandler? OnAdClicked;
+    public event EventHandler? OnAdDismissed;
+    public event EventHandler<RewardItem>? OnUserEarnedReward;
 }

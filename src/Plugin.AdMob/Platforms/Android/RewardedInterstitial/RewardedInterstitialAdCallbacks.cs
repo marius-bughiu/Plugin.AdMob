@@ -6,9 +6,9 @@ namespace Plugin.AdMob.RewardedInterstitial;
 
 internal sealed class RewardedInterstitialAdCallbacks : Android.Gms.Ads.Workarounds.RewardedInterstitialAdLoadCallback, IOnUserEarnedRewardListener
 {
-    public event EventHandler<global::Android.Gms.Ads.RewardedInterstitial.RewardedInterstitialAd> WhenAdLoaded;
-    public event EventHandler<LoadAdError> WhenAdFailedToLoad;
-    public event EventHandler<IRewardItem> WhenUserEarnedReward;
+    public event EventHandler<Android.Gms.Ads.RewardedInterstitial.RewardedInterstitialAd>? WhenAdLoaded;
+    public event EventHandler<LoadAdError>? WhenAdFailedToLoad;
+    public event EventHandler<IRewardItem>? WhenUserEarnedReward;
     
     [Register("onAdLoaded", "(Lcom/google/android/gms/ads/rewardedinterstitial/RewardedInterstitialAd;)V", "GetOnAdLoadedHandler")]
     public override void OnAdLoaded(global::Android.Gms.Ads.RewardedInterstitial.RewardedInterstitialAd rewardedInterstitialAd)

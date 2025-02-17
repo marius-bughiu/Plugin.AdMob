@@ -27,14 +27,14 @@ public static class Config
     /// <returns>The source MAUI application builder.</returns>
     public static MauiAppBuilder UseAdMob(
         this MauiAppBuilder builder,
-        string androidDefaultBannerAdUnitId = null,
-        string androidDefaultInterstitialAdUnitId = null,
-        string iosDefaultBannerAdUnitId = null,
-        string iosDefaultInterstitialAdUnitId = null,
-        string androidDefaultRewardedAdUnitId = null,
-        string androidDefaultRewardedInterstitialAdUnitId = null,
-        string iosDefaultRewardedAdUnitId = null,
-        string iosDefaultRewardedInterstitialAdUnitId = null,
+        string? androidDefaultBannerAdUnitId = null,
+        string? androidDefaultInterstitialAdUnitId = null,
+        string? iosDefaultBannerAdUnitId = null,
+        string? iosDefaultInterstitialAdUnitId = null,
+        string? androidDefaultRewardedAdUnitId = null,
+        string? androidDefaultRewardedInterstitialAdUnitId = null,
+        string? iosDefaultRewardedAdUnitId = null,
+        string? iosDefaultRewardedInterstitialAdUnitId = null,
         bool disableConsentCheck = false,
         bool automaticallyAskForConsent = true)
     {

@@ -6,8 +6,8 @@ namespace Plugin.AdMob;
 
 internal partial class RewardedInterstitialAd
 {
-    private Android.Gms.Ads.RewardedInterstitial.RewardedInterstitialAd _ad;
-    private RewardedInterstitialAdCallbacks _callbacks;
+    private Android.Gms.Ads.RewardedInterstitial.RewardedInterstitialAd? _ad;
+    private RewardedInterstitialAdCallbacks? _callbacks;
 
     public void Load()
     {
@@ -26,7 +26,7 @@ internal partial class RewardedInterstitialAd
         Android.Gms.Ads.RewardedInterstitial.RewardedInterstitialAd.Load(Android.App.Application.Context, AdUnitId, adRequest, _callbacks);
     }
     
-    private void AdLoaded(object sender, Android.Gms.Ads.RewardedInterstitial.RewardedInterstitialAd rewardedInterstitialAd)
+    private void AdLoaded(object? sender, Android.Gms.Ads.RewardedInterstitial.RewardedInterstitialAd rewardedInterstitialAd)
     {
         _ad = rewardedInterstitialAd;
         IsLoaded = true;
@@ -49,7 +49,9 @@ internal partial class RewardedInterstitialAd
         listener.AdClicked += (s, _) => OnAdClicked?.Invoke(s, EventArgs.Empty);
         listener.AdClosed += (s, _) => OnAdDismissed?.Invoke(s, EventArgs.Empty);
 
-        _ad.FullScreenContentCallback = listener;
-        _ad.Show(ActivityStateManager.Default.GetCurrentActivity(), _callbacks);
+        _ad!.FullScreenContentCallback = listener;
+
+        var activity = ActivityStateManager.Default.GetCurrentActivity()!;
+        _ad.Show(activity, _callbacks!);
     }
 }
