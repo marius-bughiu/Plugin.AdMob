@@ -90,6 +90,8 @@ namespace Foo.Bar.SampleApp
         {
             var appOpenAd = _appOpenAdService.CreateAd();
             appOpenAd.OnAdLoaded += AppOpenAd_OnAdLoaded;
+            appOpenAd.OnAdImpression += AppOpenAd_OnAdImpression;
+            appOpenAd.OnAdDismissed += AppOpenAd_OnAdDismissed;
             appOpenAd.Load();
         }
 
@@ -154,10 +156,21 @@ namespace Foo.Bar.SampleApp
 
         private void AppOpenAd_OnAdLoaded(object? sender, EventArgs e)
         {
+            Debug.WriteLine("Open app ad loaded.");
             if (sender is IAppOpenAd appOpenAd)
             {
                 appOpenAd.Show();
             }
+        }
+
+        private void AppOpenAd_OnAdImpression(object sender, EventArgs e)
+        {
+            Debug.WriteLine("Open app ad displayed.");
+        }
+
+        private void AppOpenAd_OnAdDismissed(object sender, EventArgs e)
+        {
+            Debug.WriteLine("Open app ad dismissed.");
         }
     }
 
