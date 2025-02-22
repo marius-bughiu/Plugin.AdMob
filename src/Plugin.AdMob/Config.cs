@@ -10,6 +10,8 @@ namespace Plugin.AdMob;
 /// </summary>
 public static class Config
 {
+    private static bool _initialized;
+
     /// <summary>
     /// Registers the AdMob plugin's services and view handlers.
     /// </summary>
@@ -69,14 +71,25 @@ public static class Config
             builder.ConfigureLifecycleEvents(events =>
             {
 #if ANDROID
-                events.AddAndroid(android => android.OnStart(_ => adConsentService.LoadAndShowConsentFormIfRequired()));
+                events.AddAndroid(android => android.OnStart(_ => OnStart()));
 #elif IOS
-                events.AddiOS(ios => ios.OnActivated(_ => adConsentService.LoadAndShowConsentFormIfRequired()));
+                events.AddiOS(ios => ios.OnActivated(_ => OnStart()));
 #endif
             });
         }
 
         return builder;
+
+        void OnStart()
+        {
+            if (_initialized)
+            {
+                return;
+            }
+
+            _initialized = true;
+            adConsentService.LoadAndShowConsentFormIfRequired();
+        }
     }
 
     /// <summary>
