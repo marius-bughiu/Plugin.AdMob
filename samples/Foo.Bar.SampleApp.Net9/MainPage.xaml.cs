@@ -10,6 +10,7 @@ namespace Foo.Bar.SampleApp
         private readonly IInterstitialAdService _interstitialAdService;
         private readonly IRewardedInterstitialAdService _rewardedInterstitialAdService;
         private readonly IRewardedAdService _rewardedAdService;
+        private readonly IAppOpenAdService _appOpenAdService;
         private readonly IAdConsentService _adConsentService;
 
         public MainPage()
@@ -19,11 +20,13 @@ namespace Foo.Bar.SampleApp
             _interstitialAdService = ServiceProvider.GetRequiredService<IInterstitialAdService>();
             _rewardedAdService = ServiceProvider.GetRequiredService<IRewardedAdService>();
             _rewardedInterstitialAdService = ServiceProvider.GetRequiredService<IRewardedInterstitialAdService>();
+            _appOpenAdService = ServiceProvider.GetRequiredService<IAppOpenAdService>();
             _adConsentService = ServiceProvider.GetRequiredService<IAdConsentService>();
 
             _interstitialAdService.PrepareAd();
             _rewardedAdService.PrepareAd(onUserEarnedReward: UserDidEarnReward);
             _rewardedInterstitialAdService.PrepareAd(onUserEarnedReward: UserDidEarnReward);
+            _appOpenAdService.PrepareAd();
 
             _adConsentService.OnConsentInfoUpdated += OnConsentInfoUpdated;
             UpdateCanRequestAds();
@@ -75,6 +78,19 @@ namespace Foo.Bar.SampleApp
             };
             rewardedInterstitialAd.OnAdLoaded += RewardedInterstitialAd_OnAdLoaded;
             rewardedInterstitialAd.Load();
+        }
+
+        private void OnShowAppOpenClicked(object sender, EventArgs e)
+        {
+            _appOpenAdService.ShowAd();
+            _appOpenAdService.PrepareAd();
+        }
+
+        private void OnCreateAppOpenClicked(object sender, EventArgs e)
+        {
+            var appOpenAd = _appOpenAdService.CreateAd();
+            appOpenAd.OnAdLoaded += AppOpenAd_OnAdLoaded;
+            appOpenAd.Load();
         }
 
         private void OnShowIfRequiredClicked(object sender, EventArgs e)
@@ -134,6 +150,14 @@ namespace Foo.Bar.SampleApp
         private static void UserDidEarnReward(RewardItem rewardItem)
         {
             Debug.WriteLine($"User earned {rewardItem.Amount} {rewardItem.Type}.");
+        }
+
+        private void AppOpenAd_OnAdLoaded(object? sender, EventArgs e)
+        {
+            if (sender is IAppOpenAd appOpenAd)
+            {
+                appOpenAd.Show();
+            }
         }
     }
 
