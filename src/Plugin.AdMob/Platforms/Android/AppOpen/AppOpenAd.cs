@@ -1,12 +1,12 @@
 ﻿using Android.Gms.Ads;
 using Plugin.AdMob.Configuration;
-using Plugin.AdMob.Platforms.Android.Interstitial;
+using Plugin.AdMob.Platforms.Android.AppOpen;
 
 namespace Plugin.AdMob;
 
-internal partial class InterstitialAd
+internal partial class AppOpenAd
 {
-    private Android.Gms.Ads.Interstitial.InterstitialAd? _ad;
+    private Android.Gms.Ads.AppOpen.AppOpenAd? _ad;
 
     public void Load()
     {
@@ -17,11 +17,11 @@ internal partial class InterstitialAd
         var requestBuilder = new AdRequest.Builder();
         var adRequest = requestBuilder.Build();
 
-        var callbacks = new InterstitialAdCallbacks();
+        var callbacks = new AppOpenAdLoadCallbacks();
         callbacks.WhenAdLoaded += AdLoaded;
         callbacks.WhenAdFailedToLoaded += (s, e) => OnAdFailedToLoad?.Invoke(s, new AdError(e.Message));
 
-        Android.Gms.Ads.Interstitial.InterstitialAd.Load(Android.App.Application.Context, AdUnitId, adRequest, callbacks);
+        Android.Gms.Ads.AppOpen.AppOpenAd.Load(Android.App.Application.Context, AdUnitId, adRequest, callbacks);
     }
 
     public void Show()
@@ -45,9 +45,9 @@ internal partial class InterstitialAd
         _ad.Show(activity);
     }
 
-    private void AdLoaded(object? sender, Android.Gms.Ads.Interstitial.InterstitialAd interstitialAd)
+    private void AdLoaded(object? sender, Android.Gms.Ads.AppOpen.AppOpenAd appOpenAd)
     {
-        _ad = interstitialAd;
+        _ad = appOpenAd;
         IsLoaded = true;
 
         OnAdLoaded?.Invoke(this, EventArgs.Empty);

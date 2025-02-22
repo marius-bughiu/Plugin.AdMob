@@ -2,22 +2,22 @@ namespace Plugin.AdMob;
 
 internal class FullScreenContentCallback : global::Android.Gms.Ads.FullScreenContentCallback
 {
-    public event EventHandler? AdPresented;
-    public event EventHandler<global::Android.Gms.Ads.AdError>? AdFailedToPresent;
+    public event EventHandler? AdShowed;
+    public event EventHandler<global::Android.Gms.Ads.AdError>? AdFailedToShow;
     public event EventHandler? AdImpression;
     public event EventHandler? AdClicked;
-    public event EventHandler? AdClosed;
+    public event EventHandler? AdDismissed;
 
     public override void OnAdShowedFullScreenContent()
     {
         base.OnAdShowedFullScreenContent();
-        AdPresented?.Invoke(this, EventArgs.Empty);
+        AdShowed?.Invoke(this, EventArgs.Empty);
     }
 
     public override void OnAdFailedToShowFullScreenContent(global::Android.Gms.Ads.AdError error)
     {
         base.OnAdFailedToShowFullScreenContent(error);
-        AdFailedToPresent?.Invoke(this, error);
+        AdFailedToShow?.Invoke(this, error);
     }
 
     public override void OnAdImpression()
@@ -35,6 +35,6 @@ internal class FullScreenContentCallback : global::Android.Gms.Ads.FullScreenCon
     public override void OnAdDismissedFullScreenContent()
     {
         base.OnAdDismissedFullScreenContent();
-        AdClosed?.Invoke(this, EventArgs.Empty);
+        AdDismissed?.Invoke(this, EventArgs.Empty);
     }
 }

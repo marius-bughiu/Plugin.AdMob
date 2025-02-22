@@ -23,7 +23,9 @@ public static class Config
     /// <param name="androidDefaultRewardedAdUnitId">Optional rewarded ad unit ID to be used by default on Android. See <see cref="AdConfig.DefaultRewardedAdUnitId" />.</param>
     /// <param name="androidDefaultRewardedInterstitialAdUnitId">Optional interstitial rewarded ad unit ID to be used by default on Android. See <see cref="AdConfig.DefaultRewardedInterstitialAdUnitId" />.</param>
     /// <param name="iosDefaultRewardedAdUnitId">Optional rewarded ad unit ID to be used by default on iOS. See <see cref="AdConfig.DefaultRewardedAdUnitId" />.</param>
-    /// <param name="iosDefaultRewardedInterstitialAdUnitId">Optional interstitial rewarded ad unit ID to be used by default on Android. See <see cref="AdConfig.DefaultRewardedInterstitialAdUnitId" />.</param>
+    /// <param name="iosDefaultRewardedInterstitialAdUnitId">Optional interstitial rewarded ad unit ID to be used by default on iOS. See <see cref="AdConfig.DefaultRewardedInterstitialAdUnitId" />.</param>
+    /// <param name="androidDefaultAppOpenAdUnitId">Optional app open ad unit ID to be used by default on Android. See <see cref="AdConfig.DefaultAppOpenAdUnitId" />.</param>
+    /// <param name="iosDefaultAppOpenAdUnitId">Optional app open ad unit ID to be used by default on Android. See <see cref="AdConfig.DefaultAppOpenAdUnitId" />.</param>
     /// <param name="disableConsentCheck">Default is false. When set to true, the plugin will no longer check if there is consent before making an ad request. You should use <see cref="IAdConsentService" /> to ask for consent and ensure you can request ads before making any ad request. If consent is missing, the Google Ads SDK will automatically drop the ad requests and no ads will be served.</param>
     /// <param name="automaticallyAskForConsent">Default is true. When set to false, the plugin will no longer ask for consent automatically. Use <see cref="IAdConsentService" /> to manage consent.</param>
     /// <returns>The source MAUI application builder.</returns>
@@ -37,6 +39,8 @@ public static class Config
         string? androidDefaultRewardedInterstitialAdUnitId = null,
         string? iosDefaultRewardedAdUnitId = null,
         string? iosDefaultRewardedInterstitialAdUnitId = null,
+        string? androidDefaultAppOpenAdUnitId = null,
+        string? iosDefaultAppOpenAdUnitId = null,
         bool disableConsentCheck = false,
         bool automaticallyAskForConsent = true)
     {
@@ -45,11 +49,13 @@ public static class Config
         AdConfig.DefaultInterstitialAdUnitId = androidDefaultInterstitialAdUnitId;
         AdConfig.DefaultRewardedAdUnitId = androidDefaultRewardedAdUnitId;
         AdConfig.DefaultRewardedInterstitialAdUnitId = androidDefaultRewardedInterstitialAdUnitId;
+        AdConfig.DefaultAppOpenAdUnitId = androidDefaultAppOpenAdUnitId;
 #elif IOS
         AdConfig.DefaultBannerAdUnitId = iosDefaultBannerAdUnitId;
         AdConfig.DefaultInterstitialAdUnitId = iosDefaultInterstitialAdUnitId;
         AdConfig.DefaultRewardedAdUnitId = iosDefaultRewardedAdUnitId;
         AdConfig.DefaultRewardedInterstitialAdUnitId = iosDefaultRewardedInterstitialAdUnitId;
+        AdConfig.DefaultAppOpenAdUnitId = iosDefaultAppOpenAdUnitId;
 #endif
 
         AdConfig.DisableConsentCheck = disableConsentCheck;
@@ -62,6 +68,7 @@ public static class Config
         builder.Services.AddSingleton<IInterstitialAdService, InterstitialAdService>();
         builder.Services.AddSingleton<IRewardedAdService, RewardedAdService>();
         builder.Services.AddSingleton<IRewardedInterstitialAdService, RewardedInterstitialAdService>();
+        builder.Services.AddSingleton<IAppOpenAdService, AppOpenAdService>();
 
         var adConsentService = new AdConsentService();
         builder.Services.AddSingleton<IAdConsentService>(adConsentService);
