@@ -25,7 +25,7 @@ internal partial class AppOpenAd
         }
 
         var viewController = UIApplication.SharedApplication.KeyWindow!.RootViewController;
-        _ad!.PresentFromRootViewController(viewController);
+        _ad!.Present(viewController);
     }
 
     private void AdLoaded(Google.MobileAds.AppOpenAd? appOpenAd, NSError? error)
@@ -38,12 +38,11 @@ internal partial class AppOpenAd
 
         _ad = appOpenAd!;
 
-        // TODO
-        //_ad.PresentedContent += (s, e) => OnAdShowed?.Invoke(s, e);
-        //_ad.FailedToPresentContent += (s, e) => OnAdFailedToShow?.Invoke(s, new AdError(e.Error.DebugDescription));
-        //_ad.RecordedImpression += (s, e) => OnAdImpression?.Invoke(s, e);
-        //_ad.RecordedClick += (s, e) => OnAdClicked?.Invoke(s, e);
-        //_ad.DismissedContent += (s, e) => OnAdDismissed?.Invoke(s, e);
+        _ad.PresentedContent += (s, e) => OnAdShowed?.Invoke(s, e);
+        _ad.FailedToPresentContent += (s, e) => OnAdFailedToShow?.Invoke(s, new AdError(e.Error.DebugDescription));
+        _ad.RecordedImpression += (s, e) => OnAdImpression?.Invoke(s, e);
+        _ad.RecordedClick += (s, e) => OnAdClicked?.Invoke(s, e);
+        _ad.DismissedContent += (s, e) => OnAdDismissed?.Invoke(s, e);
 
         IsLoaded = true;
         OnAdLoaded?.Invoke(this, EventArgs.Empty);
