@@ -22,14 +22,14 @@
 	</PropertyGroup>
 
 	<PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">
-	    <SupportedOSPlatformVersion>11.0</SupportedOSPlatformVersion>
-        <SupportedOSPlatformVersion Condition="'$(TargetFramework)' == 'net9.0-ios'">12.2</SupportedOSPlatformVersion>
-    </PropertyGroup>
-	
+		<SupportedOSPlatformVersion>12.0</SupportedOSPlatformVersion>
+		<SupportedOSPlatformVersion Condition="'$(TargetFramework)' == 'net9.0-ios'">12.2</SupportedOSPlatformVersion>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<PackageReference Include="MinVer" Version="6.0.0">
-		  <PrivateAssets>all</PrivateAssets>
-		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="Xamarin.Build.Download" Version="0.11.4" />
 	</ItemGroup>
@@ -45,8 +45,8 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net9.0-ios'">
-		<PackageReference Include="Jc.GMA.iOS" Version="9.14.0" />
-    	<PackageReference Include="Jc.UMP.iOS" Version="2.7.1" />
+		<PackageReference Include="Jc.GMA.iOS" Version="11.13.2" />
+		<PackageReference Include="Jc.UMP.iOS" Version="2.7.3" />
 	</ItemGroup>
 
 	<ItemGroup Condition="$(TargetFramework.StartsWith('net8.0'))">
@@ -57,12 +57,12 @@
 	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0-android'">
 		<PackageReference Include="Xamarin.AndroidX.Collection.Ktx" Version="1.4.0.1" />
 		<PackageReference Include="Xamarin.GooglePlayServices.Ads.Lite" Version="122.3.0.3" />
-    	<PackageReference Include="Xamarin.Google.UserMessagingPlatform" Version="2.2.0.1" />
+		<PackageReference Include="Xamarin.Google.UserMessagingPlatform" Version="2.2.0.1" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0-ios'">
-		<PackageReference Include="Jc.GMA.iOS" Version="9.14.0" />
-    	<PackageReference Include="Jc.UMP.iOS" Version="2.7.1" />
+		<PackageReference Include="Jc.GMA.iOS" Version="11.13.2" />
+		<PackageReference Include="Jc.UMP.iOS" Version="2.7.3" />
 	</ItemGroup>
 
 	<ItemGroup>
