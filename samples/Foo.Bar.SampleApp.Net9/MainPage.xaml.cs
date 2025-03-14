@@ -23,9 +23,16 @@ namespace Foo.Bar.SampleApp
             _appOpenAdService = ServiceProvider.GetRequiredService<IAppOpenAdService>();
             _adConsentService = ServiceProvider.GetRequiredService<IAdConsentService>();
 
+            _interstitialAdService.OnAdLoaded += (_, __) => Debug.WriteLine("Interstitial ad prepared.");
             _interstitialAdService.PrepareAd();
+
+            _rewardedAdService.OnAdLoaded += (_, __) => Debug.WriteLine("Rewarded ad prepared.");
             _rewardedAdService.PrepareAd(onUserEarnedReward: UserDidEarnReward);
+
+            _rewardedInterstitialAdService.OnAdLoaded += (_, __) => Debug.WriteLine("Rewarded interstitial ad prepared.");
             _rewardedInterstitialAdService.PrepareAd(onUserEarnedReward: UserDidEarnReward);
+
+            _appOpenAdService.OnAdLoaded += (_, __) => Debug.WriteLine("App open ad prepared.");
             _appOpenAdService.PrepareAd();
 
             _adConsentService.OnConsentInfoUpdated += OnConsentInfoUpdated;
@@ -34,7 +41,11 @@ namespace Foo.Bar.SampleApp
 
         private void OnShowInterstitialClicked(object sender, EventArgs e)
         {
-            _interstitialAdService.ShowAd();
+            if (_interstitialAdService.IsAdLoaded)
+            {
+                _interstitialAdService.ShowAd();
+            }
+
             _interstitialAdService.PrepareAd();
         }
 
@@ -47,7 +58,11 @@ namespace Foo.Bar.SampleApp
 
         private void OnShowRewardedAdClicked(object sender, EventArgs e)
         {
-            _rewardedAdService.ShowAd();
+            if (_rewardedAdService.IsAdLoaded)
+            {
+                _rewardedAdService.ShowAd();
+            }
+
             _rewardedAdService.PrepareAd(onUserEarnedReward: UserDidEarnReward);
         }
 
@@ -65,7 +80,11 @@ namespace Foo.Bar.SampleApp
 
         private void OnShowRewardedInterstitialClicked(object sender, EventArgs e)
         {
-            _rewardedInterstitialAdService.ShowAd();
+            if (_rewardedInterstitialAdService.IsAdLoaded)
+            {
+                _rewardedInterstitialAdService.ShowAd();
+            }
+
             _rewardedInterstitialAdService.PrepareAd(onUserEarnedReward: UserDidEarnReward);
         }
 
@@ -82,7 +101,11 @@ namespace Foo.Bar.SampleApp
 
         private void OnShowAppOpenClicked(object sender, EventArgs e)
         {
-            _appOpenAdService.ShowAd();
+            if (_appOpenAdService.IsAdLoaded)
+            {
+                _appOpenAdService.ShowAd();
+            }
+
             _appOpenAdService.PrepareAd();
         }
 
@@ -163,12 +186,12 @@ namespace Foo.Bar.SampleApp
             }
         }
 
-        private void AppOpenAd_OnAdImpression(object sender, EventArgs e)
+        private void AppOpenAd_OnAdImpression(object? sender, EventArgs e)
         {
             Debug.WriteLine("Open app ad displayed.");
         }
 
-        private void AppOpenAd_OnAdDismissed(object sender, EventArgs e)
+        private void AppOpenAd_OnAdDismissed(object? sender, EventArgs e)
         {
             Debug.WriteLine("Open app ad dismissed.");
         }
