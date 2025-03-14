@@ -36,11 +36,11 @@ internal partial class RewardedAd
         
         var listener = new FullScreenContentCallback();
         
-        listener.AdPresented += (s, _) => OnAdShowed?.Invoke(s, EventArgs.Empty);
-        listener.AdFailedToPresent += (s, e) => OnAdFailedToShow?.Invoke(s, new AdError(e.Message));
+        listener.AdShowed += (s, _) => OnAdShowed?.Invoke(s, EventArgs.Empty);
+        listener.AdFailedToShow += (s, e) => OnAdFailedToShow?.Invoke(s, new AdError(e.Message));
         listener.AdImpression += (s, _) => OnAdImpression?.Invoke(s, EventArgs.Empty);
         listener.AdClicked += (s, _) => OnAdClicked?.Invoke(s, EventArgs.Empty);
-        listener.AdClosed += (s, _) => OnAdDismissed?.Invoke(s, EventArgs.Empty);
+        listener.AdDismissed += (s, _) => OnAdDismissed?.Invoke(s, EventArgs.Empty);
 
         _ad.FullScreenContentCallback = listener;
 

@@ -17,6 +17,8 @@ internal static class AdMobTestAdUnits
     
     public static string RewardedInterstitial => "ca-app-pub-3940256099942544/5354046379";
 
+    public static string OpenApp => "ca-app-pub-3940256099942544/9257395921";
+
     public static string NativeAdvanced => "ca-app-pub-3940256099942544/2247696110";
 
     public static string NativeAdvancedVideo => "ca-app-pub-3940256099942544/1044960115";

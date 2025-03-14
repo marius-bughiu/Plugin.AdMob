@@ -67,7 +67,6 @@
                 </Grid>
 
                 <Label Padding="16,0" Text="Rewarded Interstitial:" />
-
                 <Grid Padding="16,0" ColumnSpacing="8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -86,7 +85,6 @@
                         HorizontalOptions="Fill" />
                 </Grid>
 
-
                 <Label Padding="16,0" Text="Interstitial:" />
                 <Grid Padding="16, 0" ColumnSpacing="8">
                     <Grid.ColumnDefinitions>
@@ -103,6 +101,25 @@
                         Grid.Column="1"
                         SemanticProperties.Hint="Shows a test interstitial ad"
                         Clicked="OnCreateInterstitialClicked"
+                        HorizontalOptions="Fill" />
+                </Grid>
+
+                <Label Padding="16,0" Text="App Open:" />
+                <Grid Padding="16, 0" ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Button
+                        Text="Prepare + Show"
+                        SemanticProperties.Hint="Shows a test app open ad"
+                        Clicked="OnShowAppOpenClicked"
+                        HorizontalOptions="Fill" />
+                    <Button
+                        Text="Create + Load + Show"
+                        Grid.Column="1"
+                        SemanticProperties.Hint="Shows a test app open ad"
+                        Clicked="OnCreateAppOpenClicked"
                         HorizontalOptions="Fill" />
                 </Grid>
 

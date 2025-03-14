@@ -28,6 +28,11 @@ public static class AdConfig
     public static string? DefaultRewardedInterstitialAdUnitId { get; set; }
 
     /// <summary>
+    /// Optional app open ad unit ID to be used by default
+    /// </summary>
+    public static string? DefaultAppOpenAdUnitId { get; set; }
+
+    /// <summary>
     /// A list of test device IDs.
     /// </summary>
     public static IList<string> TestDevices { get; } = [];
