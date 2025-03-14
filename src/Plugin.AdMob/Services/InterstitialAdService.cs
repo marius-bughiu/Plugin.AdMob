@@ -65,7 +65,7 @@ internal class InterstitialAdService(IAdConsentService _adConsentService)
         if (_interstitialAd is not null)
         {
             IsAdLoaded = false;
-            _interstitialAd.OnAdLoaded -= OnAdPrepared;
+            _interstitialAd.OnAdLoaded -= OnAdLoadedInternal;
         }
 
         if (CanRequestAds() is false)
@@ -74,7 +74,7 @@ internal class InterstitialAdService(IAdConsentService _adConsentService)
         }
 
         var interstitialAd = CreateAd(adUnitId);
-        interstitialAd.OnAdLoaded += OnAdPrepared;
+        interstitialAd.OnAdLoaded += OnAdLoadedInternal;
 
         interstitialAd.Load();
 
@@ -107,7 +107,7 @@ internal class InterstitialAdService(IAdConsentService _adConsentService)
         return _adConsentService.CanRequestAds();
     }
 
-    private void OnAdPrepared(object? sender, EventArgs e)
+    private void OnAdLoadedInternal(object? sender, EventArgs e)
     {
         IsAdLoaded = true;
         OnAdLoaded?.Invoke(sender, e);

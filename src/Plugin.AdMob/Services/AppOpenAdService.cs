@@ -65,7 +65,7 @@ internal class AppOpenAdService(IAdConsentService _adConsentService)
         if (_appOpenAd is not null)
         {
             IsAdLoaded = false;
-            _appOpenAd.OnAdLoaded -= OnAdPrepared;
+            _appOpenAd.OnAdLoaded -= OnAdLoadedInternal;
         }
 
         if (CanRequestAds() is false)
@@ -74,7 +74,7 @@ internal class AppOpenAdService(IAdConsentService _adConsentService)
         }
 
         var appOpenAd = CreateAd(adUnitId);
-        appOpenAd.OnAdLoaded += OnAdPrepared;
+        appOpenAd.OnAdLoaded += OnAdLoadedInternal;
 
         appOpenAd.Load();
 
@@ -107,7 +107,7 @@ internal class AppOpenAdService(IAdConsentService _adConsentService)
         return _adConsentService.CanRequestAds();
     }
 
-    private void OnAdPrepared(object? sender, EventArgs e)
+    private void OnAdLoadedInternal(object? sender, EventArgs e)
     {
         IsAdLoaded = true;
         OnAdLoaded?.Invoke(sender, e);
