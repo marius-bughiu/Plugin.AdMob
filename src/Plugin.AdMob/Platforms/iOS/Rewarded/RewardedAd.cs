@@ -7,7 +7,7 @@ namespace Plugin.AdMob;
 
 internal partial class RewardedAd
 {
-    private Google.MobileAds.RewardedAd _ad;
+    private Google.MobileAds.RewardedAd? _ad;
     
     public void Load()
     {
@@ -25,7 +25,7 @@ internal partial class RewardedAd
         }
         
         var viewController = UIApplication.SharedApplication.KeyWindow!.RootViewController!;
-        _ad.Present(viewController, () => OnUserEarnedReward?.Invoke(this, new RewardItem(_ad.AdReward.Amount.Int32Value, _ad.AdReward.Type)));
+        _ad!.Present(viewController, () => OnUserEarnedReward?.Invoke(this, new RewardItem(_ad.AdReward.Amount.Int32Value, _ad.AdReward.Type)));
     }
     
     private void AdLoaded(Google.MobileAds.RewardedAd? rewardedAd, NSError? error)

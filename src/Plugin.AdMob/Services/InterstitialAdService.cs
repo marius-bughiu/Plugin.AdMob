@@ -8,6 +8,11 @@ namespace Plugin.AdMob.Services;
 public interface IInterstitialAdService
 {
     /// <summary>
+    /// True when an ad is ready to be presented to the user.
+    /// </summary>
+    public bool IsAdLoaded { get; }
+
+    /// <summary>
     /// Creates an interstitial ad instance given the specified ad unit ID. If no ad unit ID is specified, <see cref="AdConfig.DefaultInterstitialAdUnitId" /> will be used.
     /// </summary>
     /// <param name="adUnitId">The ad unit ID.</param>
@@ -24,12 +29,24 @@ public interface IInterstitialAdService
     /// Displays the already prepared ad. Does nothing if no ad was prepared.
     /// </summary>
     void ShowAd();
+
+    /// <summary>
+    /// Raised when an ad is loaded, after calling <see cref="PrepareAd" />. 
+    /// You can now call <see cref="ShowAd" /> to present the ad to the user.
+    /// Note: This is not a catch-all event handler. When using <see cref="CreateAd" />, you should register to the ad loaded
+    /// event handler of the IInterstitialAd returned by the method.
+    /// </summary>
+    event EventHandler OnAdLoaded;
 }
 
 internal class InterstitialAdService(IAdConsentService _adConsentService) 
     : IInterstitialAdService
 {
     private IInterstitialAd? _interstitialAd;
+
+    public bool IsAdLoaded { get; private set; }
+
+    public event EventHandler? OnAdLoaded;
 
     public IInterstitialAd CreateAd(string? adUnitId = null)
     {
@@ -45,12 +62,20 @@ internal class InterstitialAdService(IAdConsentService _adConsentService)
 
     public void PrepareAd(string? adUnitId = null)
     {
+        if (_interstitialAd is not null)
+        {
+            IsAdLoaded = false;
+            _interstitialAd.OnAdLoaded -= OnAdLoadedInternal;
+        }
+
         if (CanRequestAds() is false)
         {
             return;
         }
 
         var interstitialAd = CreateAd(adUnitId);
+        interstitialAd.OnAdLoaded += OnAdLoadedInternal;
+
         interstitialAd.Load();
 
         _interstitialAd = interstitialAd;
@@ -58,6 +83,7 @@ internal class InterstitialAdService(IAdConsentService _adConsentService)
 
     public void ShowAd()
     {
+        IsAdLoaded = false;
         _interstitialAd?.Show();
     }
 
@@ -79,5 +105,11 @@ internal class InterstitialAdService(IAdConsentService _adConsentService)
         }
 
         return _adConsentService.CanRequestAds();
+    }
+
+    private void OnAdLoadedInternal(object? sender, EventArgs e)
+    {
+        IsAdLoaded = true;
+        OnAdLoaded?.Invoke(sender, e);
     }
 }
