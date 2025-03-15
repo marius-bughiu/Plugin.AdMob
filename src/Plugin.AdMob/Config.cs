@@ -63,12 +63,14 @@ public static class Config
         builder.ConfigureMauiHandlers(handlers =>
         {
             handlers.AddHandler(typeof(BannerAd), typeof(BannerAdHandler));
+            handlers.AddHandler(typeof(NativeAdView), typeof(NativeAdHandler));
         });
 
         builder.Services.AddSingleton<IInterstitialAdService, InterstitialAdService>();
         builder.Services.AddSingleton<IRewardedAdService, RewardedAdService>();
         builder.Services.AddSingleton<IRewardedInterstitialAdService, RewardedInterstitialAdService>();
         builder.Services.AddSingleton<IAppOpenAdService, AppOpenAdService>();
+        builder.Services.AddSingleton<INativeAdService, NativeAdService>();
 
         var adConsentService = new AdConsentService();
         builder.Services.AddSingleton<IAdConsentService>(adConsentService);

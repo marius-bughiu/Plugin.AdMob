@@ -19,7 +19,7 @@ internal static class AdMobTestAdUnits
 
     public static string OpenApp => "ca-app-pub-3940256099942544/9257395921";
 
-    public static string NativeAdvanced => "ca-app-pub-3940256099942544/2247696110";
+    public static string Native => "ca-app-pub-3940256099942544/2247696110";
 
-    public static string NativeAdvancedVideo => "ca-app-pub-3940256099942544/1044960115";
+    public static string NativeVideo => "ca-app-pub-3940256099942544/1044960115";
 }

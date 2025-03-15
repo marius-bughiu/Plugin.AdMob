@@ -104,6 +104,17 @@
                         HorizontalOptions="Fill" />
                 </Grid>
 
+                <Label Padding="16,0" Text="Native:" />
+                <Button
+                        Text="Load + Show"
+                        SemanticProperties.Hint="Shows a test native ad"
+                        Clicked="OnShowNativeClicked"
+                        HorizontalOptions="Fill" />
+                
+                <Grid x:Name="NativeAdGrid">
+                    <!-- Placeholder location for showing the native ad after it's loaded -->
+                </Grid>
+
                 <Label Padding="16,0" Text="App Open:" />
                 <Grid Padding="16, 0" ColumnSpacing="8">
                     <Grid.ColumnDefinitions>

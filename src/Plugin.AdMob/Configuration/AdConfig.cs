@@ -33,6 +33,11 @@ public static class AdConfig
     public static string? DefaultAppOpenAdUnitId { get; set; }
 
     /// <summary>
+    /// Optional native ad unit ID to be used by default
+    /// </summary>
+    public static string? DefaultNativeAdUnitId { get; set; }
+
+    /// <summary>
     /// A list of test device IDs.
     /// </summary>
     public static IList<string> TestDevices { get; } = [];

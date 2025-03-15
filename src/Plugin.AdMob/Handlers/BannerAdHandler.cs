@@ -1,5 +1,5 @@
 ﻿namespace Plugin.AdMob.Handlers;
 
-internal partial class BannerAdHandler
+internal partial class NativeAdHandler
 {
 }
