@@ -12,8 +12,8 @@ dotnet add package Plugin.AdMob
 
 |         | Banner | Interstitial | Rewarded | Rewarded interstitial | Native | App open |
 | ------- | ------ | ------------ | -------- | --------------------- | ------ | -------- |
-| Android | ✅     | ✅           | ✅       | ✅                    | ❌     | ✅       |
-| iOS     | ✅     | ✅           | ✅       | ✅                    | ❌     | ✅       |
+| Android | ✅     | ✅           | ✅       | ✅                    | ➡️ In progress     | ✅       |
+| iOS     | ✅     | ✅           | ✅       | ✅                    | ➡️ In progress     | ✅       |
 
 ## Docs
 
