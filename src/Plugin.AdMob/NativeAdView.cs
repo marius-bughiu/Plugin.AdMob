@@ -5,6 +5,8 @@
 /// </summary>
 public class NativeAdView : ContentView
 {
+    internal readonly INativeAd? _ad;
+
     /// <summary>
     /// Raised when an ad is received.
     /// </summary>
@@ -56,33 +58,39 @@ public class NativeAdView : ContentView
     }
 
     /// <summary>
-    /// The ad unit id.
-    /// </summary>
-    public static readonly BindableProperty ImageSourceProperty =
-        BindableProperty.Create(nameof(ImageSource), typeof(string), typeof(NativeAdView), null);
-
-    /// <summary>
-    /// The ad unit id.
-    /// </summary>
-    public string ImageSource
-    {
-        get { return (string)GetValue(ImageSourceProperty); }
-        set { SetValue(ImageSourceProperty, value); }
-    }
-
-    /// <summary>
-    /// The ad unit id.
+    /// The actual ad content. The binding context will be set to an instance of `INativeAd`.
     /// </summary>
     public static readonly BindableProperty AdContentProperty =
         BindableProperty.Create(nameof(AdContent), typeof(ContentView), typeof(NativeAdView), null);
 
     /// <summary>
-    /// The ad unit id.
+    /// The actual ad content. The binding context will be set to an instance of `INativeAd`.
     /// </summary>
     public ContentView AdContent
     {
         get { return (ContentView)GetValue(AdContentProperty); }
-        set { SetValue(AdContentProperty, value); }
+        private set { SetValue(AdContentProperty, value); }
+    }
+
+    /// <summary>
+    /// Creates, loads and display a native ad using the provided <see cref="AdContent" />.
+    /// The binding context for <see cref="AdContent" /> will be set to an instance of `INativeAd`.
+    /// </summary>
+    public NativeAdView()
+    {
+
+    }
+
+    /// <summary>
+    /// Creates an ad view capable of hosting and displaying a native ad.
+    /// </summary>
+    /// <param name="ad">The native ad to display.</param>
+    /// <param name="adContent">The content to display. I can be a completely materialized view or one with bindings. 
+    /// The binding context for the `adContent` will be the provided `INativeAd` instance.</param>
+    public NativeAdView(INativeAd ad, ContentView adContent)
+    {
+        _ad = ad;
+        AdContent = adContent;
     }
 
     internal void RaiseOnAdLoaded(object? sender, EventArgs e) => OnAdLoaded?.Invoke(sender, e);

@@ -6,15 +6,29 @@ namespace Plugin.AdMob.Handlers;
 
 internal partial class NativeAdHandler : ViewHandler<NativeAdView, global::Android.Gms.Ads.NativeAd.NativeAdView>
 {
-    private IAdConsentService _adConsentService;
-
     public static IPropertyMapper<NativeAdView, NativeAdHandler> PropertyMapper =
         new PropertyMapper<NativeAdView, NativeAdHandler>(ViewMapper);
 
-    public NativeAdHandler() : base(PropertyMapper) 
+    public NativeAdHandler() : base(PropertyMapper)
+    {        
+    }
+
+    protected override void ConnectHandler(Android.Gms.Ads.NativeAd.NativeAdView platformView)
     {
-        _adConsentService = IPlatformApplication.Current!.Services.GetRequiredService<IAdConsentService>();
-        _adConsentService.OnConsentInfoUpdated += (_, _) => LoadAd();
+        base.ConnectHandler(platformView);
+
+        ArgumentNullException.ThrowIfNull(VirtualView.AdContent, nameof(VirtualView.AdContent));
+
+        if (VirtualView._ad is null)
+        {
+            IPlatformApplication.Current!.Services
+                .GetRequiredService<IAdConsentService>()
+                .OnConsentInfoUpdated += (_, _) => LoadAd();
+        }
+        else
+        {
+            ShowAd(VirtualView._ad);
+        }
     }
 
     protected override void DisconnectHandler(global::Android.Gms.Ads.NativeAd.NativeAdView platformView)
@@ -26,7 +40,7 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, global::Andro
     protected override global::Android.Gms.Ads.NativeAd.NativeAdView CreatePlatformView()
     {
         var platformView = new global::Android.Gms.Ads.NativeAd.NativeAdView(Android.App.Application.Context);
-        
+
         platformView.CallToActionView = platformView;
 
         return platformView;
@@ -37,17 +51,19 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, global::Andro
         var nativeAdService = IPlatformApplication.Current!.Services.GetRequiredService<INativeAdService>();
         var ad = nativeAdService.CreateAd();
 
-        ad.OnAdLoaded += (s, e) =>
-        {
-            this.VirtualView.AdContent.BindingContext = ad;
-
-            var adContentView = this.VirtualView.AdContent.ToPlatform(MauiContext);
-            PlatformView.AddView(adContentView);
-
-            PlatformView.SetNativeAd((ad as NativeAd).GetPlatformAd());
-            VirtualView.BindingContext = ad;
-        };
+        ad.OnAdLoaded += (s, e) => ShowAd(ad);
 
         ad.Load();
+    }
+
+    private void ShowAd(INativeAd ad)
+    {
+        this.VirtualView.AdContent.BindingContext = ad;
+
+        var adContentView = this.VirtualView.AdContent.ToPlatform(MauiContext!);
+        PlatformView.AddView(adContentView);
+
+        PlatformView.SetNativeAd(((NativeAd)ad).GetPlatformAd());
+        VirtualView.BindingContext = ad;
     }
 }

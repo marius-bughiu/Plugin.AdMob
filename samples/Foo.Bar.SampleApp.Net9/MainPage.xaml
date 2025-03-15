@@ -46,6 +46,72 @@
                         HorizontalOptions="Fill" />
                 </Grid>
 
+                <Label Padding="16,0" Text="Interstitial:" />
+                <Grid Padding="16, 0" ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Button
+                        Text="Prepare + Show"
+                        SemanticProperties.Hint="Shows a test interstitial ad"
+                        Clicked="OnShowInterstitialClicked"
+                        HorizontalOptions="Fill" />
+                    <Button
+                        Text="Create + Load + Show"
+                        Grid.Column="1"
+                        SemanticProperties.Hint="Shows a test interstitial ad"
+                        Clicked="OnCreateInterstitialClicked"
+                        HorizontalOptions="Fill" />
+                </Grid>
+                
+                <Label Padding="16,0" Text="Native:" />
+
+                <admob:NativeAdView Margin="16,0">
+                    <admob:NativeAdView.AdContent>
+                        <ContentView>
+                            <Grid ColumnSpacing="8" RowSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+                                <Border WidthRequest="200" HeightRequest="200" StrokeThickness="8" Stroke="Purple" Grid.RowSpan="2" Grid.ColumnSpan="2">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="150" />
+                                    </Border.StrokeShape>
+                                    <Image VerticalOptions="Center" HorizontalOptions="Center" Source="{Binding ImageUri}">
+                                        <Image.Clip>
+                                            <EllipseGeometry RadiusX="150" RadiusY="150" Center="100,100" />
+                                        </Image.Clip>
+                                    </Image>
+                                </Border>
+                                <Border Grid.Column="1" VerticalOptions="End" BackgroundColor="#EEEEEE" StrokeThickness="0" Padding="4">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="4" />
+                                    </Border.StrokeShape>
+                                    <Label Text="{Binding Headline}" FontAttributes="Bold" FontSize="18" />
+                                </Border>
+                                <Border Grid.Column="1" Grid.Row="1" VerticalOptions="Start" BackgroundColor="#E0E0E0" StrokeThickness="0" Padding="4">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="4" />
+                                    </Border.StrokeShape>
+                                    <Label Text="{Binding Body}" TextColor="Purple" />
+                                </Border>
+                            </Grid>
+                        </ContentView>
+                    </admob:NativeAdView.AdContent>
+                </admob:NativeAdView>
+
+                <Button
+                    Margin="16,0"
+                    Text="Advanced native ads usage"
+                    Clicked="OnAdvancedNativeAdsUsageClicked"
+                    HorizontalOptions="Fill" />
+
                 <Label Padding="16,0" Text="Rewarded:" />
                 <Grid Padding="16,0" ColumnSpacing="8">
                     <Grid.ColumnDefinitions>
@@ -83,52 +149,7 @@
                         SemanticProperties.Hint="Shows a test rewarded interstitial ad"
                         Clicked="OnCreateRewardedInterstitialClicked"
                         HorizontalOptions="Fill" />
-                </Grid>
-
-                <Label Padding="16,0" Text="Interstitial:" />
-                <Grid Padding="16, 0" ColumnSpacing="8">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Button
-                        Text="Prepare + Show"
-                        SemanticProperties.Hint="Shows a test interstitial ad"
-                        Clicked="OnShowInterstitialClicked"
-                        HorizontalOptions="Fill" />
-                    <Button
-                        Text="Create + Load + Show"
-                        Grid.Column="1"
-                        SemanticProperties.Hint="Shows a test interstitial ad"
-                        Clicked="OnCreateInterstitialClicked"
-                        HorizontalOptions="Fill" />
-                </Grid>
-
-                <Label Padding="16,0" Text="Native:" />
-                <Button
-                        Text="Load + Show"
-                        SemanticProperties.Hint="Shows a test native ad"
-                        Clicked="OnShowNativeClicked"
-                        HorizontalOptions="Fill" />
-                
-                <Grid x:Name="NativeAdGrid">
-                    <!-- Placeholder location for showing the native ad after it's loaded -->
-                </Grid>
-
-
-                <admob:NativeAdView>
-                    <admob:NativeAdView.AdContent>
-                        <ContentView>
-                            <Grid>
-                                <Label 
-                                    Text="Welcome to .NET MAUI!"
-                                    VerticalOptions="Center" 
-                                    HorizontalOptions="Center" />
-                                <Image HeightRequest="100" Source="{Binding Image, Mode=OneWay}" />
-                            </Grid>
-                        </ContentView>
-                    </admob:NativeAdView.AdContent>
-                </admob:NativeAdView>
+                </Grid>                
 
                 <Label Padding="16,0" Text="App Open:" />
                 <Grid Padding="16, 0" ColumnSpacing="8">

@@ -8,7 +8,35 @@ internal partial class NativeAd
 {
     private Android.Gms.Ads.NativeAd.NativeAd? _ad;
 
-    public string Image => _ad.Images.First().Uri.ToString();
+    public string? Advertiser => _ad?.Advertiser;
+
+    public string? Body => _ad?.Body;
+
+    public string? CallToAction => _ad?.CallToAction;
+
+    public string? Headline => _ad?.Headline;
+
+    //public string? Icon => _ad?.Icon;
+
+    public string? IconUri => _ad?.Icon?.Uri?.ToString();
+
+    //public string? Images => _ad?.Images;
+
+    public string? ImageUri => _ad?.Images?.First()?.Uri?.ToString();
+
+    public bool? IsCustomClickGestureEnabled => _ad?.IsCustomClickGestureEnabled;
+
+    public bool? IsCustomMuteThisAdEnabled => _ad?.IsCustomMuteThisAdEnabled;
+
+    //public string? MuteThisAdReasons => _ad?.MuteThisAdReasons;
+
+    public string? Price => _ad?.Price;
+
+    //public string? ResponseInfo => _ad?.ResponseInfo;
+
+    public double? StarRating => _ad?.StarRating?.DoubleValue();
+
+    public string? Store => _ad?.Store;
 
     public void Load()
     {
@@ -16,7 +44,6 @@ internal partial class NativeAd
             .Build();
 
         var listener = new AdListener();
-        //listener.AdLoaded += (s, _) => OnAdLoaded?.Invoke(s, EventArgs.Empty);
         listener.AdFailedToLoad += (s, e) => OnAdFailedToLoad?.Invoke(s, new AdError(e.Message));
 
         var nativeAdListener = new NativeAdListener();

@@ -52,7 +52,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <MauiXaml Update="MyCustomAdView.xaml">
+	  <MauiXaml Update="Pages\NativeAdsPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\MyCustomAdTemplate.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	</ItemGroup>

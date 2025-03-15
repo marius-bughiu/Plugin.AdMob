@@ -1,4 +1,5 @@
-﻿using Foo.Bar.SampleApp.Net9;
+﻿using Foo.Bar.SampleApp.Pages;
+using Foo.Bar.SampleApp.Views;
 using Plugin.AdMob;
 using Plugin.AdMob.Services;
 using System.Diagnostics;
@@ -12,7 +13,6 @@ namespace Foo.Bar.SampleApp
         private readonly IRewardedInterstitialAdService _rewardedInterstitialAdService;
         private readonly IRewardedAdService _rewardedAdService;
         private readonly IAppOpenAdService _appOpenAdService;
-        private readonly INativeAdService _nativeAdService;
         private readonly IAdConsentService _adConsentService;
 
         public MainPage()
@@ -23,7 +23,6 @@ namespace Foo.Bar.SampleApp
             _rewardedAdService = ServiceProvider.GetRequiredService<IRewardedAdService>();
             _rewardedInterstitialAdService = ServiceProvider.GetRequiredService<IRewardedInterstitialAdService>();
             _appOpenAdService = ServiceProvider.GetRequiredService<IAppOpenAdService>();
-            _nativeAdService = ServiceProvider.GetRequiredService<INativeAdService>();
             _adConsentService = ServiceProvider.GetRequiredService<IAdConsentService>();
 
             _interstitialAdService.OnAdLoaded += (_, __) => Debug.WriteLine("Interstitial ad prepared.");
@@ -121,18 +120,9 @@ namespace Foo.Bar.SampleApp
             appOpenAd.Load();
         }
 
-        private void OnShowNativeClicked(object sender, EventArgs e)
+        private void OnAdvancedNativeAdsUsageClicked(object sender, EventArgs e)
         {
-            //var nativeAd = _nativeAdService.CreateAd();
-            //nativeAd.OnAdLoaded += (_, _) =>
-            //{
-            //    var customAdView = new MyCustomAdView(nativeAd);
-            //    var nativeAdView = new NativeAdView(nativeAd, customAdView);
-            //    this.NativeAdGrid.Clear();
-            //    this.NativeAdGrid.Add(nativeAdView);
-            //};
-
-            //nativeAd.Load();
+            Navigation.PushAsync(new NativeAdsPage());
         }
 
         private void OnShowIfRequiredClicked(object sender, EventArgs e)

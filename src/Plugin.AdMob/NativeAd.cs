@@ -15,7 +15,35 @@ public interface INativeAd
     /// </summary>
     bool IsLoaded { get; }
 
-    string Image => throw new NotImplementedException();
+    string? Advertiser => throw new NotImplementedException();
+
+    string? Body => throw new NotImplementedException();
+
+    string? CallToAction => throw new NotImplementedException();
+
+    string? Headline => throw new NotImplementedException();
+
+    //string? Icon => throw new NotImplementedException();
+
+    string? IconUri => throw new NotImplementedException();
+
+    //string? Images => throw new NotImplementedException();
+
+    string? ImageUri => throw new NotImplementedException();
+
+    bool? IsCustomClickGestureEnabled => throw new NotImplementedException();
+
+    bool? IsCustomMuteThisAdEnabled => throw new NotImplementedException();
+
+    //string? MuteThisAdReasons => throw new NotImplementedException();
+
+    string? Price => throw new NotImplementedException();
+
+    //public string? ResponseInfo => throw new NotImplementedException();
+
+    double? StarRating => throw new NotImplementedException();
+
+    string? Store => throw new NotImplementedException();
 
     /// <summary>
     /// Raised when an ad is loaded.
