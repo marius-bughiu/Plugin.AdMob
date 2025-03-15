@@ -115,6 +115,21 @@
                     <!-- Placeholder location for showing the native ad after it's loaded -->
                 </Grid>
 
+
+                <admob:NativeAdView>
+                    <admob:NativeAdView.AdContent>
+                        <ContentView>
+                            <Grid>
+                                <Label 
+                                    Text="Welcome to .NET MAUI!"
+                                    VerticalOptions="Center" 
+                                    HorizontalOptions="Center" />
+                                <Image HeightRequest="100" Source="{Binding Image, Mode=OneWay}" />
+                            </Grid>
+                        </ContentView>
+                    </admob:NativeAdView.AdContent>
+                </admob:NativeAdView>
+
                 <Label Padding="16,0" Text="App Open:" />
                 <Grid Padding="16, 0" ColumnSpacing="8">
                     <Grid.ColumnDefinitions>

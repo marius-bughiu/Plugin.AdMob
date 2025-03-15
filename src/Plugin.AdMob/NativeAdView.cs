@@ -40,14 +40,49 @@ public class NativeAdView : ContentView
     /// </summary>
     public event EventHandler? OnAdClosed;
 
-    public INativeAd Ad { get; private set; }
+    /// <summary>
+    /// The ad unit id.
+    /// </summary>
+    public static readonly BindableProperty AdUnitIdProperty =
+        BindableProperty.Create(nameof(AdUnitId), typeof(string), typeof(NativeAdView), null);
 
-    public IElement AdContent { get; private set; }
-
-    public NativeAdView(INativeAd ad, ContentView adContent)
+    /// <summary>
+    /// The ad unit id.
+    /// </summary>
+    public string AdUnitId
     {
-        Ad = ad;
-        AdContent = adContent;
+        get { return (string)GetValue(AdUnitIdProperty); }
+        set { SetValue(AdUnitIdProperty, value); }
+    }
+
+    /// <summary>
+    /// The ad unit id.
+    /// </summary>
+    public static readonly BindableProperty ImageSourceProperty =
+        BindableProperty.Create(nameof(ImageSource), typeof(string), typeof(NativeAdView), null);
+
+    /// <summary>
+    /// The ad unit id.
+    /// </summary>
+    public string ImageSource
+    {
+        get { return (string)GetValue(ImageSourceProperty); }
+        set { SetValue(ImageSourceProperty, value); }
+    }
+
+    /// <summary>
+    /// The ad unit id.
+    /// </summary>
+    public static readonly BindableProperty AdContentProperty =
+        BindableProperty.Create(nameof(AdContent), typeof(ContentView), typeof(NativeAdView), null);
+
+    /// <summary>
+    /// The ad unit id.
+    /// </summary>
+    public ContentView AdContent
+    {
+        get { return (ContentView)GetValue(AdContentProperty); }
+        set { SetValue(AdContentProperty, value); }
     }
 
     internal void RaiseOnAdLoaded(object? sender, EventArgs e) => OnAdLoaded?.Invoke(sender, e);

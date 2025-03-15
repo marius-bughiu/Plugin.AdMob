@@ -123,16 +123,16 @@ namespace Foo.Bar.SampleApp
 
         private void OnShowNativeClicked(object sender, EventArgs e)
         {
-            var nativeAd = _nativeAdService.CreateAd();
-            nativeAd.OnAdLoaded += (_, _) =>
-            {
-                var customAdView = new MyCustomAdView(nativeAd);
-                var nativeAdView = new NativeAdView(nativeAd, customAdView);
-                this.NativeAdGrid.Clear();
-                this.NativeAdGrid.Add(nativeAdView);
-            };
+            //var nativeAd = _nativeAdService.CreateAd();
+            //nativeAd.OnAdLoaded += (_, _) =>
+            //{
+            //    var customAdView = new MyCustomAdView(nativeAd);
+            //    var nativeAdView = new NativeAdView(nativeAd, customAdView);
+            //    this.NativeAdGrid.Clear();
+            //    this.NativeAdGrid.Add(nativeAdView);
+            //};
 
-            nativeAd.Load();
+            //nativeAd.Load();
         }
 
         private void OnShowIfRequiredClicked(object sender, EventArgs e)
