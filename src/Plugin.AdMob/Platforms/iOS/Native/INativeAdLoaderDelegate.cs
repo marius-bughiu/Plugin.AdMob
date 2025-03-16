@@ -79,7 +79,7 @@ namespace Google.MobileAds
             : base(NSObjectFlag.Empty)
         {
             base.IsDirectBinding = false;
-            InitializeHandle(Messaging.IntPtr_objc_msgSendSuper((nint)base.SuperHandle, Selector.GetHandle("init")), "init");
+            InitializeHandle(IntPtr_objc_msgSendSuper((nint)base.SuperHandle, Selector.GetHandle("init")), "init");
         }
 
         [BindingImpl(BindingImplOptions.GeneratedCode | BindingImplOptions.Optimizable)]
@@ -118,5 +118,8 @@ namespace Google.MobileAds
         {
             throw new You_Should_Not_Call_base_In_This_Method();
         }
+
+        [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSendSuper")]
+        public static extern nint IntPtr_objc_msgSendSuper(nint receiever, nint selector);
     }
 }
