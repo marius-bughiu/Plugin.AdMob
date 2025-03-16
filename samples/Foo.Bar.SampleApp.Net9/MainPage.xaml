@@ -83,7 +83,7 @@
                                 </Grid.ColumnDefinitions>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="*" />
-                                    <RowDefinition Height="2*" />
+                                    <RowDefinition Height="*" />          
                                 </Grid.RowDefinitions>
                                 <Border WidthRequest="200" HeightRequest="200" HorizontalOptions="Start" StrokeThickness="8" Stroke="Purple" Grid.RowSpan="2" Grid.ColumnSpan="2">
                                     <Border.StrokeShape>
@@ -105,7 +105,19 @@
                                     <Border.StrokeShape>
                                         <RoundRectangle CornerRadius="4" />
                                     </Border.StrokeShape>
-                                    <Label Text="{Binding Body}" TextColor="Purple" />
+                                    <VerticalStackLayout Spacing="4">
+                                        <Label Text="{Binding Body}" TextColor="Purple" />
+                                        <HorizontalStackLayout Spacing="4" HorizontalOptions="End">
+                                            <Label Text="{Binding CallToAction}" TextColor="Purple" />
+                                            <Image Source="{Binding IconUri}" HeightRequest="16" WidthRequest="16" />
+                                        </HorizontalStackLayout>
+                                    </VerticalStackLayout>
+                                </Border>
+                                <Border BackgroundColor="Black" Padding="4" HorizontalOptions="Start" VerticalOptions="Start">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="4" />
+                                    </Border.StrokeShape>
+                                    <Label Text="Ad" TextColor="White" FontAttributes="Bold" />
                                 </Border>
                             </Grid>
                         </ContentView>

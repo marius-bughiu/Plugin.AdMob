@@ -1,5 +1,6 @@
 ﻿using Microsoft.Maui.Handlers;
 using Microsoft.Maui.Platform;
+using Plugin.AdMob.Configuration;
 using Plugin.AdMob.Services;
 using UIKit;
 
@@ -25,9 +26,25 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, Google.Mobile
 
         if (VirtualView._ad is null)
         {
-            IPlatformApplication.Current!.Services
-                .GetRequiredService<IAdConsentService>()
-                .OnConsentInfoUpdated += (_, _) => LoadAd();
+            var adConsentService = IPlatformApplication.Current!.Services.GetRequiredService<IAdConsentService>();
+            if (CanRequestAds())
+            {
+                LoadAd();
+            }
+            else
+            {
+                adConsentService.OnConsentInfoUpdated += (_, _) => LoadAd();
+            }
+
+            bool CanRequestAds()
+            {
+                if (AdConfig.DisableConsentCheck)
+                {
+                    return true;
+                }
+
+                return adConsentService?.CanRequestAds() ?? false;
+            }
         }
         else
         {

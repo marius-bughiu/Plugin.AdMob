@@ -36,13 +36,12 @@ internal partial class NativeAd : NativeAdLoaderDelegate
     {
         MobileAds.SharedInstance.RequestConfiguration.TestDeviceIdentifiers = [.. AdConfig.TestDevices];
         var viewController = UIApplication.SharedApplication.KeyWindow!.RootViewController;
-        var nativeAdOptions = new NativeAdImageAdLoaderOptions();
 
         var adLoader = new AdLoader(adUnitID: "ca-app-pub-3940256099942544/3986624511",
             // The UIViewController parameter is optional.
             rootViewController: viewController,
             adTypes: [AdLoadAdTypeConstants.Native],
-            options: [nativeAdOptions]);
+            options: []);
 
         adLoader.Delegate = this;
 
