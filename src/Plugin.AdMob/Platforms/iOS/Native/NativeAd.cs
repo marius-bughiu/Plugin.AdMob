@@ -63,7 +63,7 @@ internal partial class NativeAd : NativeAdLoaderDelegate
         var adLoader = new AdLoader(adUnitID: "ca-app-pub-3940256099942544/3986624511",
             // The UIViewController parameter is optional.
             rootViewController: viewController,
-            adTypes: [new NSString("GADAdLoaderAdTypeNative")],
+            adTypes: [AdLoadAdTypeConstants.Native],
             //adTypes: [AdLoaderAdType.Native.ToString()],
             //adTypes: ["GADAdLoaderAdTypeNative"],
             options: [nativeAdOptions]);

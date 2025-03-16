@@ -45,7 +45,7 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net9.0-ios'">
-		<PackageReference Include="Jc.GMA.iOS" Version="12.2.0-preview109" />
+		<PackageReference Include="Jc.GMA.iOS" Version="12.2.0-preview111" />
 		<PackageReference Include="Jc.UMP.iOS" Version="2.7.3" />
 	</ItemGroup>
 
