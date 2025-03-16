@@ -32,16 +32,9 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, global::Andro
         }
     }
 
-    protected override void DisconnectHandler(global::Android.Gms.Ads.NativeAd.NativeAdView platformView)
-    {
-        platformView.Dispose();
-        base.DisconnectHandler(platformView);
-    }
-
     protected override global::Android.Gms.Ads.NativeAd.NativeAdView CreatePlatformView()
     {
         var platformView = new global::Android.Gms.Ads.NativeAd.NativeAdView(Android.App.Application.Context);
-
         platformView.CallToActionView = platformView;
 
         return platformView;

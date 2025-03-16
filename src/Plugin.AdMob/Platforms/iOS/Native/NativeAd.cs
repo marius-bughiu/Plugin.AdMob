@@ -6,27 +6,6 @@ using UIKit;
 
 namespace Plugin.AdMob;
 
-public class myDelegate : NativeAdLoaderDelegate
-{
-    public override void DidReceiveNativeAd(AdLoader adLoader, Google.MobileAds.NativeAd nativeAd)
-    {
-        // Do something with the native ad
-        Debug.WriteLine("DidReceiveNativeAd");
-    }
-
-    public override void DidFailToReceiveAd(AdLoader adLoader, NSError error)
-    {
-        // Handle the error
-        Debug.WriteLine("DidFailToReceiveAd");
-    }
-
-    public override void DidFinishLoading(AdLoader adLoader)
-    {
-        // The ad loader has finished loading ads
-        Debug.WriteLine("DidFinishLoading");
-    }
-}
-
 internal partial class NativeAd : NativeAdLoaderDelegate
 {
     private Google.MobileAds.NativeAd? _ad;
@@ -37,8 +16,7 @@ internal partial class NativeAd : NativeAdLoaderDelegate
 
     public string? CallToAction => _ad?.CallToAction;
 
-    // TODO: check why headline property doesn't exist on Google.MobileAds.NativeAd
-    public string? Headline => throw new NotImplementedException();
+    public string? Headline => _ad?.Headline;
 
     //public string? Icon => _ad?.Icon;
 
@@ -64,11 +42,9 @@ internal partial class NativeAd : NativeAdLoaderDelegate
             // The UIViewController parameter is optional.
             rootViewController: viewController,
             adTypes: [AdLoadAdTypeConstants.Native],
-            //adTypes: [AdLoaderAdType.Native.ToString()],
-            //adTypes: ["GADAdLoaderAdTypeNative"],
             options: [nativeAdOptions]);
 
-        adLoader.Delegate = new myDelegate();
+        adLoader.Delegate = this;
 
         var request = Request.GetDefaultRequest();
         adLoader.LoadRequest(request);
@@ -83,20 +59,16 @@ internal partial class NativeAd : NativeAdLoaderDelegate
 
     internal Google.MobileAds.NativeAd GetPlatformAd() => _ad!;
 
-    // public override void DidReceiveNativeAd(AdLoader adLoader, Google.MobileAds.NativeAd nativeAd)
-    // {
-    //     _ad = nativeAd;
-    //     IsLoaded = true;
+    public override void DidReceiveNativeAd(AdLoader adLoader, Google.MobileAds.NativeAd nativeAd)
+    {
+        _ad = nativeAd;
+        IsLoaded = true;
 
-    //     OnAdLoaded?.Invoke(this, EventArgs.Empty);
-    // }
+        OnAdLoaded?.Invoke(this, EventArgs.Empty);
+    }
 
-    // public override void DidFailToReceiveAd(AdLoader adLoader, NSError error)
-    // {
-    //     OnAdFailedToLoad?.Invoke(this, new AdError(error.Description));
-    // }
-
-    // public override void DidFinishLoading(AdLoader adLoader)
-    // {
-    // }
+    public override void DidFailToReceiveAd(AdLoader adLoader, NSError error)
+    {
+        OnAdFailedToLoad?.Invoke(this, new AdError(error.Description));
+    }
 }
