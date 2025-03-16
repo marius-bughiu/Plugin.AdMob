@@ -24,15 +24,7 @@ internal partial class NativeAd
 
     public string? ImageUri => _ad?.Images?.First()?.Uri?.ToString();
 
-    public bool? IsCustomClickGestureEnabled => _ad?.IsCustomClickGestureEnabled;
-
-    public bool? IsCustomMuteThisAdEnabled => _ad?.IsCustomMuteThisAdEnabled;
-
-    //public string? MuteThisAdReasons => _ad?.MuteThisAdReasons;
-
     public string? Price => _ad?.Price;
-
-    //public string? ResponseInfo => _ad?.ResponseInfo;
 
     public double? StarRating => _ad?.StarRating?.DoubleValue();
 

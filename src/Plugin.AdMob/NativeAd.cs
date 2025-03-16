@@ -31,15 +31,7 @@ public interface INativeAd
 
     string? ImageUri => throw new NotImplementedException();
 
-    bool? IsCustomClickGestureEnabled => throw new NotImplementedException();
-
-    bool? IsCustomMuteThisAdEnabled => throw new NotImplementedException();
-
-    //string? MuteThisAdReasons => throw new NotImplementedException();
-
     string? Price => throw new NotImplementedException();
-
-    //public string? ResponseInfo => throw new NotImplementedException();
 
     double? StarRating => throw new NotImplementedException();
 
