@@ -1,6 +1,7 @@
 ﻿using Foundation;
 using Google.MobileAds;
 using Plugin.AdMob.Configuration;
+using UIKit;
 
 namespace Plugin.AdMob;
 
@@ -34,11 +35,14 @@ internal partial class NativeAd : NativeAdLoaderDelegate
     public void Load()
     {
         MobileAds.SharedInstance.RequestConfiguration.TestDeviceIdentifiers = [.. AdConfig.TestDevices];
+        var viewController = UIApplication.SharedApplication.KeyWindow!.RootViewController;
+        var nativeAdOptions = new NativeAdImageAdLoaderOptions();
 
-        var adLoader = new AdLoader(adUnitID: AdUnitId,
+        var adLoader = new AdLoader(adUnitID: "ca-app-pub-3940256099942544/3986624511",
             // The UIViewController parameter is optional.
-            rootViewController: null,
-            adTypes: [new Foundation.NSString(AdLoaderAdType.Native.ToString())],
+            rootViewController: viewController,
+            adTypes: [AdLoaderAdType.Native.ToString()],
+            //adTypes: [new Foundation.NSString("GADAdLoaderAdTypeNative")],
             options: null);
 
         adLoader.Delegate = this;
@@ -67,5 +71,9 @@ internal partial class NativeAd : NativeAdLoaderDelegate
     public override void DidFailToReceiveAd(AdLoader adLoader, NSError error)
     {
         OnAdFailedToLoad?.Invoke(this, new AdError(error.Description));
+    }
+
+    public override void DidFinishLoading(AdLoader adLoader)
+    {
     }
 }
