@@ -16,6 +16,6 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, Google.Mobile
 
     protected override Google.MobileAds.NativeAdView CreatePlatformView()
     {
-        return null;
+        return new Google.MobileAds.NativeAdView();
     }
 }
