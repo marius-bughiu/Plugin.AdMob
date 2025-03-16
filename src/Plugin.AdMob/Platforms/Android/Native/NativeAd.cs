@@ -45,9 +45,14 @@ internal partial class NativeAd
 
         var listener = new AdListener();
         listener.AdFailedToLoad += (s, e) => OnAdFailedToLoad?.Invoke(s, new AdError(e.Message));
+        listener.AdImpression += OnAdImpression;
+        listener.AdClicked += OnAdClicked;
+        listener.AdSwiped += OnAdSwiped;
+        listener.AdOpened += OnAdOpened;
+        listener.AdClosed += OnAdClosed;
 
         var nativeAdListener = new NativeAdListener();
-        nativeAdListener.AdLoaded += AdLoaded;
+        nativeAdListener.AdLoaded += OnAdLoadedInternal;
 
         AdLoader adLoader = new AdLoader.Builder(Android.App.Application.Context, AdUnitId)
             .WithNativeAdOptions(options)
@@ -60,7 +65,7 @@ internal partial class NativeAd
 
     internal Android.Gms.Ads.NativeAd.NativeAd GetPlatformAd() => _ad!;
 
-    private void AdLoaded(object? sender, Android.Gms.Ads.NativeAd.NativeAd nativeAd)
+    private void OnAdLoadedInternal(object? sender, Android.Gms.Ads.NativeAd.NativeAd nativeAd)
     {
         _ad = nativeAd;
         IsLoaded = true;

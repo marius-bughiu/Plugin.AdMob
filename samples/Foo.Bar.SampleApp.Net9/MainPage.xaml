@@ -67,7 +67,13 @@
                 
                 <Label Padding="16,0" Text="Native:" />
 
-                <admob:NativeAdView Margin="16,0">
+                <admob:NativeAdView Margin="16,0" 
+                                    OnAdLoaded="NativeAdView_OnAdLoaded"
+                                    OnAdImpression="NativeAdView_OnAdImpression" 
+                                    OnAdClicked="NativeAdView_OnAdClicked" 
+                                    OnAdOpened="NativeAdView_OnAdOpened"
+                                    OnAdSwiped="NativeAdView_OnAdSwiped"
+                                    OnAdClosed="NativeAdView_OnAdClosed">
                     <admob:NativeAdView.AdContent>
                         <ContentView>
                             <Grid ColumnSpacing="8" RowSpacing="8">

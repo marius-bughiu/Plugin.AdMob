@@ -56,6 +56,31 @@ public interface INativeAd
     event EventHandler<IAdError> OnAdFailedToLoad;
 
     /// <summary>
+    /// Raised when an impression is recorded for an ad.
+    /// </summary>
+    event EventHandler? OnAdImpression;
+
+    /// <summary>
+    /// Raised when a click is recorded for an ad.
+    /// </summary>
+    event EventHandler? OnAdClicked;
+
+    /// <summary>
+    /// Raised when a swipe gesture on an ad is recorded as a click. Supported only by Android.
+    /// </summary>
+    event EventHandler? OnAdSwiped;
+
+    /// <summary>
+    /// Raised when an ad opens an overlay that covers the screen.
+    /// </summary>
+    event EventHandler? OnAdOpened;
+
+    /// <summary>
+    /// Raised when the user is about to return to the application after clicking on an ad.
+    /// </summary>
+    event EventHandler? OnAdClosed;
+
+    /// <summary>
     /// Loads a native ad using the specified <see cref="AdUnitId" />.
     /// </summary>
     void Load() => throw new NotImplementedException();
@@ -69,6 +94,11 @@ internal partial class NativeAd : INativeAd
 
     public event EventHandler? OnAdLoaded;
     public event EventHandler<IAdError>? OnAdFailedToLoad;
+    public event EventHandler? OnAdImpression;
+    public event EventHandler? OnAdClicked;
+    public event EventHandler? OnAdSwiped;
+    public event EventHandler? OnAdOpened;
+    public event EventHandler? OnAdClosed;
 
     public NativeAd(string adUnitId)
     {

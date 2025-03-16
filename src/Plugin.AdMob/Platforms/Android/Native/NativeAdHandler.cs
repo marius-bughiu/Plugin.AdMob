@@ -27,6 +27,7 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, global::Andro
         }
         else
         {
+            RegisterEventHandlers(VirtualView._ad);
             ShowAd(VirtualView._ad);
         }
     }
@@ -51,7 +52,12 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, global::Andro
         var nativeAdService = IPlatformApplication.Current!.Services.GetRequiredService<INativeAdService>();
         var ad = nativeAdService.CreateAd();
 
-        ad.OnAdLoaded += (s, e) => ShowAd(ad);
+        RegisterEventHandlers(ad);
+        ad.OnAdLoaded += (s, e) =>
+        {
+            VirtualView.RaiseOnAdLoaded(s, e);
+            ShowAd(ad);
+        };
 
         ad.Load();
     }
@@ -65,5 +71,15 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, global::Andro
 
         PlatformView.SetNativeAd(((NativeAd)ad).GetPlatformAd());
         VirtualView.BindingContext = ad;
+    }
+
+    private void RegisterEventHandlers(INativeAd ad)
+    {
+        ad.OnAdFailedToLoad += (s, e) => VirtualView.RaiseOnAdFailedToLoad(s, new AdError(e.Message));
+        ad.OnAdImpression += VirtualView.RaiseOnAdImpression;
+        ad.OnAdClicked += VirtualView.RaiseOnAdClicked;
+        ad.OnAdSwiped += VirtualView.RaiseOnAdSwiped;
+        ad.OnAdOpened += VirtualView.RaiseOnAdOpened;
+        ad.OnAdClosed += VirtualView.RaiseOnAdClosed;
     }
 }
