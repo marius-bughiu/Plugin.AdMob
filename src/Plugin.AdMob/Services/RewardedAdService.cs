@@ -96,7 +96,7 @@ internal class RewardedAdService(IAdConsentService _adConsentService)
     {
         if (AdConfig.UseTestAdUnitIds)
         {
-            return AdMobTestAdUnits.RewardedVideo;
+            return AdMobTestAdUnits.Rewarded;
         }
 
         return adUnitId ?? AdConfig.DefaultRewardedAdUnitId;

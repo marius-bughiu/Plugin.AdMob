@@ -37,7 +37,7 @@ internal class NativeAdService(IAdConsentService _adConsentService)
             return AdMobTestAdUnits.Native;
         }
 
-        return adUnitId ?? AdConfig.DefaultAppOpenAdUnitId;
+        return adUnitId ?? AdConfig.DefaultNativeAdUnitId;
     }
 
     private bool CanRequestAds()
