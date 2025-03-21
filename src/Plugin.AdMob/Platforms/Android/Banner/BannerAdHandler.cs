@@ -2,7 +2,6 @@
 using Android.Util;
 using Microsoft.Maui.Handlers;
 using Plugin.AdMob.Configuration;
-using Plugin.AdMob.Platforms.Android.Banner;
 using Plugin.AdMob.Services;
 
 namespace Plugin.AdMob.Handlers;
@@ -25,7 +24,7 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
     protected override AdView CreatePlatformView()
     {
         _adConsentService = IPlatformApplication.Current!.Services.GetRequiredService<IAdConsentService>();
-        _adConsentService.OnConsentInfoUpdated += (_,_) => LoadAd(PlatformView);
+        _adConsentService.OnConsentInfoUpdated += (_, _) => LoadAd(PlatformView);
 
         var adUnitId = GetAdUnitId();
 
@@ -42,7 +41,7 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
             AdUnitId = adUnitId
         };
 
-        var listener = new BannerAdListener();
+        var listener = new Platforms.Android.AdListener();
         listener.AdLoaded += VirtualView.RaiseOnAdLoaded;
         listener.AdFailedToLoad += (s, e) => VirtualView.RaiseOnAdFailedToLoad(s, new AdError(e.Message));
         listener.AdImpression += VirtualView.RaiseOnAdImpression;

@@ -29,18 +29,9 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
         var adView = new BannerView()
         {
             AdSize = adSize,
-            RootViewController = Platform.GetCurrentUIViewController()
+            RootViewController = Platform.GetCurrentUIViewController(),
+            AdUnitId = GetAdUnitId()
         };
-
-        if (string.IsNullOrEmpty(adView.AdUnitId) && !string.IsNullOrEmpty(AdConfig.DefaultBannerAdUnitId))
-        {
-            adView.AdUnitId = AdConfig.DefaultBannerAdUnitId;
-        }
-
-        if (AdConfig.UseTestAdUnitIds)
-        {
-            adView.AdUnitId = AdMobTestAdUnits.Banner;
-        }
 
         MobileAds.SharedInstance.RequestConfiguration.TestDeviceIdentifiers = [.. AdConfig.TestDevices];        
 
@@ -109,5 +100,15 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
         }
 
         return _adConsentService?.CanRequestAds() ?? false;
+    }
+
+    private string? GetAdUnitId()
+    {
+        if (AdConfig.UseTestAdUnitIds)
+        {
+            return AdMobTestAdUnits.Banner;
+        }
+
+        return VirtualView.AdUnitId ?? AdConfig.DefaultBannerAdUnitId;
     }
 }

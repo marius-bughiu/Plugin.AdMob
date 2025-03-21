@@ -1,4 +1,6 @@
-﻿using Plugin.AdMob;
+﻿using Foo.Bar.SampleApp.Pages;
+using Foo.Bar.SampleApp.Views;
+using Plugin.AdMob;
 using Plugin.AdMob.Services;
 using System.Diagnostics;
 using ServiceProvider = Foo.Bar.SampleApp.Services.ServiceProvider;
@@ -118,6 +120,11 @@ namespace Foo.Bar.SampleApp
             appOpenAd.Load();
         }
 
+        private void OnAdvancedNativeAdsUsageClicked(object sender, EventArgs e)
+        {
+            Navigation.PushAsync(new NativeAdsPage());
+        }
+
         private void OnShowIfRequiredClicked(object sender, EventArgs e)
         {
             _adConsentService.LoadAndShowConsentFormIfRequired();
@@ -194,6 +201,36 @@ namespace Foo.Bar.SampleApp
         private void AppOpenAd_OnAdDismissed(object? sender, EventArgs e)
         {
             Debug.WriteLine("Open app ad dismissed.");
+        }
+
+        private void NativeAdView_OnAdLoaded(object sender, EventArgs e)
+        {
+            Debug.WriteLine("Native ad loaded.");
+        }
+
+        private void NativeAdView_OnAdImpression(object sender, EventArgs e)
+        {
+            Debug.WriteLine("Native ad displayed.");
+        }
+
+        private void NativeAdView_OnAdClicked(object sender, EventArgs e)
+        {
+            Debug.WriteLine("Native ad clicked.");
+        }
+
+        private void NativeAdView_OnAdOpened(object sender, EventArgs e)
+        {
+            Debug.WriteLine("Native ad opened.");
+        }
+
+        private void NativeAdView_OnAdSwiped(object sender, EventArgs e)
+        {
+            Debug.WriteLine("Native ad swiped.");
+        }
+
+        private void NativeAdView_OnAdClosed(object sender, EventArgs e)
+        {
+            Debug.WriteLine("Native ad closed.");
         }
     }
 

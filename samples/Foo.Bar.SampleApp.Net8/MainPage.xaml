@@ -46,6 +46,90 @@
                         HorizontalOptions="Fill" />
                 </Grid>
 
+                <Label Padding="16,0" Text="Interstitial:" />
+                <Grid Padding="16, 0" ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Button
+                        Text="Prepare + Show"
+                        SemanticProperties.Hint="Shows a test interstitial ad"
+                        Clicked="OnShowInterstitialClicked"
+                        HorizontalOptions="Fill" />
+                    <Button
+                        Text="Create + Load + Show"
+                        Grid.Column="1"
+                        SemanticProperties.Hint="Shows a test interstitial ad"
+                        Clicked="OnCreateInterstitialClicked"
+                        HorizontalOptions="Fill" />
+                </Grid>
+
+                <Label Padding="16,0" Text="Native:" />
+
+                <admob:NativeAdView Margin="16,0" 
+                                    OnAdLoaded="NativeAdView_OnAdLoaded"
+                                    OnAdImpression="NativeAdView_OnAdImpression" 
+                                    OnAdClicked="NativeAdView_OnAdClicked" 
+                                    OnAdOpened="NativeAdView_OnAdOpened"
+                                    OnAdSwiped="NativeAdView_OnAdSwiped"
+                                    OnAdClosed="NativeAdView_OnAdClosed">
+                    <admob:NativeAdView.AdContent>
+                        <ContentView WidthRequest="300" HeightRequest="200">
+                            <Grid ColumnSpacing="8" RowSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="2*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+                                <Border WidthRequest="200" HeightRequest="200" HorizontalOptions="Start" StrokeThickness="8" Stroke="Purple" Grid.RowSpan="2" Grid.ColumnSpan="2">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="150" />
+                                    </Border.StrokeShape>
+                                    <Image Source="{Binding ImageUri}">
+                                        <Image.Clip>
+                                            <EllipseGeometry RadiusX="150" RadiusY="150" Center="100,100" />
+                                        </Image.Clip>
+                                    </Image>
+                                </Border>
+                                <Border Grid.Column="1" VerticalOptions="End" BackgroundColor="#EEEEEE" StrokeThickness="0" Padding="4">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="4" />
+                                    </Border.StrokeShape>
+                                    <Label Text="{Binding Headline}" FontAttributes="Bold" FontSize="18" />
+                                </Border>
+                                <Border Grid.Column="1" Grid.Row="1" VerticalOptions="StartAndExpand" BackgroundColor="#E0E0E0" StrokeThickness="0" Padding="4">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="4" />
+                                    </Border.StrokeShape>
+                                    <VerticalStackLayout Spacing="4">
+                                        <Label Text="{Binding Body}" TextColor="Purple" />
+                                        <HorizontalStackLayout Spacing="4" HorizontalOptions="End">
+                                            <Label Text="{Binding CallToAction}" TextColor="Purple" />
+                                            <Image Source="{Binding IconUri}" HeightRequest="16" WidthRequest="16" />
+                                        </HorizontalStackLayout>
+                                    </VerticalStackLayout>
+                                </Border>
+                                <Border BackgroundColor="Black" Padding="4" HorizontalOptions="Start" VerticalOptions="Start">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="4" />
+                                    </Border.StrokeShape>
+                                    <Label Text="Ad" TextColor="White" FontAttributes="Bold" />
+                                </Border>
+                            </Grid>
+                        </ContentView>
+                    </admob:NativeAdView.AdContent>
+                </admob:NativeAdView>
+
+                <Button
+                    Margin="16,0"
+                    Text="Advanced native ads usage"
+                    Clicked="OnAdvancedNativeAdsUsageClicked"
+                    HorizontalOptions="Fill" />
+
                 <Label Padding="16,0" Text="Rewarded:" />
                 <Grid Padding="16,0" ColumnSpacing="8">
                     <Grid.ColumnDefinitions>
@@ -82,25 +166,6 @@
                         Grid.Column="1"
                         SemanticProperties.Hint="Shows a test rewarded interstitial ad"
                         Clicked="OnCreateRewardedInterstitialClicked"
-                        HorizontalOptions="Fill" />
-                </Grid>
-
-                <Label Padding="16,0" Text="Interstitial:" />
-                <Grid Padding="16, 0" ColumnSpacing="8">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Button
-                        Text="Prepare + Show"
-                        SemanticProperties.Hint="Shows a test interstitial ad"
-                        Clicked="OnShowInterstitialClicked"
-                        HorizontalOptions="Fill" />
-                    <Button
-                        Text="Create + Load + Show"
-                        Grid.Column="1"
-                        SemanticProperties.Hint="Shows a test interstitial ad"
-                        Clicked="OnCreateInterstitialClicked"
                         HorizontalOptions="Fill" />
                 </Grid>
 
