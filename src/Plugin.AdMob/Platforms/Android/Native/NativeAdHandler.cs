@@ -1,5 +1,6 @@
 ﻿using Microsoft.Maui.Handlers;
 using Microsoft.Maui.Platform;
+using Plugin.AdMob.Configuration;
 using Plugin.AdMob.Services;
 
 namespace Plugin.AdMob.Handlers;
@@ -43,7 +44,8 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, global::Andro
     private void LoadAd()
     {
         var nativeAdService = IPlatformApplication.Current!.Services.GetRequiredService<INativeAdService>();
-        var ad = nativeAdService.CreateAd();
+        var adUnitId = GetAdUnitId();
+        var ad = nativeAdService.CreateAd(adUnitId);
 
         RegisterEventHandlers(ad);
         ad.OnAdLoaded += (s, e) =>
@@ -74,5 +76,15 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, global::Andro
         ad.OnAdSwiped += VirtualView.RaiseOnAdSwiped;
         ad.OnAdOpened += VirtualView.RaiseOnAdOpened;
         ad.OnAdClosed += VirtualView.RaiseOnAdClosed;
+    }
+
+    private string? GetAdUnitId()
+    {
+        if (AdConfig.UseTestAdUnitIds)
+        {
+            return AdMobTestAdUnits.Banner;
+        }
+
+        return VirtualView.AdUnitId ?? AdConfig.DefaultBannerAdUnitId;
     }
 }

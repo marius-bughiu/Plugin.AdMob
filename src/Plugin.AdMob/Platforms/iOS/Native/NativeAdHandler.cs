@@ -64,7 +64,8 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, Google.Mobile
     private void LoadAd()
     {
         var nativeAdService = IPlatformApplication.Current!.Services.GetRequiredService<INativeAdService>();
-        var ad = nativeAdService.CreateAd();
+        var adUnitId = GetAdUnitId();
+        var ad = nativeAdService.CreateAd(adUnitId);
 
         RegisterEventHandlers(ad);
         ad.OnAdLoaded += (s, e) =>
@@ -109,5 +110,15 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, Google.Mobile
         ad.OnAdSwiped += VirtualView.RaiseOnAdSwiped;
         ad.OnAdOpened += VirtualView.RaiseOnAdOpened;
         ad.OnAdClosed += VirtualView.RaiseOnAdClosed;
+    }
+
+    private string? GetAdUnitId()
+    {
+        if (AdConfig.UseTestAdUnitIds)
+        {
+            return AdMobTestAdUnits.Native;
+        }
+
+        return VirtualView.AdUnitId ?? AdConfig.DefaultNativeAdUnitId;
     }
 }
