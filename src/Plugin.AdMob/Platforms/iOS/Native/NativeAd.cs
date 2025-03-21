@@ -47,13 +47,6 @@ internal partial class NativeAd : NativeAdLoaderDelegate
 
         var request = Request.GetDefaultRequest();
         adLoader.LoadRequest(request);
-
-        //var listener = new AdListener();
-        //listener.AdImpression += OnAdImpression;
-        //listener.AdClicked += OnAdClicked;
-        //listener.AdSwiped += OnAdSwiped;
-        //listener.AdOpened += OnAdOpened;
-        //listener.AdClosed += OnAdClosed;
     }
 
     internal Google.MobileAds.NativeAd GetPlatformAd() => _ad!;
@@ -62,6 +55,11 @@ internal partial class NativeAd : NativeAdLoaderDelegate
     {
         _ad = nativeAd;
         IsLoaded = true;
+
+        _ad.ImpressionRecorded += (s, e) => OnAdImpression?.Invoke(this, EventArgs.Empty);
+        _ad.ClickRecorded += (s, e) => OnAdClicked?.Invoke(this, EventArgs.Empty);
+        _ad.WillPresentScreen += (s, e) => OnAdOpened?.Invoke(this, EventArgs.Empty);
+        _ad.ScreenDismissed += (s, e) => OnAdClosed?.Invoke(this, EventArgs.Empty);
 
         OnAdLoaded?.Invoke(this, EventArgs.Empty);
     }
