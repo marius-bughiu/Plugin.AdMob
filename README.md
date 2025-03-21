@@ -10,10 +10,10 @@ dotnet add package Plugin.AdMob
 
 ## Features
 
-|         | Banner | Interstitial | Rewarded | Rewarded interstitial | Native | App open |
-| ------- | ------ | ------------ | -------- | --------------------- | ------ | -------- |
-| Android | ✅     | ✅           | ✅       | ✅                    | ➡️ In progress     | ✅       |
-| iOS     | ✅     | ✅           | ✅       | ✅                    | ➡️ In progress     | ✅       |
+|         | Banner | Interstitial | Rewarded | Rewarded interstitial | App open | Native | Native video |
+| ------- | ------ | ------------ | -------- | --------------------- | ------ | -------- | ------------ |
+| Android | ✅    | ✅           | ✅      | ✅                    | ✅    | ✅       | ➡️ In progress |
+| iOS     | ✅    | ✅           | ✅      | ✅                    | ✅    | ✅       | ➡️ In progress |
 
 ## Docs
 
