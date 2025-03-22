@@ -24,8 +24,7 @@ internal partial class RewardedInterstitialAd
             return;
         }
         
-        var viewController = UIApplication.SharedApplication.KeyWindow!.RootViewController!;
-        _ad!.Present(viewController, () => OnUserEarnedReward?.Invoke(this, new RewardItem(_ad.Reward.Amount.Int32Value, _ad.Reward.Type)));
+        _ad!.Present(null, () => OnUserEarnedReward?.Invoke(this, new RewardItem(_ad.Reward.Amount.Int32Value, _ad.Reward.Type)));
     }
     
     private void AdLoaded(Google.MobileAds.RewardedInterstitialAd? rewardedAd, NSError? error)

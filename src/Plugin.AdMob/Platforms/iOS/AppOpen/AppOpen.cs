@@ -24,8 +24,7 @@ internal partial class AppOpenAd
             return;
         }
 
-        var viewController = UIApplication.SharedApplication.KeyWindow!.RootViewController;
-        _ad!.Present(viewController);
+        _ad!.Present(null);
     }
 
     private void AdLoaded(Google.MobileAds.AppOpenAd? appOpenAd, NSError? error)
