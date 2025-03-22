@@ -26,6 +26,6 @@ For setup instructions and usage documentation, check out the [Wiki](https://git
 1. [Interstitial ads](https://github.com/marius-bughiu/Plugin.AdMob/wiki/Interstitial-ads)
 1. [Rewarded ads](https://github.com/marius-bughiu/Plugin.AdMob/wiki/Rewarded-ads)
 1. [Rewarded interstitial ads](https://github.com/marius-bughiu/Plugin.AdMob/wiki/Rewarded-interstitial-ads)
-1. Native ads
+1. [Native ads](https://github.com/marius-bughiu/Plugin.AdMob/wiki/Native-ads)
 1. [App open ads](https://github.com/marius-bughiu/Plugin.AdMob/wiki/App-open-ads)
 1. [Samples](https://github.com/marius-bughiu/Plugin.AdMob/wiki/Samples)
