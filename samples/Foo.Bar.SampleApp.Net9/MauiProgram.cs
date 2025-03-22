@@ -19,7 +19,7 @@ namespace Foo.Bar.SampleApp
                 {
                     Geography = ConsentDebugGeography.Eea,
                     TestDeviceHashedIds = ["33BE2250B43518CCDA7DE426D04EE231"],
-                    Reset = true
+                    //Reset = true
                 })
                 .ConfigureFonts(fonts =>
                 {
