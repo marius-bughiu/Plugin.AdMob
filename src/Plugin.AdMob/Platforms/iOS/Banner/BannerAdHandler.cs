@@ -29,7 +29,6 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
         var adView = new BannerView()
         {
             AdSize = adSize,
-            RootViewController = Platform.GetCurrentUIViewController(),
             AdUnitId = GetAdUnitId()
         };
 
