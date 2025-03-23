@@ -32,10 +32,12 @@ internal class NativeAdService(IAdConsentService _adConsentService)
 
     private static string? GetAdUnitId(string? adUnitId)
     {
+#if ANDROID || IOS
         if (AdConfig.UseTestAdUnitIds)
         {
             return AdMobTestAdUnits.Native;
         }
+#endif
 
         return adUnitId ?? AdConfig.DefaultNativeAdUnitId;
     }

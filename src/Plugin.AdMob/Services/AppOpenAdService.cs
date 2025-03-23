@@ -89,10 +89,12 @@ internal class AppOpenAdService(IAdConsentService _adConsentService)
 
     private static string? GetAdUnitId(string? adUnitId)
     {
+#if ANDROID || IOS
         if (AdConfig.UseTestAdUnitIds)
         {
             return AdMobTestAdUnits.OpenApp;
         }
+#endif
 
         return adUnitId ?? AdConfig.DefaultAppOpenAdUnitId;
     }

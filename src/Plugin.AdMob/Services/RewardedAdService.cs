@@ -94,10 +94,12 @@ internal class RewardedAdService(IAdConsentService _adConsentService)
     
     private static string? GetAdUnitId(string? adUnitId)
     {
+#if ANDROID || IOS
         if (AdConfig.UseTestAdUnitIds)
         {
             return AdMobTestAdUnits.Rewarded;
         }
+#endif
 
         return adUnitId ?? AdConfig.DefaultRewardedAdUnitId;
     }

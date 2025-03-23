@@ -78,9 +78,10 @@ public static class Config
         builder.Services.AddSingleton<IAppOpenAdService, AppOpenAdService>();
         builder.Services.AddSingleton<INativeAdService, NativeAdService>();
 
-        var adConsentService = new AdConsentService();
+        IAdConsentService adConsentService = new AdConsentService();
         builder.Services.AddSingleton<IAdConsentService>(adConsentService);
 
+#if ANDROID || IOS
         if (automaticallyAskForConsent is true)
         {
             builder.ConfigureLifecycleEvents(events =>
@@ -93,8 +94,6 @@ public static class Config
             });
         }
 
-        return builder;
-
         void OnStart()
         {
             if (_initialized)
@@ -105,6 +104,9 @@ public static class Config
             _initialized = true;
             adConsentService.LoadAndShowConsentFormIfRequired();
         }
+#endif
+
+        return builder;
     }
 
     /// <summary>
