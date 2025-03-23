@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Foo.Bar.SampleApp.Net9", "F
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Foo.Bar.SampleApp.Hybrid", "Foo.Bar.SampleApp.Hybrid\Foo.Bar.SampleApp.Hybrid.csproj", "{C07F479D-2CFF-4975-B7F1-BFD0C1A370EA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Foo.Bar.SampleApp.Net10", "Foo.Bar.SampleApp.Net10\Foo.Bar.SampleApp.Net10.csproj", "{FD1B1A5A-9D13-7AD7-C4E4-1AFDD9208DEB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,12 @@ Global
 		{C07F479D-2CFF-4975-B7F1-BFD0C1A370EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C07F479D-2CFF-4975-B7F1-BFD0C1A370EA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C07F479D-2CFF-4975-B7F1-BFD0C1A370EA}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{FD1B1A5A-9D13-7AD7-C4E4-1AFDD9208DEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD1B1A5A-9D13-7AD7-C4E4-1AFDD9208DEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD1B1A5A-9D13-7AD7-C4E4-1AFDD9208DEB}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{FD1B1A5A-9D13-7AD7-C4E4-1AFDD9208DEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD1B1A5A-9D13-7AD7-C4E4-1AFDD9208DEB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FD1B1A5A-9D13-7AD7-C4E4-1AFDD9208DEB}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
