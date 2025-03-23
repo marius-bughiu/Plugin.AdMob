@@ -15,6 +15,12 @@ dotnet add package Plugin.AdMob
 | Android | ✅    | ✅           | ✅      | ✅                    | ✅    | ✅       | ➡️ In progress |
 | iOS     | ✅    | ✅           | ✅      | ✅                    | ✅    | ✅       | ➡️ In progress |
 
+## Getting started
+
+📽️ YouTube video:
+
+[![How to display an AdMob banner ad in your .NET MAUI app in under 5 minutes](https://i.ytimg.com/vi/-oxEb6aCAKQ/hqdefault.jpg?sqp=-oaymwEnCNACELwBSFryq4qpAxkIARUAAIhCGAHYAQHiAQoIGBACGAY4AUAB&rs=AOn4CLBLqbS3LegqEUbJVp_A3DE68ufjVw)](http://www.youtube.com/watch?v=-oxEb6aCAKQ "How to display an AdMob banner ad in your .NET MAUI app in under 5 minutes")
+
 ## Docs
 
 For setup instructions and usage documentation, check out the [Wiki](https://github.com/marius-bughiu/Plugin.AdMob/wiki):
