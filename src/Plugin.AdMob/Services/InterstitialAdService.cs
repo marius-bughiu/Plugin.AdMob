@@ -89,10 +89,12 @@ internal class InterstitialAdService(IAdConsentService _adConsentService)
 
     private static string? GetAdUnitId(string? adUnitId)
     {
+#if ANDROID || IOS
         if (AdConfig.UseTestAdUnitIds)
         {
             return AdMobTestAdUnits.Interstitial;
         }
+#endif
 
         return adUnitId ?? AdConfig.DefaultInterstitialAdUnitId;
     }
