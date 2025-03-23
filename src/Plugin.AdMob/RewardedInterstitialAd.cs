@@ -66,10 +66,10 @@ public interface IRewardedInterstitialAd
     void Show() => throw new NotImplementedException();
 }
 
-internal partial class RewardedInterstitialAd : IRewardedInterstitialAd
+internal partial class RewardedInterstitialAd(string adUnitId) : IRewardedInterstitialAd
 {
-    public string AdUnitId { get; }
-    
+    public string AdUnitId { get; } = adUnitId;
+
     public bool IsLoaded { get; private set; }
     
     public event EventHandler? OnAdLoaded;
@@ -80,9 +80,4 @@ internal partial class RewardedInterstitialAd : IRewardedInterstitialAd
     public event EventHandler? OnAdClicked;
     public event EventHandler? OnAdDismissed;
     public event EventHandler<RewardItem>? OnUserEarnedReward;
-
-    public RewardedInterstitialAd(string adUnitId)
-    {
-        AdUnitId = adUnitId;
-    }
 }

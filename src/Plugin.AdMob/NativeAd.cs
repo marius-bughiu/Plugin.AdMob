@@ -105,9 +105,9 @@ public interface INativeAd
     void Load() => throw new NotImplementedException();
 }
 
-internal partial class NativeAd : INativeAd
+internal partial class NativeAd(string adUnitId) : INativeAd
 {
-    public string AdUnitId { get; }
+    public string AdUnitId { get; } = adUnitId;
 
     public bool IsLoaded { get; private set; }
 
@@ -118,9 +118,4 @@ internal partial class NativeAd : INativeAd
     public event EventHandler? OnAdSwiped;
     public event EventHandler? OnAdOpened;
     public event EventHandler? OnAdClosed;
-
-    public NativeAd(string adUnitId)
-    {
-        AdUnitId = adUnitId;
-    }
 }
