@@ -115,8 +115,17 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
 
     private int GetScreenWidth()
     {
-        var displayMetrics = new DisplayMetrics();
-        Context.Display!.GetMetrics(displayMetrics);
+        DisplayMetrics displayMetrics;
+
+        if (Android.OS.Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.R)
+        {
+            displayMetrics = new DisplayMetrics();
+            Context.Display!.GetMetrics(displayMetrics);
+        }
+        else
+        {
+            displayMetrics = Context.Resources!.DisplayMetrics!;
+        }
 
         return (int)(displayMetrics.WidthPixels / displayMetrics.Density);
     }
