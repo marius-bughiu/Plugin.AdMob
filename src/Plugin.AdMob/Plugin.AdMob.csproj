@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net8.0-android;net8.0-ios;net8.0-maccatalyst;net9.0-android;net9.0-ios;net9.0-maccatalyst</TargetFrameworks>
-		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net8.0-windows10.0.19041.0;net9.0-windows10.0.19041.0</TargetFrameworks>
+		<TargetFrameworks>net8.0-android;net8.0-ios;net8.0-maccatalyst;net9.0-android;net9.0-ios;net9.0-maccatalyst;net10.0-android;net10.0-ios;net10.0-maccatalyst</TargetFrameworks>
+		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net8.0-windows10.0.19041.0;net9.0-windows10.0.19041.0;net10.0-windows10.0.19041.0</TargetFrameworks>
 		
 		<UseMaui>true</UseMaui>
 		<SingleProject>true</SingleProject>
@@ -16,15 +16,19 @@
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageTags>maui;admob;ump;dotnet;dotnet-maui;cross-platform;ios;android;google;ads;user-messaging-platform</PackageTags>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-
-		<MinVerSkip Condition="'$(Configuration)' == 'Debug'">true</MinVerSkip>
-		<PackageVersion>1.0.0-dev.$([System.DateTime]::UtcNow.ToString("yyMMddHHmm"))</PackageVersion>
 	</PropertyGroup>
 
 	<PropertyGroup>
 		<MinVerTagPrefix>v</MinVerTagPrefix>
 		<MinVerDefaultPreReleaseIdentifiers>beta</MinVerDefaultPreReleaseIdentifiers>
+		<MinVerSkip Condition="'$(Configuration)' == 'Debug'">true</MinVerSkip>
+		<PackageVersion>1.0.0-dev.$([System.DateTime]::UtcNow.ToString("yyMMddHHmm"))</PackageVersion>
 	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="..\..\.nuget\icon.png" Pack="true" PackagePath="" />
+		<None Include="..\..\README.md" Pack="true" PackagePath="" />
+	</ItemGroup>
 
 	<PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">
 		<SupportedOSPlatformVersion>12.0</SupportedOSPlatformVersion>
@@ -43,27 +47,12 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="Xamarin.Build.Download" Version="0.11.4" />
-	</ItemGroup>
-
-	<ItemGroup Condition="$(TargetFramework.StartsWith('net9.0'))">
-		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.30" />
-		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.30" />
-	</ItemGroup>
-
-	<ItemGroup Condition="'$(TargetFramework)' == 'net9.0-android'">
-		<PackageReference Include="Xamarin.GooglePlayServices.Ads.Lite" Version="123.1.0.1" />
-		<PackageReference Include="Xamarin.Google.UserMessagingPlatform" Version="3.0.0.1" />
-	</ItemGroup>
-
-	<ItemGroup Condition="'$(TargetFramework)' == 'net9.0-ios'">
-		<PackageReference Include="Jc.GMA.iOS" Version="12.2.1" />
-		<PackageReference Include="Jc.UMP.iOS" Version="2.7.3" />
 	</ItemGroup>
 
 	<ItemGroup Condition="$(TargetFramework.StartsWith('net8.0'))">
 		<PackageReference Include="Microsoft.Maui.Controls" Version="8.0.100" />
 		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="8.0.100" />
+		<PackageReference Include="Xamarin.Build.Download" Version="0.11.4" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0-android'">
@@ -77,8 +66,34 @@
 		<PackageReference Include="Jc.UMP.iOS" Version="2.7.3" />
 	</ItemGroup>
 
-	<ItemGroup>
-		<None Include="..\..\.nuget\icon.png" Pack="true" PackagePath="" />
-		<None Include="..\..\README.md" Pack="true" PackagePath="" />
+	<ItemGroup Condition="$(TargetFramework.StartsWith('net9.0'))">
+		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.30" />
+		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.30" />
+		<PackageReference Include="Xamarin.Build.Download" Version="0.11.4" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net9.0-android'">
+		<PackageReference Include="Xamarin.GooglePlayServices.Ads.Lite" Version="123.1.0.1" />
+		<PackageReference Include="Xamarin.Google.UserMessagingPlatform" Version="3.0.0.1" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net9.0-ios'">
+		<PackageReference Include="Jc.GMA.iOS" Version="12.2.1" />
+		<PackageReference Include="Jc.UMP.iOS" Version="2.7.3" />
+	</ItemGroup>
+
+	<ItemGroup Condition="$(TargetFramework.StartsWith('net10.0'))">
+		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.0-preview.2.25165.1" />
+		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="10.0.0-preview.2.25165.1" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net10.0-android'">
+		<PackageReference Include="Xamarin.GooglePlayServices.Ads.Lite" Version="123.1.0.1" />
+		<PackageReference Include="Xamarin.Google.UserMessagingPlatform" Version="3.0.0.1" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net10.0-ios'">
+		<PackageReference Include="Jc.GMA.iOS" Version="12.2.1" />
+		<PackageReference Include="Jc.UMP.iOS" Version="2.7.3" />
 	</ItemGroup>
 </Project>
