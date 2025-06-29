@@ -2,6 +2,10 @@ name: Release
 
 on: workflow_dispatch
 
+permissions:
+  contents: read
+  packages: write
+
 env:
   NuGetDirectory: ${{ github.workspace}}/nuget
 
