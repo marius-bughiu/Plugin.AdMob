@@ -23,6 +23,12 @@
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
 	</PropertyGroup>
 
+	<Target Name="SelectStaticRegistrar" AfterTargets="SelectRegistrar">
+		<PropertyGroup Condition="'$(Registrar)' == 'managed-static'">
+			<Registrar>static</Registrar>
+		</PropertyGroup>
+	</Target>
+
 	<ItemGroup>
 		<!-- App Icon -->
 		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
