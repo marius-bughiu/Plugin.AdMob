@@ -232,6 +232,11 @@ namespace Foo.Bar.SampleApp
         {
             Debug.WriteLine("Native ad closed.");
         }
+
+        private void OnAdTargetingOptionsClicked(object sender, EventArgs e)
+        {
+            Navigation.PushAsync(new AdTargetingOptionsPage());
+        }
     }
 
 }
