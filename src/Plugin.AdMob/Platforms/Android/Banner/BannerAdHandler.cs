@@ -117,7 +117,7 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
     {
         DisplayMetrics displayMetrics;
 
-        if (Android.OS.Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.R)
+        if (OperatingSystem.IsAndroidVersionAtLeast(30))
         {
             displayMetrics = new DisplayMetrics();
             Context.Display!.GetMetrics(displayMetrics);
