@@ -48,25 +48,35 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<!-- Pages -->
+		<Compile Include="..\Foo.Bar.SampleApp.Net8\Pages\*.cs" LinkBase="Pages" />
+		<MauiXaml Include="..\Foo.Bar.SampleApp.Net8\Pages\*.xaml" Link="Pages\%(RecursiveDir)%(Filename)%(Extension)">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>		
+		
+		<!-- Views -->
+		<Compile Include="..\Foo.Bar.SampleApp.Net8\Views\*.cs" LinkBase="Views" />
+		<MauiXaml Include="..\Foo.Bar.SampleApp.Net8\Views\*.xaml" Link="Views\%(RecursiveDir)%(Filename)%(Extension)">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+		
+		<!-- Services -->
+		<Compile Include="..\Foo.Bar.SampleApp.Net8\Services\*.cs" LinkBase="Services" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.30" />
 		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.30" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.1" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\..\src\Plugin.AdMob\Plugin.AdMob.csproj" />
+	  <Folder Include="Services\" />
+	  <Folder Include="Views\" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <MauiXaml Update="Pages\AdTargetingOptionsPage.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Update="Pages\NativeAdsPage.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	  <MauiXaml Update="Views\MyCustomAdTemplate.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
+		<ProjectReference Include="..\..\src\Plugin.AdMob\Plugin.AdMob.csproj" />
 	</ItemGroup>
 
 	<Target Name="LinkWithSwift" DependsOnTargets="_ParseBundlerArguments;_DetectSdkLocations" BeforeTargets="_LinkNativeExecutable">

@@ -1,12 +1,11 @@
-﻿using Foo.Bar.SampleApp.Net9.Pages;
-using Foo.Bar.SampleApp.Pages;
+﻿using Foo.Bar.SampleApp.Pages;
 using Foo.Bar.SampleApp.Views;
 using Plugin.AdMob;
 using Plugin.AdMob.Services;
 using System.Diagnostics;
 using ServiceProvider = Foo.Bar.SampleApp.Services.ServiceProvider;
 
-namespace Foo.Bar.SampleApp
+namespace Foo.Bar.SampleApp.Pages
 {
     public partial class MainPage : ContentPage
     {
