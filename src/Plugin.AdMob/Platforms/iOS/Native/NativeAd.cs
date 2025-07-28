@@ -1,8 +1,6 @@
-﻿using System.Diagnostics;
-using Foundation;
+﻿using Foundation;
 using Google.MobileAds;
-using Plugin.AdMob.Configuration;
-using UIKit;
+using Plugin.AdMob.Platforms.iOS;
 
 namespace Plugin.AdMob;
 

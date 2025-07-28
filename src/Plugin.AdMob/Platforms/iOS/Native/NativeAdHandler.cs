@@ -43,7 +43,7 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, Google.Mobile
                     return true;
                 }
 
-                return adConsentService?.CanRequestAds() ?? false;
+                return adConsentService.CanRequestAds();
             }
         }
         else

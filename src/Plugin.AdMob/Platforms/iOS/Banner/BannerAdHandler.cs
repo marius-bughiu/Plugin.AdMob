@@ -1,6 +1,7 @@
 ﻿using Google.MobileAds;
 using Microsoft.Maui.Handlers;
 using Plugin.AdMob.Configuration;
+using Plugin.AdMob.Platforms.iOS;
 using Plugin.AdMob.Services;
 using UIKit;
 
@@ -10,7 +11,7 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
 {
     private IAdConsentService? _adConsentService;
 
-    public static IPropertyMapper<BannerAd, BannerAdHandler> PropertyMapper 
+    public static IPropertyMapper<BannerAd, BannerAdHandler> PropertyMapper
         = new PropertyMapper<BannerAd, BannerAdHandler>(ViewMapper);
     public BannerAdHandler() : base(PropertyMapper) { }
 
@@ -32,7 +33,7 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
             AdUnitId = GetAdUnitId()
         };
 
-        MobileAds.SharedInstance.RequestConfiguration.TestDeviceIdentifiers = [.. AdConfig.TestDevices];        
+        MobileAds.SharedInstance.RequestConfiguration.ApplyGlobalAdConfiguration();
 
         adView.AdReceived += VirtualView.RaiseOnAdLoaded;
         adView.ReceiveAdFailed += (s, e) => VirtualView.RaiseOnAdFailedToLoad(this, new AdError(e.Error.DebugDescription));

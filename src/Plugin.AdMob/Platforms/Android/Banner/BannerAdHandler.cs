@@ -2,6 +2,7 @@
 using Android.Util;
 using Microsoft.Maui.Handlers;
 using Plugin.AdMob.Configuration;
+using Plugin.AdMob.Platforms.Android;
 using Plugin.AdMob.Services;
 
 namespace Plugin.AdMob.Handlers;
@@ -75,7 +76,7 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
         }
 
         var configBuilder = new RequestConfiguration.Builder();
-        configBuilder.SetTestDeviceIds(AdConfig.TestDevices);
+        configBuilder.ApplyGlobalAdConfiguration();
         MobileAds.RequestConfiguration = configBuilder.Build();
 
         var requestBuilder = new AdRequest.Builder();

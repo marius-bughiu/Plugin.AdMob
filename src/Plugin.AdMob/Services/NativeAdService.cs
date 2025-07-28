@@ -15,8 +15,7 @@ public interface INativeAdService
     INativeAd CreateAd(string? adUnitId = null);
 }
 
-internal class NativeAdService(IAdConsentService _adConsentService)
-    : INativeAdService
+internal class NativeAdService : INativeAdService
 {
     public INativeAd CreateAd(string? adUnitId = null)
     {
@@ -40,15 +39,5 @@ internal class NativeAdService(IAdConsentService _adConsentService)
 #endif
 
         return adUnitId ?? AdConfig.DefaultNativeAdUnitId;
-    }
-
-    private bool CanRequestAds()
-    {
-        if (AdConfig.DisableConsentCheck)
-        {
-            return true;
-        }
-
-        return _adConsentService.CanRequestAds();
     }
 }
