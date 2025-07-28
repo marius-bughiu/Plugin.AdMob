@@ -1,5 +1,5 @@
 using Android.Gms.Ads;
-using Plugin.AdMob.Configuration;
+using Plugin.AdMob.Platforms.Android;
 using Plugin.AdMob.RewardedInterstitial;
 
 namespace Plugin.AdMob;
@@ -12,7 +12,7 @@ internal partial class RewardedInterstitialAd
     public void Load()
     {
         var configBuilder = new RequestConfiguration.Builder();
-        configBuilder.SetTestDeviceIds(AdConfig.TestDevices);
+        configBuilder.ApplyGlobalAdConfiguration();
         MobileAds.RequestConfiguration = configBuilder.Build();
 
         var requestBuilder = new AdRequest.Builder();
@@ -25,7 +25,7 @@ internal partial class RewardedInterstitialAd
 
         Android.Gms.Ads.RewardedInterstitial.RewardedInterstitialAd.Load(Android.App.Application.Context, AdUnitId, adRequest, _callbacks);
     }
-    
+
     private void AdLoaded(object? sender, Android.Gms.Ads.RewardedInterstitial.RewardedInterstitialAd rewardedInterstitialAd)
     {
         _ad = rewardedInterstitialAd;
@@ -40,9 +40,9 @@ internal partial class RewardedInterstitialAd
         {
             return;
         }
-        
+
         var listener = new FullScreenContentCallback();
-        
+
         listener.AdShowed += (s, _) => OnAdShowed?.Invoke(s, EventArgs.Empty);
         listener.AdFailedToShow += (s, e) => OnAdFailedToShow?.Invoke(s, new AdError(e.Message));
         listener.AdImpression += (s, _) => OnAdImpression?.Invoke(s, EventArgs.Empty);

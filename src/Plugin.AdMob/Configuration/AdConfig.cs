@@ -62,4 +62,19 @@ public static class AdConfig
     {
         TestDevices.Add(deviceId);
     }
+
+    /// <summary>
+    /// Allows you to indicate whether you want Google to treat your content as child-directed when you make an ad request.
+    /// </summary>
+    public static TagForChildDirectedTreatment TagForChildDirectedTreatment { get; set; } = TagForChildDirectedTreatment.None;
+
+    /// <summary>
+    /// Allows you to indicate the treatment for users in the European Economic Area (EEA) under the age of consent.
+    /// </summary>
+    public static TagForUnderAgeOfConsent TagForUnderAgeOfConsent { get; set; } = TagForUnderAgeOfConsent.None;
+
+    /// <summary>
+    /// Sets the maximum ad content rating for your ad requests. AdMob ads returned when this is configured have a content rating at or below that level.
+    /// </summary>
+    public static MaxAdContentRating MaxAdContentRating { get; set; } = MaxAdContentRating.None;
 }

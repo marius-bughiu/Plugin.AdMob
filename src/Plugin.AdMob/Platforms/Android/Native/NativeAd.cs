@@ -1,4 +1,5 @@
 ﻿using Android.Gms.Ads;
+using Plugin.AdMob.Platforms.Android;
 using Plugin.AdMob.Platforms.Android.Native;
 using AdListener = Plugin.AdMob.Platforms.Android.AdListener;
 
@@ -32,6 +33,10 @@ internal partial class NativeAd
 
     public void Load()
     {
+        var configBuilder = new RequestConfiguration.Builder();
+        configBuilder.ApplyGlobalAdConfiguration();
+        MobileAds.RequestConfiguration = configBuilder.Build();
+
         var options = new Android.Gms.Ads.NativeAd.NativeAdOptions.Builder()
             .Build();
 

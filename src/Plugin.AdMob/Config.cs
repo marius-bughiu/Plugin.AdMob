@@ -30,6 +30,9 @@ public static class Config
     /// <param name="iosDefaultNativeAdUnitId">Optional native ad unit ID to be used by default on Android. See <see cref="AdConfig.DefaultNativeAdUnitId" />.</param>
     /// <param name="disableConsentCheck">Default is false. When set to true, the plugin will no longer check if there is consent before making an ad request. You should use <see cref="IAdConsentService" /> to ask for consent and ensure you can request ads before making any ad request. If consent is missing, the Google Ads SDK will automatically drop the ad requests and no ads will be served.</param>
     /// <param name="automaticallyAskForConsent">Default is true. When set to false, the plugin will no longer ask for consent automatically. Use <see cref="IAdConsentService" /> to manage consent.</param>
+    /// <param name="tagForChildDirectedTreatment">Indicate whether you want Google to treat your content as child-directed when you make an ad request. See <see cref="TagForChildDirectedTreatment" />.</param>
+    /// <param name="tagForUnderAgeOfConsent">Indicate the treatment for users in the European Economic Area (EEA) under the age of consent. See <see cref="TagForUnderAgeOfConsent" />.</param>
+    /// <param name="maxAdContentRating">Specifies the maximum ad content rating for your ad requests. AdMob ads returned when this is configured have a content rating at or below that level. See <see cref="MaxAdContentRating" />.</param>
     /// <returns>The source MAUI application builder.</returns>
     public static MauiAppBuilder UseAdMob(
         this MauiAppBuilder builder,
@@ -46,7 +49,10 @@ public static class Config
         string? androidDefaultNativeAdUnitId = null,
         string? iosDefaultNativeAdUnitId = null,
         bool disableConsentCheck = false,
-        bool automaticallyAskForConsent = true)
+        bool automaticallyAskForConsent = true,
+        TagForChildDirectedTreatment tagForChildDirectedTreatment = TagForChildDirectedTreatment.None,
+        TagForUnderAgeOfConsent tagForUnderAgeOfConsent = TagForUnderAgeOfConsent.None,
+        MaxAdContentRating maxAdContentRating = MaxAdContentRating.None)
     {
 #if ANDROID
         AdConfig.DefaultBannerAdUnitId = androidDefaultBannerAdUnitId;
@@ -65,6 +71,9 @@ public static class Config
 #endif
 
         AdConfig.DisableConsentCheck = disableConsentCheck;
+        AdConfig.TagForChildDirectedTreatment = tagForChildDirectedTreatment;
+        AdConfig.TagForUnderAgeOfConsent = tagForUnderAgeOfConsent;
+        AdConfig.MaxAdContentRating = maxAdContentRating;
 
         builder.ConfigureMauiHandlers(handlers =>
         {
@@ -78,7 +87,7 @@ public static class Config
         builder.Services.AddSingleton<IAppOpenAdService, AppOpenAdService>();
         builder.Services.AddSingleton<INativeAdService, NativeAdService>();
 
-        IAdConsentService adConsentService = new AdConsentService();
+        var adConsentService = new AdConsentService();
         builder.Services.AddSingleton<IAdConsentService>(adConsentService);
 
 #if ANDROID || IOS

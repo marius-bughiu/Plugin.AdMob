@@ -1,7 +1,6 @@
 ﻿using Foundation;
 using Google.MobileAds;
-using Plugin.AdMob.Configuration;
-using UIKit;
+using Plugin.AdMob.Platforms.iOS;
 
 namespace Plugin.AdMob;
 
@@ -11,7 +10,7 @@ internal partial class AppOpenAd
 
     public void Load()
     {
-        MobileAds.SharedInstance.RequestConfiguration.TestDeviceIdentifiers = [.. AdConfig.TestDevices];
+        MobileAds.SharedInstance.RequestConfiguration.ApplyGlobalAdConfiguration();
         var request = Request.GetDefaultRequest();
 
         Google.MobileAds.AppOpenAd.Load(AdUnitId, request, AdLoaded);

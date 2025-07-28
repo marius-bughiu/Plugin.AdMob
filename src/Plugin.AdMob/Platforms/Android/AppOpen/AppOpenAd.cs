@@ -1,5 +1,5 @@
 ﻿using Android.Gms.Ads;
-using Plugin.AdMob.Configuration;
+using Plugin.AdMob.Platforms.Android;
 using Plugin.AdMob.Platforms.Android.AppOpen;
 
 namespace Plugin.AdMob;
@@ -11,7 +11,7 @@ internal partial class AppOpenAd
     public void Load()
     {
         var configBuilder = new RequestConfiguration.Builder();
-        configBuilder.SetTestDeviceIds(AdConfig.TestDevices);
+        configBuilder.ApplyGlobalAdConfiguration();
         MobileAds.RequestConfiguration = configBuilder.Build();
 
         var requestBuilder = new AdRequest.Builder();

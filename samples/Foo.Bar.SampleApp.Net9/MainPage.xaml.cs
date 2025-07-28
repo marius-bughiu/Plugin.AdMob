@@ -1,4 +1,5 @@
-﻿using Foo.Bar.SampleApp.Pages;
+﻿using Foo.Bar.SampleApp.Net9.Pages;
+using Foo.Bar.SampleApp.Pages;
 using Foo.Bar.SampleApp.Views;
 using Plugin.AdMob;
 using Plugin.AdMob.Services;
@@ -231,6 +232,11 @@ namespace Foo.Bar.SampleApp
         private void NativeAdView_OnAdClosed(object sender, EventArgs e)
         {
             Debug.WriteLine("Native ad closed.");
+        }
+
+        private void OnAdTargetingOptionsClicked(object sender, EventArgs e)
+        {
+            Navigation.PushAsync(new AdTargetingOptionsPage());
         }
     }
 
