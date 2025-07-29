@@ -1,3 +1,4 @@
+using Foo.Bar.SampleApp.ViewModels;
 using Foo.Bar.SampleApp.Views;
 using Plugin.AdMob;
 using Plugin.AdMob.Services;
@@ -9,9 +10,10 @@ public partial class NativeAdsPage : ContentPage
 {
     private readonly INativeAdService _nativeAdService;
 
-    public NativeAdsPage()
+    public NativeAdsPage(NativeAdsViewModel viewModel)
 	{
 		InitializeComponent();
+        BindingContext = viewModel;
 
         _nativeAdService = ServiceProvider.GetRequiredService<INativeAdService>();
     }

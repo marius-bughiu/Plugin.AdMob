@@ -59,12 +59,16 @@
 		<MauiXaml Include="..\Foo.Bar.SampleApp.Net8\Views\*.xaml" Link="Views\%(RecursiveDir)%(Filename)%(Extension)">
 			<Generator>MSBuild:Compile</Generator>
 		</MauiXaml>
+
+		<!-- ViewModels -->
+		<Compile Include="..\Foo.Bar.SampleApp.Net8\ViewModels\*.cs" LinkBase="ViewModels" />
 		
 		<!-- Services -->
 		<Compile Include="..\Foo.Bar.SampleApp.Net8\Services\*.cs" LinkBase="Services" />
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.30" />
 		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.30" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.1" />

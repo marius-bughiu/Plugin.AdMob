@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Foo.Bar.SampleApp.Pages.InterstitialAdsPage"
+             Title="InterstitialAdsPage">
+    <ScrollView>
+        <VerticalStackLayout Spacing="16" Padding="0,16">
+            <Label Padding="16,0" Text="Interstitial:" />
+            <Grid Padding="16, 0" ColumnSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Button
+                    Text="Prepare + Show"
+                    SemanticProperties.Hint="Shows a test interstitial ad"
+                    Clicked="OnShowInterstitialClicked"
+                    HorizontalOptions="Fill" />
+                <Button
+                    Text="Create + Load + Show"
+                    Grid.Column="1"
+                    SemanticProperties.Hint="Shows a test interstitial ad"
+                    Clicked="OnCreateInterstitialClicked"
+                    HorizontalOptions="Fill" />
+            </Grid>
+
+            <Label Padding="16,0" Text="Rewarded:" />
+            <Grid Padding="16,0" ColumnSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Button
+                    Text="Prepare + Show"
+                    SemanticProperties.Hint="Shows a test rewarded ad"
+                    Clicked="OnShowRewardedAdClicked"
+                    HorizontalOptions="Fill" />
+                <Button
+                    Text="Create + Load + Show"
+                    Grid.Column="1"
+                    SemanticProperties.Hint="Shows a test rewarded ad"
+                    Clicked="OnCreateRewardedAdClicked"
+                    HorizontalOptions="Fill" />
+            </Grid>
+
+            <Label Padding="16,0" Text="Rewarded Interstitial:" />
+            <Grid Padding="16,0" ColumnSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Button
+                    Text="Prepare + Show"
+                    SemanticProperties.Hint="Shows a test rewarded interstitial ad"
+                    Clicked="OnShowRewardedInterstitialClicked"
+                    HorizontalOptions="Fill" />
+                <Button
+                    Text="Create + Load + Show"
+                    Grid.Column="1"
+                    SemanticProperties.Hint="Shows a test rewarded interstitial ad"
+                    Clicked="OnCreateRewardedInterstitialClicked"
+                    HorizontalOptions="Fill" />
+            </Grid>
+
+            <Label Padding="16,0" Text="App Open:" />
+            <Grid Padding="16, 0" ColumnSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Button
+                    Text="Prepare + Show"
+                    SemanticProperties.Hint="Shows a test app open ad"
+                    Clicked="OnShowAppOpenClicked"
+                    HorizontalOptions="Fill" />
+                <Button
+                    Text="Create + Load + Show"
+                    Grid.Column="1"
+                    SemanticProperties.Hint="Shows a test app open ad"
+                    Clicked="OnCreateAppOpenClicked"
+                    HorizontalOptions="Fill" />
+            </Grid>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

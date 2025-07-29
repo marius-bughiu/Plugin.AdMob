@@ -1,3 +1,4 @@
+using Foo.Bar.SampleApp.ViewModels;
 using Plugin.AdMob;
 using Plugin.AdMob.Configuration;
 
@@ -5,9 +6,10 @@ namespace Foo.Bar.SampleApp.Pages;
 
 public partial class AdTargetingOptionsPage : ContentPage
 {
-    public AdTargetingOptionsPage()
+    public AdTargetingOptionsPage(AdTargetingOptionsViewModel viewModel)
     {
         InitializeComponent();
+        BindingContext = viewModel;
     }
 
     protected override void OnAppearing()
