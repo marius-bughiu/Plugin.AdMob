@@ -15,26 +15,53 @@ public interface INativeAd
     /// </summary>
     bool IsLoaded { get; }
 
+    /// <summary>
+    /// Returns text that identifies the advertiser. Apps are not required to display this asset, though it's recommended.
+    /// </summary>
     string? Advertiser => throw new NotImplementedException();
 
+    /// <summary>
+    /// Returns body text. Apps are required to display this asset.
+    /// </summary>
     string? Body => throw new NotImplementedException();
 
+    /// <summary>
+    /// Returns the ad's call to action (such as "Buy" or "Install"). Apps are not required to display this asset, though it's recommended.
+    /// </summary>
     string? CallToAction => throw new NotImplementedException();
 
+    /// <summary>
+    /// Returns the primary text headline. Apps are required to display this asset.
+    /// </summary>
     string? Headline => throw new NotImplementedException();
 
     //string? Icon => throw new NotImplementedException();
 
+    /// <summary>
+    /// Returns a the uri of a small image identifying the advertiser. Apps are not required to display this asset, though it's recommended.
+    /// </summary>
     string? IconUri => throw new NotImplementedException();
 
     //string? Images => throw new NotImplementedException();
 
+    /// <summary>
+    /// Returns a the uri of a large image identifying the advertiser. Apps are not required to display this asset, though it's recommended.
+    /// </summary>
     string? ImageUri => throw new NotImplementedException();
 
+    /// <summary>
+    /// For ads about apps, returns a string representing how much the app costs. Apps are not required to display this asset, though it's recommended.
+    /// </summary>
     string? Price => throw new NotImplementedException();
 
+    /// <summary>
+    /// For ads about apps, returns a star rating from 0 to 5 representing how many stars the app has in the store offering it. Apps are not required to display this asset, though it's recommended.
+    /// </summary>
     double? StarRating => throw new NotImplementedException();
 
+    /// <summary>
+    /// For ads about apps, returns the name of the store offering the app for download. For example, "Google Play". Apps are not required to display this asset, though it's recommended.
+    /// </summary>
     string? Store => throw new NotImplementedException();
 
     /// <summary>
