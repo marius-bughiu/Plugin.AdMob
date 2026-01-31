@@ -23,7 +23,7 @@ This happens because both packages include overlapping Google Play Services and 
 **Solution:** The package now automatically enables Android MultiDex and modern build tools (D8/R8) to mitigate this issue. If you still encounter problems, add this to your project's `.csproj` file:
 
 ```xml
-<PropertyGroup Condition="$(TargetFramework.Contains('-android'))">
+<PropertyGroup Condition="'$(TargetFramework)' != '' AND $([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
   <AndroidDexTool>d8</AndroidDexTool>
   <AndroidLinkTool>r8</AndroidLinkTool>
 </PropertyGroup>

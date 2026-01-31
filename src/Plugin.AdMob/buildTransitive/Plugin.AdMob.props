@@ -16,7 +16,7 @@
     
     If you still encounter problems, add this to your project's .csproj file:
     
-    <PropertyGroup Condition="$(TargetFramework.Contains('-android'))">
+    <PropertyGroup Condition="'$(TargetFramework)' != '' AND $([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
       <AndroidDexTool>d8</AndroidDexTool>
       <AndroidLinkTool>r8</AndroidLinkTool>
     </PropertyGroup>
