@@ -10,7 +10,7 @@ internal partial class AppOpenAd
 
     public void Load()
     {
-        MobileAds.SharedInstance.RequestConfiguration.ApplyGlobalAdConfiguration();
+        MobileAds.SharedInstance?.RequestConfiguration.ApplyGlobalAdConfiguration();
         var request = Request.GetDefaultRequest();
 
         Google.MobileAds.AppOpenAd.Load(AdUnitId, request, AdLoaded);

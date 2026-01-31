@@ -10,7 +10,7 @@ internal partial class InterstitialAd
 
     public void Load()
     {
-        MobileAds.SharedInstance.RequestConfiguration.ApplyGlobalAdConfiguration();
+        MobileAds.SharedInstance?.RequestConfiguration.ApplyGlobalAdConfiguration();
         var request = Request.GetDefaultRequest();
 
         Google.MobileAds.InterstitialAd.Load(AdUnitId, request, AdLoaded);

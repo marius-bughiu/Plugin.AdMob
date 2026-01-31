@@ -32,7 +32,7 @@ internal partial class NativeAd : NativeAdLoaderDelegate
 
     public void Load()
     {
-        MobileAds.SharedInstance.RequestConfiguration.ApplyGlobalAdConfiguration();
+        MobileAds.SharedInstance?.RequestConfiguration.ApplyGlobalAdConfiguration();
         var adLoader = new AdLoader(adUnitID: AdUnitId,
             // The UIViewController parameter is optional.
             rootViewController: null,

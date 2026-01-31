@@ -33,7 +33,7 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
             AdUnitId = GetAdUnitId()
         };
 
-        MobileAds.SharedInstance.RequestConfiguration.ApplyGlobalAdConfiguration();
+        MobileAds.SharedInstance?.RequestConfiguration.ApplyGlobalAdConfiguration();
 
         adView.AdReceived += VirtualView.RaiseOnAdLoaded;
         adView.ReceiveAdFailed += (s, e) => VirtualView.RaiseOnAdFailedToLoad(this, new AdError(e.Error.DebugDescription));

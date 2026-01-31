@@ -9,7 +9,7 @@ namespace Foo.Bar.SampleApp.Hybrid
         {
             var app = MauiProgram.CreateMauiApp();
 
-            Google.MobileAds.MobileAds.SharedInstance.Start(completionHandler: null);
+            Google.MobileAds.MobileAds.SharedInstance?.Start(completionHandler: null);
 
             return app;
         }

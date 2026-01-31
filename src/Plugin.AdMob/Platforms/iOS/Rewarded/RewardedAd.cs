@@ -10,7 +10,7 @@ internal partial class RewardedAd
 
     public void Load()
     {
-        MobileAds.SharedInstance.RequestConfiguration.ApplyGlobalAdConfiguration();
+        MobileAds.SharedInstance?.RequestConfiguration.ApplyGlobalAdConfiguration();
         var request = Request.GetDefaultRequest();
 
         Google.MobileAds.RewardedAd.Load(AdUnitId, request, AdLoaded);
