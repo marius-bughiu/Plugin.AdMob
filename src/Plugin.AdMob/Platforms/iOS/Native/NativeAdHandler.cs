@@ -8,12 +8,22 @@ namespace Plugin.AdMob.Handlers;
 
 internal partial class NativeAdHandler : ViewHandler<NativeAdView, Google.MobileAds.NativeAdView>
 {
+    private IAdConsentService? _adConsentService;
+    private EventHandler? _consentInfoUpdatedHandler;
+
     public static IPropertyMapper<NativeAdView, NativeAdHandler> PropertyMapper
         = new PropertyMapper<NativeAdView, NativeAdHandler>(ViewMapper);
     public NativeAdHandler() : base(PropertyMapper) { }
 
     protected override void DisconnectHandler(Google.MobileAds.NativeAdView platformView)
     {
+        // Unsubscribe from consent service events to avoid accessing disposed objects
+        if (_adConsentService is not null && _consentInfoUpdatedHandler is not null)
+        {
+            _adConsentService.OnConsentInfoUpdated -= _consentInfoUpdatedHandler;
+            _consentInfoUpdatedHandler = null;
+        }
+
         platformView.Dispose();
         base.DisconnectHandler(platformView);
     }
@@ -26,14 +36,15 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, Google.Mobile
 
         if (VirtualView._ad is null)
         {
-            var adConsentService = IPlatformApplication.Current!.Services.GetRequiredService<IAdConsentService>();
+            _adConsentService = IPlatformApplication.Current!.Services.GetRequiredService<IAdConsentService>();
             if (CanRequestAds())
             {
                 LoadAd();
             }
             else
             {
-                adConsentService.OnConsentInfoUpdated += (_, _) => LoadAd();
+                _consentInfoUpdatedHandler = (_, _) => LoadAd();
+                _adConsentService.OnConsentInfoUpdated += _consentInfoUpdatedHandler;
             }
 
             bool CanRequestAds()
@@ -43,7 +54,7 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, Google.Mobile
                     return true;
                 }
 
-                return adConsentService.CanRequestAds();
+                return _adConsentService.CanRequestAds();
             }
         }
         else

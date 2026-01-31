@@ -7,6 +7,9 @@ namespace Plugin.AdMob.Handlers;
 
 internal partial class NativeAdHandler : ViewHandler<NativeAdView, global::Android.Gms.Ads.NativeAd.NativeAdView>
 {
+    private IAdConsentService? _adConsentService;
+    private EventHandler? _consentInfoUpdatedHandler;
+
     public static IPropertyMapper<NativeAdView, NativeAdHandler> PropertyMapper =
         new PropertyMapper<NativeAdView, NativeAdHandler>(ViewMapper);
 
@@ -22,15 +25,28 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, global::Andro
 
         if (VirtualView._ad is null)
         {
-            IPlatformApplication.Current!.Services
-                .GetRequiredService<IAdConsentService>()
-                .OnConsentInfoUpdated += (_, _) => LoadAd();
+            _adConsentService = IPlatformApplication.Current!.Services
+                .GetRequiredService<IAdConsentService>();
+            _consentInfoUpdatedHandler = (_, _) => LoadAd();
+            _adConsentService.OnConsentInfoUpdated += _consentInfoUpdatedHandler;
         }
         else
         {
             RegisterEventHandlers(VirtualView._ad);
             ShowAd(VirtualView._ad);
         }
+    }
+
+    protected override void DisconnectHandler(global::Android.Gms.Ads.NativeAd.NativeAdView platformView)
+    {
+        // Unsubscribe from consent service events to avoid accessing disposed objects
+        if (_adConsentService is not null && _consentInfoUpdatedHandler is not null)
+        {
+            _adConsentService.OnConsentInfoUpdated -= _consentInfoUpdatedHandler;
+            _consentInfoUpdatedHandler = null;
+        }
+
+        base.DisconnectHandler(platformView);
     }
 
     protected override global::Android.Gms.Ads.NativeAd.NativeAdView CreatePlatformView()
