@@ -27,6 +27,7 @@
 	<ItemGroup>
 		<None Include="..\..\.nuget\icon.png" Pack="true" PackagePath="" />
 		<None Include="..\..\README.md" Pack="true" PackagePath="" />
+		<None Include="buildTransitive\Plugin.AdMob.props" Pack="true" PackagePath="buildTransitive\" />
 	</ItemGroup>
 	
 	<PropertyGroup Condition="'$(TargetFramework)' == 'net9.0-ios'">
