@@ -235,5 +235,7 @@
 	<array>
 		<string>fetch</string>
 	</array>
+	<key>GADNativeAdValidatorEnabled</key>
+	<false/>
 </dict>
 </plist>

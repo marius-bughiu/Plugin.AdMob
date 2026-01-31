@@ -8,7 +8,7 @@
     Title="Foo.Bar.SampleApp">
 
     <ShellContent
-        Title="NET8"
+        Title="NET10"
         ContentTemplate="{DataTemplate local:MainPage}"
         Route="MainPage" />
 

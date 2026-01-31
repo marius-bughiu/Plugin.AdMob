@@ -1,15 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.8.34112.27
+# Visual Studio Version 18
+VisualStudioVersion = 18.2.11415.280 d18.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Plugin.AdMob", "..\src\Plugin.AdMob\Plugin.AdMob.csproj", "{B1C2DDF0-CA2F-4458-AB8B-2EB8C0BD7E73}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Foo.Bar.SampleApp.Net8", "Foo.Bar.SampleApp.Net8\Foo.Bar.SampleApp.Net8.csproj", "{20311D9A-470F-41DD-AD8B-85EE7902E825}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Foo.Bar.SampleApp.Net9", "Foo.Bar.SampleApp.Net9\Foo.Bar.SampleApp.Net9.csproj", "{604A45AF-2D66-46A9-BF23-A7A9944C14BF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Foo.Bar.SampleApp.Hybrid", "Foo.Bar.SampleApp.Hybrid\Foo.Bar.SampleApp.Hybrid.csproj", "{C07F479D-2CFF-4975-B7F1-BFD0C1A370EA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Foo.Bar.SampleApp.Net10", "Foo.Bar.SampleApp.Net10\Foo.Bar.SampleApp.Net10.csproj", "{FD1B1A5A-9D13-7AD7-C4E4-1AFDD9208DEB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,12 +21,6 @@ Global
 		{B1C2DDF0-CA2F-4458-AB8B-2EB8C0BD7E73}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B1C2DDF0-CA2F-4458-AB8B-2EB8C0BD7E73}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B1C2DDF0-CA2F-4458-AB8B-2EB8C0BD7E73}.Release|Any CPU.Build.0 = Release|Any CPU
-		{20311D9A-470F-41DD-AD8B-85EE7902E825}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{20311D9A-470F-41DD-AD8B-85EE7902E825}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{20311D9A-470F-41DD-AD8B-85EE7902E825}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
-		{20311D9A-470F-41DD-AD8B-85EE7902E825}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{20311D9A-470F-41DD-AD8B-85EE7902E825}.Release|Any CPU.Build.0 = Release|Any CPU
-		{20311D9A-470F-41DD-AD8B-85EE7902E825}.Release|Any CPU.Deploy.0 = Release|Any CPU
 		{604A45AF-2D66-46A9-BF23-A7A9944C14BF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{604A45AF-2D66-46A9-BF23-A7A9944C14BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{604A45AF-2D66-46A9-BF23-A7A9944C14BF}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
@@ -39,6 +33,12 @@ Global
 		{C07F479D-2CFF-4975-B7F1-BFD0C1A370EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C07F479D-2CFF-4975-B7F1-BFD0C1A370EA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C07F479D-2CFF-4975-B7F1-BFD0C1A370EA}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{FD1B1A5A-9D13-7AD7-C4E4-1AFDD9208DEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD1B1A5A-9D13-7AD7-C4E4-1AFDD9208DEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD1B1A5A-9D13-7AD7-C4E4-1AFDD9208DEB}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{FD1B1A5A-9D13-7AD7-C4E4-1AFDD9208DEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD1B1A5A-9D13-7AD7-C4E4-1AFDD9208DEB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FD1B1A5A-9D13-7AD7-C4E4-1AFDD9208DEB}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
