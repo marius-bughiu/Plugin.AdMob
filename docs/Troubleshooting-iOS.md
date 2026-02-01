@@ -24,8 +24,8 @@ Google.MobileAds.MobileAds.SharedInstance.Start(completionHandler: null);
 
 ### Related issues
 
-- `#21` (iOS crash with `GADInvalidInitializationException`)
-- `#58` (TestFlight crash; typically points to iOS configuration differences between debug and distribution)
+- [`#21`](https://github.com/marius-bughiu/Plugin.AdMob/issues/21) (iOS crash with `GADInvalidInitializationException`)
+- [`#58`](https://github.com/marius-bughiu/Plugin.AdMob/issues/58) (TestFlight crash; typically points to iOS configuration differences between debug and distribution)
 
 ## Banner view controller cannot be detected
 
@@ -40,8 +40,8 @@ Google.MobileAds.MobileAds.SharedInstance.Start(completionHandler: null);
 
 ### Related issues
 
-- `#8` (root view controller not available early in startup)
-- `#35` (Blazor Hybrid: view controller cannot be detected)
+- [`#8`](https://github.com/marius-bughiu/Plugin.AdMob/issues/8) (root view controller not available early in startup)
+- [`#35`](https://github.com/marius-bughiu/Plugin.AdMob/issues/35) (Blazor Hybrid: view controller cannot be detected)
 
 ## Interstitial does not show when a modal is open
 
@@ -57,4 +57,4 @@ Google.MobileAds.MobileAds.SharedInstance.Start(completionHandler: null);
 
 ### Related issues
 
-- `#32` (interstitial not showing while MAUI modal is open)
+- [`#32`](https://github.com/marius-bughiu/Plugin.AdMob/issues/32) (interstitial not showing while MAUI modal is open)

@@ -15,7 +15,7 @@ See: [Banner ads](Banner-ads.md)
 
 ### Related issues
 
-- `#64` (events existed but were not documented; `IsLoaded` added for easier UX)
+- [`#64`](https://github.com/marius-bughiu/Plugin.AdMob/issues/64) (events existed but were not documented; `IsLoaded` added for easier UX)
 
 ## Crash on iOS when specifying banner size
 
@@ -29,4 +29,4 @@ See: [Banner ads](Banner-ads.md)
 
 ### Related issues
 
-- `#4` (iOS crash when specifying banner sizes)
+- [`#4`](https://github.com/marius-bughiu/Plugin.AdMob/issues/4) (iOS crash when specifying banner sizes)
