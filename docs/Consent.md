@@ -6,8 +6,8 @@ Starting with version `1.3.0` of the plugin, consent is handled automatically us
 ## Opting out
 
 The `UseAdMob` method allows you to opt out of automatic consent handling in one of two ways:
-- `automaticallyAskForConsent: false` - by setting this parameter to `false`, we will no longer prompt the user for consent on application startup. Asking the user for consent becomes the developer's responsability. Asking for consent can be done using `IAdConsentService.LoadAndShowConsentFormIfRequired()`. Ad requests will not be made until consent has been obtained from the user.
-- `disableConsentCheck: true` - by setting this parameter to `true`, you disable all the consent checks made before ad requests. It becomes your responsability as a developer to make sure consent has been obtained before making ad requests, so that you are in compliance with regulations.
+- `automaticallyAskForConsent: false` - by setting this parameter to `false`, we will no longer prompt the user for consent on application startup. Asking the user for consent becomes the developer's responsibility. Asking for consent can be done using `IAdConsentService.LoadAndShowConsentFormIfRequired()`. Ad requests will not be made until consent has been obtained from the user.
+- `disableConsentCheck: true` - by setting this parameter to `true`, you disable all the consent checks made before ad requests. It becomes your responsibility as a developer to make sure consent has been obtained before making ad requests, so that you are in compliance with regulations.
 
 Consent check can also be managed using `AdConfig.DisableConsentCheck`.
 
