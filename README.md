@@ -8,28 +8,11 @@ _This project has no affiliation with Microsoft or the Maui/Xamarin teams._
 dotnet add package Plugin.AdMob
 ```
 
-## Known Issues
+## Using with Plugin.Firebase
 
-### Using Plugin.AdMob with Plugin.Firebase
+Plugin.AdMob includes a `buildTransitive/Plugin.AdMob.props` targets file that automatically resolves dependency conflicts when used alongside Plugin.Firebase packages.
 
-When using Plugin.AdMob alongside Plugin.Firebase packages, you may encounter this error:
-
-```
-Error: Type com.google.android.gms.measurement.internal.zzip is defined multiple times
-```
-
-This happens because both packages include overlapping Google Play Services and Firebase dependencies.
-
-**Solution:** The package now automatically enables Android MultiDex and modern build tools (D8/R8) to mitigate this issue. If you still encounter problems, add this to your project's `.csproj` file:
-
-```xml
-<PropertyGroup Condition="'$(TargetFramework)' != '' AND $([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
-  <AndroidDexTool>d8</AndroidDexTool>
-  <AndroidLinkTool>r8</AndroidLinkTool>
-</PropertyGroup>
-```
-
-For more details, see the inline documentation in the automatically included `buildTransitive/Plugin.AdMob.props` file.
+For more information, see the [Firebase compatibility documentation](https://github.com/marius-bughiu/Plugin.AdMob/wiki/Firebase-Compatibility).
 
 ## Features
 
