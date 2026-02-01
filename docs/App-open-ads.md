@@ -1,7 +1,7 @@
 App open ads are displayed using the `IAppOpenAdService` service. The service is registered by the plugin and can be either injected or retrieved from the service provider as follows:
 
 ```
-var appOpenAdService = IPlatformApplication.Current.Services.GetService<IAppOpenAdService>();
+var appOpenAdService = IPlatformApplication.Current.Services.GetRequiredService<IAppOpenAdService>();
 ```
 
 Once you grab hold of the service instance, the next step is to preload the app open ad. You can do so by calling the `PrepareAd` method. You can pass your `adUnitId` as a parameter, or call it without any parameters to use the configured `AdConfig.DefaultAppOpenAdUnitId`. After the ad is prepared, simply call `ShowAd()` to display the app open ad.
@@ -13,9 +13,9 @@ public interface IAppOpenAdService
 {
     bool IsAdLoaded { get; }
 
-    IAppOpenAd CreateAd(string adUnitId = null);
+    IAppOpenAd CreateAd(string? adUnitId = null);
 
-    void PrepareAd(string adUnitId = null);
+    void PrepareAd(string? adUnitId = null);
 
     void ShowAd();
 
@@ -36,3 +36,26 @@ public interface IAppOpenAdService
 | `PrepareAd` | Preloads an app open ad using the provided `adUnitId`. If no `adUnitId` is provided, it will use configured default -  `AdConfig.DefaultAppOpenAdUnitId`. |
 | `ShowAd` | Displays the app open ad which was prepared when `PrepareAd` was called. If no ad was prepared, nothing will be shown. |
 | `CreateAd` | Creates an app open ad instance which you can use to preload and show later on. This enables you to preload multiple app open ads at the same time, using different ad unit IDs. If no `adUnitId` is provided, it will use configured default -  `AdConfig.DefaultAppOpenAdUnitId`. |
+
+## Ad instance API (`IAppOpenAd`)
+
+If you need full control (including per-ad event handling), use `CreateAd(...)` and subscribe to the returned `IAppOpenAd` events:
+
+```
+public interface IAppOpenAd
+{
+    string AdUnitId { get; }
+    bool IsLoaded { get; }
+
+    event EventHandler OnAdLoaded;
+    event EventHandler<IAdError> OnAdFailedToLoad;
+    event EventHandler OnAdShowed;
+    event EventHandler<IAdError> OnAdFailedToShow;
+    event EventHandler OnAdImpression;
+    event EventHandler OnAdClicked;
+    event EventHandler OnAdDismissed;
+
+    void Load();
+    void Show();
+}
+```

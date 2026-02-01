@@ -6,6 +6,11 @@ In your `MauiProgram.cs` call the following method on your app builder:
 builder.UseAdMob()
 ```
 
+## Platform support
+
+- **Android / iOS**: fully supported.
+- **MacCatalyst / Windows**: the plugin registers handlers so your app can compile and run cross-platform, but ads are not displayed on these platforms.
+
 ## Android setup
 
 You need to update your app's manifest (`Platforms/Android/AndroidManifest.xml`) to include:
@@ -27,13 +32,13 @@ You need to update your app's manifest (`Platforms/Android/AndroidManifest.xml`)
 </manifest>
 ```
 
-For more details you can check the official docs: https://developers.google.com/admob/android/quick-start
+For more details you can check the official docs: [Get started with AdMob on Android](https://developers.google.com/admob/android/quick-start)
 
 For a fully working example, check out the [samples folder](https://github.com/marius-bughiu/Plugin.AdMob/tree/main/samples).
 
 ## iOS setup
 
-1. Modify your `Platforms/iOS/Info.plist` by adding your `GADApplicationIdentifier` and `SKAdNetworkItems` as described here: https://developers.google.com/admob/ios/quick-start
+1. Modify your `Platforms/iOS/Info.plist` by adding your `GADApplicationIdentifier` and `SKAdNetworkItems` as described here: [Get started with AdMob on iOS](https://developers.google.com/admob/ios/quick-start)
 
 2. Add `GADIsAdManagerApp` and `NSUserTrackingUsageDescription` (see [ATT](https://developer.apple.com/documentation/apptrackingtransparency)) to your `Platforms/iOS/Info.plist`:
 
