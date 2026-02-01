@@ -45,6 +45,12 @@ public interface INativeAd
     double? StarRating { get; }
     string? Store { get; }
 
+    // Video support
+    object? MediaContent { get; }
+    bool HasVideoContent { get; }
+    double VideoDuration { get; }
+    float VideoAspectRatio { get; }
+
     event EventHandler OnAdLoaded;
     event EventHandler<IAdError> OnAdFailedToLoad;
     event EventHandler? OnAdImpression;
@@ -55,6 +61,51 @@ public interface INativeAd
 
     void Load();
 }
+```
+
+## Native video ads
+
+Native video ads are native ads that include video content. You can use the same `NativeAdView` to display native video ads. The `INativeAd` interface includes properties to determine if the ad contains video content and to access video-related information:
+
+- `HasVideoContent` - Returns `true` if the ad contains video content
+- `VideoDuration` - Returns the duration of the video in seconds
+- `VideoAspectRatio` - Returns the aspect ratio of the video (width / height)
+- `MediaContent` - Returns the platform-specific media content object that can be used with native video views
+
+### Using the native video ad service
+
+To specifically request native video ads, use the `INativeVideoAdService`:
+
+```csharp
+var nativeVideoAdService = IPlatformApplication.Current.Services.GetRequiredService<INativeVideoAdService>();
+var nativeVideoAd = nativeVideoAdService.CreateAd();
+
+nativeVideoAd.OnAdLoaded += (_, _) =>
+{
+    if (nativeVideoAd.HasVideoContent)
+    {
+        // Display video content
+        var duration = nativeVideoAd.VideoDuration;
+        // Use MediaContent with platform-specific video views
+    }
+};
+
+nativeVideoAd.Load();
+```
+
+> [!NOTE]
+> When using test ads, you can set `AdConfig.UseTestAdUnitIds = true` to automatically use the native video test ad unit.
+
+### Configuring default native video ad unit ID
+
+You can configure a default native video ad unit ID using `AdConfig.DefaultNativeVideoAdUnitId`:
+
+```csharp
+#if ANDROID
+AdConfig.DefaultNativeVideoAdUnitId = "ca-app-pub-xxxxxxxxxxxxxxxx/xxxxxxxxxx";
+#elif IOS
+AdConfig.DefaultNativeVideoAdUnitId = "ca-app-pub-xxxxxxxxxxxxxxxx/xxxxxxxxxx";
+#endif
 ```
 
 ### Advanced usage

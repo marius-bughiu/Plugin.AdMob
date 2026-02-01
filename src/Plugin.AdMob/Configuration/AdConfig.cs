@@ -38,6 +38,11 @@ public static class AdConfig
     public static string? DefaultNativeAdUnitId { get; set; }
 
     /// <summary>
+    /// Optional native video ad unit ID to be used by default
+    /// </summary>
+    public static string? DefaultNativeVideoAdUnitId { get; set; }
+
+    /// <summary>
     /// A list of test device IDs.
     /// </summary>
     public static IList<string> TestDevices { get; } = [];

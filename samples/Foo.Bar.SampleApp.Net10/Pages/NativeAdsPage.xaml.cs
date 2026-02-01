@@ -8,12 +8,14 @@ namespace Foo.Bar.SampleApp.Pages;
 public partial class NativeAdsPage : ContentPage
 {
     private readonly INativeAdService _nativeAdService;
+    private readonly INativeVideoAdService _nativeVideoAdService;
 
     public NativeAdsPage()
 	{
 		InitializeComponent();
 
         _nativeAdService = ServiceProvider.GetRequiredService<INativeAdService>();
+        _nativeVideoAdService = ServiceProvider.GetRequiredService<INativeVideoAdService>();
     }
 
     private void OnLoadNativeAdClicked(object sender, EventArgs e)
@@ -27,5 +29,25 @@ public partial class NativeAdsPage : ContentPage
         };
 
         nativeAd.Load();
+    }
+
+    private void OnLoadNativeVideoAdClicked(object sender, EventArgs e)
+    {
+        var nativeVideoAd = _nativeVideoAdService.CreateAd();
+        nativeVideoAd.OnAdLoaded += (_, _) =>
+        {
+            if (nativeVideoAd.HasVideoContent)
+            {
+                DisplayAlert("Native Video Ad", 
+                    $"Video duration: {nativeVideoAd.VideoDuration:F1}s\nAspect ratio: {nativeVideoAd.VideoAspectRatio:F2}", 
+                    "OK");
+            }
+
+            var customAdView = new MyCustomAdTemplate();
+            var nativeAdView = new NativeAdView(nativeVideoAd, customAdView);
+            this.LayoutRoot.Add(nativeAdView);
+        };
+
+        nativeVideoAd.Load();
     }
 }
