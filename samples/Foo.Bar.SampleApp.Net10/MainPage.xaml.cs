@@ -161,6 +161,15 @@ namespace Foo.Bar.SampleApp
         private void BannerAd_OnAdLoaded(object sender, EventArgs e)
         {
             Debug.WriteLine("Banner ad loaded.");
+            if (sender is BannerAd bannerAd)
+            {
+                Debug.WriteLine($"Banner ad IsLoaded: {bannerAd.IsLoaded}");
+            }
+        }
+
+        private void BannerAd_OnAdFailedToLoad(object sender, IAdError e)
+        {
+            Debug.WriteLine($"Banner ad failed to load: {e.Message}");
         }
 
         private void RewardedAd_OnAdLoaded(object? sender, EventArgs e)

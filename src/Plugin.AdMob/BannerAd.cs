@@ -41,6 +41,21 @@ public class BannerAd : ContentView
     public event EventHandler? OnAdClosed;
 
     /// <summary>
+    /// Determines whether the ad is loaded or not.
+    /// </summary>
+    public static readonly BindableProperty IsLoadedProperty =
+        BindableProperty.Create(nameof(IsLoaded), typeof(bool), typeof(BannerAd), false);
+
+    /// <summary>
+    /// Determines whether the ad is loaded or not.
+    /// </summary>
+    public bool IsLoaded
+    {
+        get { return (bool)GetValue(IsLoadedProperty); }
+        private set { SetValue(IsLoadedProperty, value); }
+    }
+
+    /// <summary>
     /// The ad unit id.
     /// </summary>
     public static readonly BindableProperty AdUnitIdProperty =
@@ -100,11 +115,21 @@ public class BannerAd : ContentView
         set { SetValue(AdHeightProperty, value); }
     }
 
-    internal void RaiseOnAdLoaded(object? sender, EventArgs e) => OnAdLoaded?.Invoke(sender, e);
-    internal void RaiseOnAdFailedToLoad(object? sender, IAdError e) => OnAdFailedToLoad?.Invoke(sender, e);
-    internal void RaiseOnAdImpression(object? sender, EventArgs e) => OnAdImpression?.Invoke(sender, e);
-    internal void RaiseOnAdClicked(object? sender, EventArgs e) => OnAdClicked?.Invoke(sender, e);
-    internal void RaiseOnAdSwiped(object? sender, EventArgs e) => OnAdSwiped?.Invoke(sender, e);
-    internal void RaiseOnAdOpened(object? sender, EventArgs e) => OnAdOpened?.Invoke(sender, e);
-    internal void RaiseOnAdClosed(object? sender, EventArgs e) => OnAdClosed?.Invoke(sender, e);
+    internal void RaiseOnAdLoaded(object? sender, EventArgs e)
+    {
+        IsLoaded = true;
+        OnAdLoaded?.Invoke(this, e);
+    }
+
+    internal void RaiseOnAdFailedToLoad(object? sender, IAdError e)
+    {
+        IsLoaded = false;
+        OnAdFailedToLoad?.Invoke(this, e);
+    }
+
+    internal void RaiseOnAdImpression(object? sender, EventArgs e) => OnAdImpression?.Invoke(this, e);
+    internal void RaiseOnAdClicked(object? sender, EventArgs e) => OnAdClicked?.Invoke(this, e);
+    internal void RaiseOnAdSwiped(object? sender, EventArgs e) => OnAdSwiped?.Invoke(this, e);
+    internal void RaiseOnAdOpened(object? sender, EventArgs e) => OnAdOpened?.Invoke(this, e);
+    internal void RaiseOnAdClosed(object? sender, EventArgs e) => OnAdClosed?.Invoke(this, e);
 }
