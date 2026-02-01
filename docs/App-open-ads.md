@@ -25,7 +25,7 @@ public interface IAppOpenAdService
 
 | Event | Description |
 | --- | --- |
-| `OnAdLoaded` | Raised when an ad is loaded, after calling PrepareAd. You can now call ShowAd to present the ad to the user. Note: This is not a catch-all event handler. When using CreateAd, you should register to the ad loaded event handler of the IInterstitialAd returned by the method. |
+| `OnAdLoaded` | Raised when an ad is loaded, after calling PrepareAd. You can now call ShowAd to present the ad to the user. Note: This is not a catch-all event handler. When using CreateAd, you should register to the ad loaded event handler of the IOpenAppAd returned by the method. |
 
 | Method | Description |
 | --- | --- |
