@@ -13,7 +13,7 @@ Consent check can also be managed using `AdConfig.DisableConsentCheck`.
 
 ## Forcing a geography
 
-The plugin provides a bootstrapper method which allows to test your app's behavior as though the device were located in various regions, such as the EEA or UK. Note that debug settings only work on test devices.
+The plugin provides a bootstrapper method which allows you to test your app's behavior as though the device were located in various regions, such as the EEA or UK. Note that debug settings only work on test devices.
 
 ```
 builder
