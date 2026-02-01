@@ -31,14 +31,14 @@ builder
 If you opt-out from automatic consent handling, you can make use of the `IAdConsentService` service to manage the user's consent. The service is registered by the plugin and can be either injected or retrieved from the service provider as follows:
 
 ```
-var adConsentService = IPlatformApplication.Current.Services.GetService<IAdConsentService>();
+var adConsentService = IPlatformApplication.Current.Services.GetRequiredService<IAdConsentService>();
 ```
 
 ### Interface
 ```
 public interface IAdConsentService
 {
-    event EventHandler<IConsentInformation> OnConsentInfoUpdated;
+    event EventHandler<IConsentInformation?>? OnConsentInfoUpdated;
 
     event EventHandler<IConsentError> OnConsentInfoFailedToUpdate;
 
@@ -88,7 +88,7 @@ Resets the stored consent information. Should only be used during testing.
 ### Events
 
 #### OnConsentInfoUpdated
-`event EventHandler<IConsentInformation> OnConsentInfoUpdated`
+`event EventHandler<IConsentInformation?>? OnConsentInfoUpdated`
 
 Raised when the consent information has been updated. This does not guarantee that consent has been obtained. `IConsentInformation` event argument will include up to date consent information.
 

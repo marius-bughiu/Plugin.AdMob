@@ -19,7 +19,7 @@ dotnet add package Plugin.AdMob
 
 📽️ YouTube video:
 
-[![How to display an AdMob banner ad in your .NET MAUI app in under 5 minutes](https://i.ytimg.com/vi/-oxEb6aCAKQ/hqdefault.jpg?sqp=-oaymwEnCNACELwBSFryq4qpAxkIARUAAIhCGAHYAQHiAQoIGBACGAY4AUAB&rs=AOn4CLBLqbS3LegqEUbJVp_A3DE68ufjVw)](http://www.youtube.com/watch?v=-oxEb6aCAKQ "How to display an AdMob banner ad in your .NET MAUI app in under 5 minutes")
+[![How to display an AdMob banner ad in your .NET MAUI app in under 5 minutes](https://i.ytimg.com/vi/-oxEb6aCAKQ/hqdefault.jpg?sqp=-oaymwEnCNACELwBSFryq4qpAxkIARUAAIhCGAHYAQHiAQoIGBACGAY4AUAB&rs=AOn4CLBLqbS3LegqEUbJVp_A3DE68ufjVw)](https://www.youtube.com/watch?v=-oxEb6aCAKQ "How to display an AdMob banner ad in your .NET MAUI app in under 5 minutes")
 
 ## Docs
 
@@ -34,4 +34,5 @@ For setup instructions and usage documentation, see the [docs](docs/) folder (al
 1. [Rewarded interstitial ads](docs/Rewarded-interstitial-ads.md)
 1. [Native ads](docs/Native-ads.md)
 1. [App open ads](docs/App-open-ads.md)
+1. [Troubleshooting](docs/Troubleshooting.md)
 1. [Samples](docs/Samples.md)
