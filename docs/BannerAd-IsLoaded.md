@@ -141,11 +141,13 @@ private void BannerAd_OnAdFailedToLoad(object sender, IAdError e)
         _retryCount++;
         Debug.WriteLine($"Retrying... Attempt {_retryCount}/{MaxRetries}");
         
-        // Wait a bit before retrying
-        Device.StartTimer(TimeSpan.FromSeconds(5), () =>
+        // Wait a bit before retrying using a task delay
+        Task.Delay(TimeSpan.FromSeconds(5)).ContinueWith(_ =>
         {
-            // Trigger a new load by recreating the ad or updating properties
-            return false; // Don't repeat timer
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                // Trigger a new load by recreating the ad or updating properties
+            });
         });
     }
     else
@@ -181,7 +183,7 @@ The `BannerAd.IsLoaded` property follows the same pattern as `RewardedAd.IsLoade
 | `OnAdFailedToLoad` event | ✅ Yes | ✅ Yes |
 | Bindable property | ✅ Yes | ❌ No (regular property) |
 | Auto-updates on load | ✅ Yes | ✅ Yes |
-| Auto-updates on failure | ✅ Yes | ❌ No (stays in previous state) |
+| Resets before load | ✅ Yes (explicit) | ❌ No (implicit) |
 
 **Note**: `BannerAd.IsLoaded` is a `BindableProperty`, making it more suitable for XAML binding scenarios, while `RewardedAd.IsLoaded` is a regular property.
 
