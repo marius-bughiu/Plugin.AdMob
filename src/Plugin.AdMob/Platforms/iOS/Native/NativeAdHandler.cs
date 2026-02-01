@@ -8,12 +8,19 @@ namespace Plugin.AdMob.Handlers;
 
 internal partial class NativeAdHandler : ViewHandler<NativeAdView, Google.MobileAds.NativeAdView>
 {
+    private IAdConsentService? _adConsentService;
+
     public static IPropertyMapper<NativeAdView, NativeAdHandler> PropertyMapper
         = new PropertyMapper<NativeAdView, NativeAdHandler>(ViewMapper);
     public NativeAdHandler() : base(PropertyMapper) { }
 
     protected override void DisconnectHandler(Google.MobileAds.NativeAdView platformView)
     {
+        if (_adConsentService is not null)
+        {
+            _adConsentService.OnConsentInfoUpdated -= OnConsentInfoUpdated;
+        }
+
         platformView.Dispose();
         base.DisconnectHandler(platformView);
     }
@@ -26,14 +33,14 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, Google.Mobile
 
         if (VirtualView._ad is null)
         {
-            var adConsentService = IPlatformApplication.Current!.Services.GetRequiredService<IAdConsentService>();
+            _adConsentService = IPlatformApplication.Current!.Services.GetRequiredService<IAdConsentService>();
             if (CanRequestAds())
             {
                 LoadAd();
             }
             else
             {
-                adConsentService.OnConsentInfoUpdated += (_, _) => LoadAd();
+                _adConsentService.OnConsentInfoUpdated += OnConsentInfoUpdated;
             }
 
             bool CanRequestAds()
@@ -43,7 +50,7 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, Google.Mobile
                     return true;
                 }
 
-                return adConsentService.CanRequestAds();
+                return _adConsentService.CanRequestAds();
             }
         }
         else
@@ -120,5 +127,10 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, Google.Mobile
         }
 
         return VirtualView.AdUnitId ?? AdConfig.DefaultNativeAdUnitId;
+    }
+
+    private void OnConsentInfoUpdated(object? sender, IConsentInformation? e)
+    {
+        LoadAd();
     }
 }

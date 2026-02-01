@@ -18,6 +18,11 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
 
     protected override void DisconnectHandler(AdView platformView)
     {
+        if (_adConsentService is not null)
+        {
+            _adConsentService.OnConsentInfoUpdated -= OnConsentInfoUpdated;
+        }
+
         platformView.Dispose();
         base.DisconnectHandler(platformView);
     }
@@ -25,7 +30,7 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
     protected override AdView CreatePlatformView()
     {
         _adConsentService = IPlatformApplication.Current!.Services.GetRequiredService<IAdConsentService>();
-        _adConsentService.OnConsentInfoUpdated += (_, _) => LoadAd(PlatformView);
+        _adConsentService.OnConsentInfoUpdated += OnConsentInfoUpdated;
 
         var adUnitId = GetAdUnitId();
 
@@ -142,5 +147,10 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
         }
 
         return _adConsentService?.CanRequestAds() ?? false;
+    }
+
+    private void OnConsentInfoUpdated(object? sender, IConsentInformation? e)
+    {
+        LoadAd(PlatformView);
     }
 }
