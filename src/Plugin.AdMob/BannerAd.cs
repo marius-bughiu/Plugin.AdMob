@@ -118,17 +118,18 @@ public class BannerAd : ContentView
     internal void RaiseOnAdLoaded(object? sender, EventArgs e)
     {
         IsLoaded = true;
-        OnAdLoaded?.Invoke(sender, e);
+        OnAdLoaded?.Invoke(this, e);
     }
 
     internal void RaiseOnAdFailedToLoad(object? sender, IAdError e)
     {
         IsLoaded = false;
-        OnAdFailedToLoad?.Invoke(sender, e);
+        OnAdFailedToLoad?.Invoke(this, e);
     }
-    internal void RaiseOnAdImpression(object? sender, EventArgs e) => OnAdImpression?.Invoke(sender, e);
-    internal void RaiseOnAdClicked(object? sender, EventArgs e) => OnAdClicked?.Invoke(sender, e);
-    internal void RaiseOnAdSwiped(object? sender, EventArgs e) => OnAdSwiped?.Invoke(sender, e);
-    internal void RaiseOnAdOpened(object? sender, EventArgs e) => OnAdOpened?.Invoke(sender, e);
-    internal void RaiseOnAdClosed(object? sender, EventArgs e) => OnAdClosed?.Invoke(sender, e);
+
+    internal void RaiseOnAdImpression(object? sender, EventArgs e) => OnAdImpression?.Invoke(this, e);
+    internal void RaiseOnAdClicked(object? sender, EventArgs e) => OnAdClicked?.Invoke(this, e);
+    internal void RaiseOnAdSwiped(object? sender, EventArgs e) => OnAdSwiped?.Invoke(this, e);
+    internal void RaiseOnAdOpened(object? sender, EventArgs e) => OnAdOpened?.Invoke(this, e);
+    internal void RaiseOnAdClosed(object? sender, EventArgs e) => OnAdClosed?.Invoke(this, e);
 }
