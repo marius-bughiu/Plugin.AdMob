@@ -35,4 +35,4 @@ public interface IRewardedAdService
 | --- | --- |
 | `PrepareAd` | Preloads a rewarded ad using the provided `adUnitId`. If no `adUnitId` is provided, it will use the configured default -  `AdConfig.DefaultRewardedAdUnitId`. Use the `onUserEarnedReward` callback to get notified when the user earned his reward. |
 | `ShowAd` | Displays the rewarded ad which was prepared when `PrepareAd` was called. If no ad was prepared, nothing will be shown. |
-| `CreateAd` | Creates an rewarded ad instance which you can use to preload and show later on. This enables you to preload multiple rewarded ads at the same time, using different ad unit IDs. If no `adUnitId` is provided, it will use configured default -  `AdConfig.DefaultRewardedAdUnitId`. |
+| `CreateAd` | Creates a rewarded ad instance which you can use to preload and show later on. This enables you to preload multiple rewarded ads at the same time, using different ad unit IDs. If no `adUnitId` is provided, it will use configured default -  `AdConfig.DefaultRewardedAdUnitId`. |
