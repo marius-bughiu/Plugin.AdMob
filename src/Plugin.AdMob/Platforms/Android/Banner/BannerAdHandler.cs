@@ -80,6 +80,9 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
             return;
         }
 
+        // Reset IsLoaded before loading a new ad
+        VirtualView.SetValue(BannerAd.IsLoadedProperty, false);
+
         var configBuilder = new RequestConfiguration.Builder();
         configBuilder.ApplyGlobalAdConfiguration();
         MobileAds.RequestConfiguration = configBuilder.Build();
