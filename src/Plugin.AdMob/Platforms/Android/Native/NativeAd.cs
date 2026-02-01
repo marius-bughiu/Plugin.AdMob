@@ -35,7 +35,7 @@ internal partial class NativeAd
 
     public bool HasVideoContent => _ad?.MediaContent?.HasVideoContent ?? false;
 
-    public double VideoDuration => _ad?.MediaContent?.Duration / 1000.0 ?? 0.0;
+    public double VideoDuration => (_ad?.MediaContent?.Duration ?? 0.0) / 1000.0;
 
     public float VideoAspectRatio => _ad?.MediaContent?.AspectRatio ?? 0.0f;
 
