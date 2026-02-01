@@ -18,7 +18,7 @@ An interstitial only shows after it has loaded. If you call `ShowAd()` while no 
 
 ### Related issues
 
-- `#31` (request for load state tracking; the service now exposes `IsAdLoaded`)
+- [`#31`](https://github.com/marius-bughiu/Plugin.AdMob/issues/31) (request for load state tracking; the service now exposes `IsAdLoaded`)
 
 ## Interstitial does not show while a MAUI modal is open (iOS)
 
@@ -32,4 +32,4 @@ An interstitial only shows after it has loaded. If you call `ShowAd()` while no 
 
 ### Related issues
 
-- `#32` (interstitial not showing while modal is open)
+- [`#32`](https://github.com/marius-bughiu/Plugin.AdMob/issues/32) (interstitial not showing while modal is open)

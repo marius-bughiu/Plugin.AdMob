@@ -23,5 +23,5 @@ Conditionally reference the package only for Android/iOS target frameworks in yo
 
 ### Related issues
 
-- `#26` (upgrade failed because the app targeted Windows)
+- [`#26`](https://github.com/marius-bughiu/Plugin.AdMob/issues/26) (upgrade failed because the app targeted Windows)
 
