@@ -26,14 +26,11 @@ jobs:
 
       - name: Copy docs to wiki
         run: |
-          cp -f docs/*.md wiki-repo/
+          cp -r docs/. wiki-repo/
 
       - name: Convert links for wiki (strip .md from same-page links)
         run: |
-          cd wiki-repo
-          for f in *.md; do
-            sed -i 's/](\([^)]*\)\.md)/](\1)/g' "$f"
-          done
+          find wiki-repo -name '*.md' -exec sed -i 's/](\([^)]*\)\.md)/](\1)/g' {} \;
 
       - name: Commit and push wiki
         run: |
