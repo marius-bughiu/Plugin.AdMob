@@ -11,11 +11,15 @@ Once you grab hold of the service instance, the next step is to preload the rewa
 ```
 public interface IRewardedAdService
 {
+    bool IsAdLoaded { get; }
+    
     IRewardedAd CreateAd(string adUnitId = null);
     
     void PrepareAd(string adUnitId = null, Action<RewardItem> onUserEarnedReward = null);
     
     void ShowAd();
+    
+    event EventHandler OnAdLoaded;
 }
 ```
 
