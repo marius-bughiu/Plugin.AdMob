@@ -131,6 +131,18 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, Google.Mobile
 
     private void OnConsentInfoUpdated(object? sender, IConsentInformation? e)
     {
-        LoadAd();
+        // Check if the handler is still connected before loading ad
+        // In .NET MAUI 10+, PlatformView throws InvalidOperationException when disconnected
+        try
+        {
+            if (PlatformView is not null)
+            {
+                LoadAd();
+            }
+        }
+        catch (InvalidOperationException)
+        {
+            // Handler has been disconnected, ignore consent update
+        }
     }
 }

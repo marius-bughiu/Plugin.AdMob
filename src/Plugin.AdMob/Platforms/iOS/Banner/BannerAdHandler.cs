@@ -10,6 +10,7 @@ namespace Plugin.AdMob.Handlers;
 internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
 {
     private IAdConsentService? _adConsentService;
+    private EventHandler<IConsentInformation?>? _consentInfoUpdatedHandler;
 
     public static IPropertyMapper<BannerAd, BannerAdHandler> PropertyMapper
         = new PropertyMapper<BannerAd, BannerAdHandler>(ViewMapper);
@@ -122,6 +123,19 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
 
     private void OnConsentInfoUpdated(object? sender, IConsentInformation? e)
     {
-        LoadAd(PlatformView);
+        // Check if the handler is still connected before accessing PlatformView
+        // In .NET MAUI 10+, PlatformView throws InvalidOperationException when disconnected
+        try
+        {
+            var adView = PlatformView;
+            if (adView is not null)
+            {
+                LoadAd(adView);
+            }
+        }
+        catch (InvalidOperationException)
+        {
+            // Handler has been disconnected, ignore consent update
+        }
     }
 }
