@@ -64,6 +64,9 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
             return;
         }
 
+        // Reset IsLoaded before loading a new ad
+        VirtualView.SetValue(BannerAd.IsLoadedProperty, false);
+
         var request = Request.GetDefaultRequest();
 
         adView.LoadRequest(request);

@@ -190,8 +190,11 @@
                         HorizontalOptions="Fill" />
             </Grid>
 
-            <Label Padding="16,0" Text="SmartBanner:" />
-            <admob:BannerAd OnAdLoaded="BannerAd_OnAdLoaded" />
+            <Label Padding="16,0" Text="SmartBanner (with IsLoaded binding):" />
+            <admob:BannerAd x:Name="smartBanner" 
+                            OnAdLoaded="BannerAd_OnAdLoaded"
+                            OnAdFailedToLoad="BannerAd_OnAdFailedToLoad"
+                            IsVisible="{Binding Source={x:Reference smartBanner}, Path=IsLoaded}" />
 
             <Label Padding="16,0" Text="Banner:" />
             <admob:BannerAd AdSize="Banner" />
