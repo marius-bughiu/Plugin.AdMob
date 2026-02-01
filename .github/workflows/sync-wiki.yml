@@ -28,9 +28,9 @@ jobs:
         run: |
           cp -r docs/. wiki-repo/
 
-      - name: Convert links for wiki (strip .md from same-page links)
+      - name: Convert links for wiki (strip .md from relative wiki links only)
         run: |
-          find wiki-repo -name '*.md' -exec sed -i 's/](\([^)]*\)\.md)/](\1)/g' {} \;
+          find wiki-repo -name '*.md' -exec perl -i -pe 's/](([^)]+?)\.md)(\))/($1=~m|://|?$&:"]($1)$2")/ge' {} \;
 
       - name: Commit and push wiki
         run: |
