@@ -23,15 +23,15 @@ dotnet add package Plugin.AdMob
 
 ## Docs
 
-For setup instructions and usage documentation, check out the [Wiki](https://github.com/marius-bughiu/Plugin.AdMob/wiki):
+For setup instructions and usage documentation, see the [docs](docs/) folder (also [synced to the Wiki](https://github.com/marius-bughiu/Plugin.AdMob/wiki)):
 
-1. [Setup](https://github.com/marius-bughiu/Plugin.AdMob/wiki/Setup)
-1. [Configuration](https://github.com/marius-bughiu/Plugin.AdMob/wiki/Configuration)
-1. [Consent](https://github.com/marius-bughiu/Plugin.AdMob/wiki/Consent)
-1. [Banner ads](https://github.com/marius-bughiu/Plugin.AdMob/wiki/Banner-ads)
-1. [Interstitial ads](https://github.com/marius-bughiu/Plugin.AdMob/wiki/Interstitial-ads)
-1. [Rewarded ads](https://github.com/marius-bughiu/Plugin.AdMob/wiki/Rewarded-ads)
-1. [Rewarded interstitial ads](https://github.com/marius-bughiu/Plugin.AdMob/wiki/Rewarded-interstitial-ads)
-1. [Native ads](https://github.com/marius-bughiu/Plugin.AdMob/wiki/Native-ads)
-1. [App open ads](https://github.com/marius-bughiu/Plugin.AdMob/wiki/App-open-ads)
-1. [Samples](https://github.com/marius-bughiu/Plugin.AdMob/wiki/Samples)
+1. [Setup](docs/Setup.md)
+1. [Configuration](docs/Configuration.md)
+1. [Consent](docs/Consent.md)
+1. [Banner ads](docs/Banner-ads.md)
+1. [Interstitial ads](docs/Interstitial-ads.md)
+1. [Rewarded ads](docs/Rewarded-ads.md)
+1. [Rewarded interstitial ads](docs/Rewarded-interstitial-ads.md)
+1. [Native ads](docs/Native-ads.md)
+1. [App open ads](docs/App-open-ads.md)
+1. [Samples](docs/Samples.md)
