@@ -31,13 +31,13 @@ internal partial class NativeAd
 
     public string? Store => _ad?.Store;
 
-    public object? MediaContent => _ad?.MediaContent;
+    public object? MediaContent => _ad?.GetMediaContent();
 
-    public bool HasVideoContent => _ad?.MediaContent?.HasVideoContent ?? false;
+    public bool HasVideoContent => _ad?.GetMediaContent()?.HasVideoContent ?? false;
 
-    public double VideoDuration => (_ad?.MediaContent?.Duration ?? 0.0) / 1000.0;
+    public double VideoDuration => (_ad?.GetMediaContent()?.Duration ?? 0.0) / 1000.0;
 
-    public float VideoAspectRatio => _ad?.MediaContent?.AspectRatio ?? 0.0f;
+    public float VideoAspectRatio => _ad?.GetMediaContent()?.AspectRatio ?? 0.0f;
 
     public void Load()
     {
