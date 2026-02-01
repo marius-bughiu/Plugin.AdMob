@@ -40,8 +40,8 @@ You can also create banners with a custom size by specifying `AdSize="Custom"` i
 |---|---|
 | AdUnitId | The ad unit id. |
 | AdSize | The desired ad size. |
-| CustomAdWidth | The desired ad width in density-independent pixels. Used when `AdSize` is set to `AdMob.AdSize.Custom`. |
-| CustomAdHeight | The desired ad width in density-independent pixels. Used when `AdSize` is set to `AdMob.AdSize.Custom`. |
+| CustomAdWidth | The desired ad width in density-independent pixels. Used when `AdSize` is set to `AdSize.Custom`. |
+| CustomAdHeight | The desired ad height in density-independent pixels. Used when `AdSize` is set to `AdSize.Custom`. |
 | IsLoaded | Determines whether the ad is loaded or not. |
 
 ## Events

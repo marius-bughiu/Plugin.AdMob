@@ -1,7 +1,7 @@
 Rewarded interstitial ads are displayed using the `IRewardedInterstitialAdService` service. The service is registered by the plugin and can be either injected or retrieved from the service provider as follows:
 
 ```
-var rewardedInterstitialAdService = IPlatformApplication.Current.Services.GetService<IRewardedInterstitialAdService>();
+var rewardedInterstitialAdService = IPlatformApplication.Current.Services.GetRequiredService<IRewardedInterstitialAdService>();
 ```
 
 Once you grab hold of the service instance, the next step is to preload the rewarded interstitial ad. You can do so by calling the `PrepareAd` method. You can pass your `adUnitId` as a parameter, or call it without any parameters to use the configured `AdConfig.DefaultRewardedInterstitialAdUnitId`. After the ad is prepared, simply call `ShowAd()` to display the rewarded interstitial ad.
@@ -11,9 +11,9 @@ Once you grab hold of the service instance, the next step is to preload the rewa
 ```
 public interface IRewardedInterstitialAdService
 {
-    IRewardedInterstitialAd CreateAd(string adUnitId = null);
+    IRewardedInterstitialAd CreateAd(string? adUnitId = null);
 
-    void PrepareAd(string adUnitId = null, Action<RewardItem> onUserEarnedReward = null);
+    void PrepareAd(string? adUnitId = null, Action<RewardItem>? onUserEarnedReward = null);
 
     void ShowAd();
 
@@ -36,3 +36,27 @@ public interface IRewardedInterstitialAdService
 | `PrepareAd` | Preloads a rewarded interstitial ad using the provided `adUnitId`. If no `adUnitId` is provided, it will use the configured default -  `AdConfig.DefaultRewardedInterstitialAdUnitId`. Use the `onUserEarnedReward` callback to get notified when the user earned his reward. |
 | `ShowAd` | Displays the rewarded interstitial ad which was prepared when `PrepareAd` was called. If no ad was prepared, nothing will be shown. |
 | `CreateAd` | Creates a rewarded interstitial ad instance which you can use to preload and show later on. This enables you to preload multiple rewarded interstitial ads at the same time, using different ad unit IDs. If no `adUnitId` is provided, it will use configured default -  `AdConfig.DefaultRewardedInterstitialAdUnitId`. |
+
+## Ad instance API (`IRewardedInterstitialAd`)
+
+If you need full control (including per-ad event handling), use `CreateAd(...)` and subscribe to the returned `IRewardedInterstitialAd` events:
+
+```
+public interface IRewardedInterstitialAd
+{
+    string AdUnitId { get; }
+    bool IsLoaded { get; }
+
+    event EventHandler OnAdLoaded;
+    event EventHandler<IAdError> OnAdFailedToLoad;
+    event EventHandler OnAdShowed;
+    event EventHandler<IAdError> OnAdFailedToShow;
+    event EventHandler OnAdImpression;
+    event EventHandler OnAdClicked;
+    event EventHandler OnAdDismissed;
+    event EventHandler<RewardItem> OnUserEarnedReward;
+
+    void Load();
+    void Show();
+}
+```

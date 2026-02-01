@@ -7,4 +7,5 @@
 1. [Rewarded interstitial ads](Rewarded-interstitial-ads.md)
 1. [Native ads](Native-ads.md)
 1. [App open ads](App-open-ads.md)
+1. [Troubleshooting](Troubleshooting.md)
 1. [Samples](Samples.md)

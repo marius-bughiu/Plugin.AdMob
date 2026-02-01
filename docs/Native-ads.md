@@ -25,6 +25,38 @@ and then place the ad view in your page, making sure to specify an `AdContent` w
 > [!NOTE]
 > The `AdUnitId` is optional when using test ads. You can enable test ads by setting `AdConfig.UseTestAdUnitIds` to `true`.
 
+## Native ad model (`INativeAd`)
+
+The binding context for `NativeAdView.AdContent` is an `INativeAd` instance. Some assets are required by policy (for example `Headline` and `Body`) and some are optional, and may be `null`.
+
+```
+public interface INativeAd
+{
+    string AdUnitId { get; }
+    bool IsLoaded { get; }
+
+    string? Advertiser { get; }
+    string? Body { get; }
+    string? CallToAction { get; }
+    string? Headline { get; }
+    string? IconUri { get; }
+    string? ImageUri { get; }
+    string? Price { get; }
+    double? StarRating { get; }
+    string? Store { get; }
+
+    event EventHandler OnAdLoaded;
+    event EventHandler<IAdError> OnAdFailedToLoad;
+    event EventHandler? OnAdImpression;
+    event EventHandler? OnAdClicked;
+    event EventHandler? OnAdSwiped;
+    event EventHandler? OnAdOpened;
+    event EventHandler? OnAdClosed;
+
+    void Load();
+}
+```
+
 ### Advanced usage
 
 For more advanced scenarios, you can prepare as many `INativeAd` instances as needed and display them using the `NativeAdView`:
@@ -39,4 +71,10 @@ nativeAd.OnAdLoaded += (_, _) =>
 };
 
 nativeAd.Load();
+```
+
+To obtain the service:
+
+```
+var nativeAdService = IPlatformApplication.Current.Services.GetRequiredService<INativeAdService>();
 ```
