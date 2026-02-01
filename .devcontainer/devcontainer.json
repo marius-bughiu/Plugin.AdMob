@@ -1,0 +1,32 @@
+{
+  "name": "Plugin.AdMob Development Environment",
+  "image": "mcr.microsoft.com/devcontainers/dotnet:1-10.0-bookworm",
+  
+  "features": {
+    "ghcr.io/devcontainers/features/dotnet:2": {
+      "version": "10.0",
+      "installUsingApt": false
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-dotnettools.csdevkit",
+        "ms-dotnettools.csharp",
+        "ms-dotnettools.vscode-dotnet-runtime",
+        "github.copilot",
+        "github.copilot-chat",
+        "github.vscode-pull-request-github"
+      ],
+      "settings": {
+        "dotnet.defaultSolution": "src/Plugin.AdMob.sln"
+      }
+    }
+  },
+
+  "postCreateCommand": "dotnet workload install maui && dotnet restore src/Plugin.AdMob.sln && dotnet restore samples/Samples.sln",
+
+  "remoteUser": "vscode"
+}
