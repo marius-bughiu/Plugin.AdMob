@@ -30,6 +30,14 @@ internal partial class NativeAd : NativeAdLoaderDelegate
 
     public string? Store => _ad?.Store;
 
+    public object? MediaContent => _ad?.MediaContent;
+
+    public bool HasVideoContent => _ad?.MediaContent?.HasVideoContent ?? false;
+
+    public double VideoDuration => _ad?.MediaContent?.Duration ?? 0.0;
+
+    public float VideoAspectRatio => _ad?.MediaContent?.AspectRatio ?? 0.0f;
+
     public void Load()
     {
         MobileAds.SharedInstance.RequestConfiguration.ApplyGlobalAdConfiguration();

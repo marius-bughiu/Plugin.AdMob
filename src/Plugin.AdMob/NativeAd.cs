@@ -65,6 +65,26 @@ public interface INativeAd
     string? Store => throw new NotImplementedException();
 
     /// <summary>
+    /// Returns the media content (video or image) associated with the native ad. Apps can display this to show video content.
+    /// </summary>
+    object? MediaContent => throw new NotImplementedException();
+
+    /// <summary>
+    /// Indicates whether the ad contains video content.
+    /// </summary>
+    bool HasVideoContent => throw new NotImplementedException();
+
+    /// <summary>
+    /// Returns the duration of the video in seconds. Returns 0 if the ad does not contain video content.
+    /// </summary>
+    double VideoDuration => throw new NotImplementedException();
+
+    /// <summary>
+    /// Returns the aspect ratio of the video content (width / height). Returns 0 if the ad does not contain video content.
+    /// </summary>
+    float VideoAspectRatio => throw new NotImplementedException();
+
+    /// <summary>
     /// Raised when an ad is loaded.
     /// </summary>
     event EventHandler OnAdLoaded;
