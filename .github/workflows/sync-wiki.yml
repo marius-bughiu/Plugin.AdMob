@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
     paths: ['docs/**']
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -28,9 +29,41 @@ jobs:
         run: |
           cp -r docs/. wiki-repo/
 
-      - name: Convert links for wiki (strip .md from relative wiki links only)
+      - name: Convert links for wiki (strip .md from relative links)
         run: |
-          find wiki-repo -name '*.md' -exec perl -i -pe 's/](([^)]+?)\.md)(\))/($1=~m|://|?$&:"]($1)$2")/ge' {} \;
+          python3 - <<'PY'
+          from __future__ import annotations
+          
+          import pathlib
+          import re
+          
+          root = pathlib.Path("wiki-repo")
+          md_files = list(root.rglob("*.md"))
+          
+          # GitHub wiki prefers links without the .md extension:
+          #   [Interstitial](Interstitial-ads) instead of [Interstitial](Interstitial-ads.md)
+          #
+          # Only rewrite *relative* markdown links:
+          # - don't touch http(s)://, mailto:, anchors (#...), or absolute paths (/...)
+          # - preserve optional #fragment anchors
+          pattern = re.compile(
+              r"\]\("
+              r"(?!https?://)"
+              r"(?!mailto:)"
+              r"(?!#)"
+              r"(?!/)"
+              r"([^) \t\r\n]+?)"
+              r"\.md"
+              r"(\#[^)]+)?"
+              r"\)"
+          )
+          
+          for path in md_files:
+              text = path.read_text(encoding="utf-8")
+              new_text = pattern.sub(lambda m: f"]({m.group(1)}{m.group(2) or ''})", text)
+              if new_text != text:
+                  path.write_text(new_text, encoding="utf-8")
+          PY
 
       - name: Commit and push wiki
         run: |
