@@ -34,6 +34,6 @@ public interface IInterstitialAdService
 
 | Method | Description |
 | --- | --- |
-| `PrepareAd` | Preloads an intersitial ad using the provided `adUnitId`. If no `adUnitId` is provided, it will use configured default -  `AdConfig.DefaultInterstitialAdUnitId`. |
+| `PrepareAd` | Preloads an interstitial ad using the provided `adUnitId`. If no `adUnitId` is provided, it will use configured default -  `AdConfig.DefaultInterstitialAdUnitId`. |
 | `ShowAd` | Displays the interstitial ad which was prepared when `PrepareAd` was called. If no ad was prepared, nothing will be shown. |
 | `CreateAd` | Creates an interstitial ad instance which you can use to preload and show later on. This enables you to preload multiple interstitial ads at the same time, using different ad unit IDs. If no `adUnitId` is provided, it will use configured default -  `AdConfig.DefaultInterstitialAdUnitId`. |
