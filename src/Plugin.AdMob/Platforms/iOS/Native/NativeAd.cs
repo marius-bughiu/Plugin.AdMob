@@ -40,7 +40,7 @@ internal partial class NativeAd : NativeAdLoaderDelegate
         }
         else
         {
-            System.Diagnostics.Debug.WriteLine("WARNING: MobileAds.SharedInstance is null in NativeAd.Load(). Ad configuration may not be applied.");
+            System.Diagnostics.Debug.WriteLine("WARNING: MobileAds.SharedInstance is null in NativeAd.Load(). SDK not initialized - ad may fail to load.");
         }
         
         var adLoader = new AdLoader(adUnitID: AdUnitId,

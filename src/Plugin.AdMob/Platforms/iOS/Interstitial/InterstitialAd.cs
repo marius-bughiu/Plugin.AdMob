@@ -18,7 +18,7 @@ internal partial class InterstitialAd
         }
         else
         {
-            System.Diagnostics.Debug.WriteLine("WARNING: MobileAds.SharedInstance is null in InterstitialAd.Load(). Ad configuration may not be applied.");
+            System.Diagnostics.Debug.WriteLine("WARNING: MobileAds.SharedInstance is null in InterstitialAd.Load(). SDK not initialized - ad may fail to load.");
         }
         
         var request = Request.GetDefaultRequest();

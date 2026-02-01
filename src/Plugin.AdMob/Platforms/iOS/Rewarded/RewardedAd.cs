@@ -18,7 +18,7 @@ internal partial class RewardedAd
         }
         else
         {
-            System.Diagnostics.Debug.WriteLine("WARNING: MobileAds.SharedInstance is null in RewardedAd.Load(). Ad configuration may not be applied.");
+            System.Diagnostics.Debug.WriteLine("WARNING: MobileAds.SharedInstance is null in RewardedAd.Load(). SDK not initialized - ad may fail to load.");
         }
         
         var request = Request.GetDefaultRequest();
