@@ -1,8 +1,5 @@
 These docs describe how to integrate and use `Plugin.AdMob` in a .NET MAUI app.
 
-> [!NOTE]
-> The contents of `docs/` are synced to the GitHub Wiki.
-
 ## Start here
 
 1. [Setup](Setup.md)
