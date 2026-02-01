@@ -1,4 +1,4 @@
-Check out the [samples](https://github.com/marius-bughiu/Plugin.AdMob/tree/main/samples/Samples) folder for fully functional plugin integration examples.
+Check out the [samples](https://github.com/marius-bughiu/Plugin.AdMob/tree/main/samples) folder for fully functional plugin integration examples.
 
 | Type | iOS | Android |
 |---|---|---|
