@@ -33,7 +33,16 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
             AdUnitId = GetAdUnitId()
         };
 
-        MobileAds.SharedInstance?.RequestConfiguration.ApplyGlobalAdConfiguration();
+        // Apply global ad configuration if SDK is initialized
+        var sharedInstance = MobileAds.SharedInstance;
+        if (sharedInstance is not null)
+        {
+            sharedInstance.RequestConfiguration.ApplyGlobalAdConfiguration();
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine("WARNING: MobileAds.SharedInstance is null in BannerAdHandler. Ad configuration may not be applied.");
+        }
 
         adView.AdReceived += VirtualView.RaiseOnAdLoaded;
         adView.ReceiveAdFailed += (s, e) => VirtualView.RaiseOnAdFailedToLoad(this, new AdError(e.Error.DebugDescription));

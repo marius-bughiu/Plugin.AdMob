@@ -32,7 +32,17 @@ internal partial class NativeAd : NativeAdLoaderDelegate
 
     public void Load()
     {
-        MobileAds.SharedInstance?.RequestConfiguration.ApplyGlobalAdConfiguration();
+        // Apply global ad configuration if SDK is initialized
+        var sharedInstance = MobileAds.SharedInstance;
+        if (sharedInstance is not null)
+        {
+            sharedInstance.RequestConfiguration.ApplyGlobalAdConfiguration();
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine("WARNING: MobileAds.SharedInstance is null in NativeAd.Load(). Ad configuration may not be applied.");
+        }
+        
         var adLoader = new AdLoader(adUnitID: AdUnitId,
             // The UIViewController parameter is optional.
             rootViewController: null,

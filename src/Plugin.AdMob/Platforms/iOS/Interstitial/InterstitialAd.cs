@@ -10,7 +10,17 @@ internal partial class InterstitialAd
 
     public void Load()
     {
-        MobileAds.SharedInstance?.RequestConfiguration.ApplyGlobalAdConfiguration();
+        // Apply global ad configuration if SDK is initialized
+        var sharedInstance = MobileAds.SharedInstance;
+        if (sharedInstance is not null)
+        {
+            sharedInstance.RequestConfiguration.ApplyGlobalAdConfiguration();
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine("WARNING: MobileAds.SharedInstance is null in InterstitialAd.Load(). Ad configuration may not be applied.");
+        }
+        
         var request = Request.GetDefaultRequest();
 
         Google.MobileAds.InterstitialAd.Load(AdUnitId, request, AdLoaded);
