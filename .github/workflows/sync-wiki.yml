@@ -1,0 +1,49 @@
+name: Sync docs to Wiki
+
+on:
+  push:
+    branches: [main]
+    paths: ['docs/**']
+
+permissions:
+  contents: write
+
+jobs:
+  sync-wiki:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Checkout wiki
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/${{ github.event.repository.name }}.wiki
+          path: wiki-repo
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Copy docs to wiki
+        run: |
+          cp -f docs/*.md wiki-repo/
+
+      - name: Convert links for wiki (strip .md from same-page links)
+        run: |
+          cd wiki-repo
+          for f in *.md; do
+            sed -i 's/](\([^)]*\)\.md)/](\1)/g' "$f"
+          done
+
+      - name: Commit and push wiki
+        run: |
+          cd wiki-repo
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --staged --quiet; then
+            echo "No changes to push"
+          else
+            git commit -m "Sync docs from main branch"
+            git push
+          fi
