@@ -23,8 +23,6 @@ dotnet add package Plugin.AdMob
 
 ## Docs
 
-For setup instructions and usage documentation, see the [docs](docs/) folder (also [synced to the Wiki](https://github.com/marius-bughiu/Plugin.AdMob/wiki)):
-
 1. [Setup](docs/Setup.md)
 1. [Configuration](docs/Configuration.md)
 1. [Consent](docs/Consent.md)
