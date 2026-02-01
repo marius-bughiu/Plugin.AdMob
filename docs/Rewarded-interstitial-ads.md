@@ -16,6 +16,10 @@ public interface IRewardedInterstitialAdService
     void PrepareAd(string adUnitId = null, Action<RewardItem> onUserEarnedReward = null);
 
     void ShowAd();
+
+    bool IsAdLoaded { get; }
+
+    event EventHandler OnAdLoaded;
 }
 ```
 
