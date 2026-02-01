@@ -21,6 +21,35 @@ dotnet add package Plugin.AdMob
 
 [![How to display an AdMob banner ad in your .NET MAUI app in under 5 minutes](https://i.ytimg.com/vi/-oxEb6aCAKQ/hqdefault.jpg?sqp=-oaymwEnCNACELwBSFryq4qpAxkIARUAAIhCGAHYAQHiAQoIGBACGAY4AUAB&rs=AOn4CLBLqbS3LegqEUbJVp_A3DE68ufjVw)](http://www.youtube.com/watch?v=-oxEb6aCAKQ "How to display an AdMob banner ad in your .NET MAUI app in under 5 minutes")
 
+## Quick Example: Banner Ad with Load State
+
+```xaml
+<admob:BannerAd x:Name="banner" 
+                AdSize="Banner"
+                OnAdLoaded="BannerAd_OnAdLoaded"
+                OnAdFailedToLoad="BannerAd_OnAdFailedToLoad"
+                IsVisible="{Binding Source={x:Reference banner}, Path=IsLoaded}" />
+```
+
+```csharp
+private void BannerAd_OnAdLoaded(object sender, EventArgs e)
+{
+    // Ad successfully loaded, IsLoaded is now true
+    Debug.WriteLine("Banner ad loaded");
+}
+
+private void BannerAd_OnAdFailedToLoad(object sender, IAdError e)
+{
+    // Ad failed to load, IsLoaded is now false
+    Debug.WriteLine($"Banner ad failed: {e.Message}");
+}
+```
+
+The `IsLoaded` property allows you to:
+- Check the banner ad load state programmatically
+- Bind UI visibility to the load state (show only when loaded)
+- Handle load success and failure events
+
 ## Docs
 
 For setup instructions and usage documentation, check out the [Wiki](https://github.com/marius-bughiu/Plugin.AdMob/wiki):
@@ -28,7 +57,7 @@ For setup instructions and usage documentation, check out the [Wiki](https://git
 1. [Setup](https://github.com/marius-bughiu/Plugin.AdMob/wiki/Setup)
 1. [Configuration](https://github.com/marius-bughiu/Plugin.AdMob/wiki/Configuration)
 1. [Consent](https://github.com/marius-bughiu/Plugin.AdMob/wiki/Consent)
-1. [Banner ads](https://github.com/marius-bughiu/Plugin.AdMob/wiki/Banner-ads)
+1. [Banner ads](https://github.com/marius-bughiu/Plugin.AdMob/wiki/Banner-ads) - See also: [BannerAd.IsLoaded documentation](docs/BannerAd-IsLoaded.md)
 1. [Interstitial ads](https://github.com/marius-bughiu/Plugin.AdMob/wiki/Interstitial-ads)
 1. [Rewarded ads](https://github.com/marius-bughiu/Plugin.AdMob/wiki/Rewarded-ads)
 1. [Rewarded interstitial ads](https://github.com/marius-bughiu/Plugin.AdMob/wiki/Rewarded-interstitial-ads)
