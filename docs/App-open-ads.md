@@ -11,11 +11,15 @@ Once you grab hold of the service instance, the next step is to preload the app 
 ```
 public interface IAppOpenAdService
 {
-    IOpenAppAd CreateAd(string adUnitId = null);
+    bool IsAdLoaded { get; }
+
+    IAppOpenAd CreateAd(string adUnitId = null);
 
     void PrepareAd(string adUnitId = null);
 
     void ShowAd();
+
+    event EventHandler OnAdLoaded;
 }
 ```
 
@@ -25,7 +29,7 @@ public interface IAppOpenAdService
 
 | Event | Description |
 | --- | --- |
-| `OnAdLoaded` | Raised when an ad is loaded, after calling PrepareAd. You can now call ShowAd to present the ad to the user. Note: This is not a catch-all event handler. When using CreateAd, you should register to the ad loaded event handler of the IOpenAppAd returned by the method. |
+| `OnAdLoaded` | Raised when an ad is loaded, after calling PrepareAd. You can now call ShowAd to present the ad to the user. Note: This is not a catch-all event handler. When using CreateAd, you should register to the ad loaded event handler of the IAppOpenAd returned by the method. |
 
 | Method | Description |
 | --- | --- |
