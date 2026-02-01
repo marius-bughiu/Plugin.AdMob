@@ -33,5 +33,5 @@ builder
 
 ### Related issues
 
-- `#5` / `#9` (consent / GDPR / UMP requests)
-- `#66` (native ads gated by consent; resolved by using consent debug settings during testing)
+- [`#5`](https://github.com/marius-bughiu/Plugin.AdMob/issues/5) / [`#9`](https://github.com/marius-bughiu/Plugin.AdMob/issues/9) (consent / GDPR / UMP requests)
+- [`#66`](https://github.com/marius-bughiu/Plugin.AdMob/issues/66) (native ads gated by consent; resolved by using consent debug settings during testing)

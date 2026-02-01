@@ -16,5 +16,5 @@
 
 ### Related issues
 
-- `#35` (Blazor Hybrid iOS view controller detection)
+- [`#35`](https://github.com/marius-bughiu/Plugin.AdMob/issues/35) (Blazor Hybrid iOS view controller detection)
 

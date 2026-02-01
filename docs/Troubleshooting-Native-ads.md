@@ -20,5 +20,5 @@
 
 ### Related issues
 
-- `#66` (native ads gated by consent)
+- [`#66`](https://github.com/marius-bughiu/Plugin.AdMob/issues/66) (native ads gated by consent)
 

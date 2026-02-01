@@ -26,8 +26,8 @@
 
 ### Related issues
 
-- `#29` (duplicate measurement classes when combined with Firebase)
-- `#67` (duplicate Compose runtime annotation classes on .NET 10)
+- [`#29`](https://github.com/marius-bughiu/Plugin.AdMob/issues/29) (duplicate measurement classes when combined with Firebase)
+- [`#67`](https://github.com/marius-bughiu/Plugin.AdMob/issues/67) (duplicate Compose runtime annotation classes on .NET 10)
 
 ## AndroidManifest namespace warnings on .NET 10 / API 35+
 
@@ -48,7 +48,7 @@ Make sure your app explicitly sets a minimum Android platform version compatible
 
 ### Related issues
 
-- `#68` (namespace warnings when min platform is too low)
+- [`#68`](https://github.com/marius-bughiu/Plugin.AdMob/issues/68) (namespace warnings when min platform is too low)
 
 ## Runtime errors on older Android versions
 
@@ -64,4 +64,4 @@ Make sure your app explicitly sets a minimum Android platform version compatible
 
 ### Related issues
 
-- `#40` (older Android compatibility / `getDisplay()` errors)
+- [`#40`](https://github.com/marius-bughiu/Plugin.AdMob/issues/40) (older Android compatibility / `getDisplay()` errors)

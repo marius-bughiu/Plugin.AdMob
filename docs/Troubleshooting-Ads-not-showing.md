@@ -19,7 +19,7 @@ For new apps / new or re-activated AdMob accounts, it can take time for real ads
 
 ### Related issues
 
-- `#11` (real ads not showing; resolved after AdMob account/app became ready)
+- [`#11`](https://github.com/marius-bughiu/Plugin.AdMob/issues/11) (real ads not showing; resolved after AdMob account/app became ready)
 
 ## Ads not loading in sample or on real device
 
@@ -39,4 +39,4 @@ AdConfig.AddTestDevice("<your-device-id>");
 
 ### Related issues
 
-- `#6` (sample app + device testing guidance)
+- [`#6`](https://github.com/marius-bughiu/Plugin.AdMob/issues/6) (sample app + device testing guidance)
