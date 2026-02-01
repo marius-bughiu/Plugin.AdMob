@@ -36,7 +36,7 @@ internal partial class NativeAd : NativeAdLoaderDelegate
 
     public double VideoDuration => _ad?.MediaContent?.Duration ?? 0.0;
 
-    public float VideoAspectRatio => _ad?.MediaContent?.AspectRatio ?? 0.0f;
+    public float VideoAspectRatio => (float)(_ad?.MediaContent?.AspectRatio ?? 0.0f);
 
     public void Load()
     {
