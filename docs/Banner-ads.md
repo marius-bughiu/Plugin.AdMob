@@ -29,7 +29,7 @@ and then place the banner in your page.
 
 ### Custom size ad
 
-You can also create banners with custom sized by specifying `AdSize="Custom"` in combination with `CustomAdWidth` and `CustomAdHeight`. For example:
+You can also create banners with a custom size by specifying `AdSize="Custom"` in combination with `CustomAdWidth` and `CustomAdHeight`. For example:
 
 ```
 <admob:BannerAd AdSize="Custom" CustomAdWidth="200" CustomAdHeight="200" /> 
