@@ -10,7 +10,6 @@ namespace Plugin.AdMob.Handlers;
 internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
 {
     private IAdConsentService? _adConsentService;
-    private EventHandler? _consentInfoUpdatedHandler;
 
     public static IPropertyMapper<BannerAd, BannerAdHandler> PropertyMapper =
         new PropertyMapper<BannerAd, BannerAdHandler>(ViewMapper);
@@ -19,11 +18,9 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
 
     protected override void DisconnectHandler(AdView platformView)
     {
-        // Unsubscribe from consent service events to avoid accessing disposed objects
-        if (_adConsentService is not null && _consentInfoUpdatedHandler is not null)
+        if (_adConsentService is not null)
         {
-            _adConsentService.OnConsentInfoUpdated -= _consentInfoUpdatedHandler;
-            _consentInfoUpdatedHandler = null;
+            _adConsentService.OnConsentInfoUpdated -= OnConsentInfoUpdated;
         }
 
         platformView.Dispose();
@@ -33,8 +30,7 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
     protected override AdView CreatePlatformView()
     {
         _adConsentService = IPlatformApplication.Current!.Services.GetRequiredService<IAdConsentService>();
-        _consentInfoUpdatedHandler = (_, _) => LoadAd(PlatformView);
-        _adConsentService.OnConsentInfoUpdated += _consentInfoUpdatedHandler;
+        _adConsentService.OnConsentInfoUpdated += OnConsentInfoUpdated;
 
         var adUnitId = GetAdUnitId();
 
@@ -148,5 +144,10 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
         }
 
         return _adConsentService?.CanRequestAds() ?? false;
+    }
+
+    private void OnConsentInfoUpdated(object? sender, IConsentInformation? e)
+    {
+        LoadAd(PlatformView);
     }
 }

@@ -8,7 +8,6 @@ namespace Plugin.AdMob.Handlers;
 internal partial class NativeAdHandler : ViewHandler<NativeAdView, global::Android.Gms.Ads.NativeAd.NativeAdView>
 {
     private IAdConsentService? _adConsentService;
-    private EventHandler? _consentInfoUpdatedHandler;
 
     public static IPropertyMapper<NativeAdView, NativeAdHandler> PropertyMapper =
         new PropertyMapper<NativeAdView, NativeAdHandler>(ViewMapper);
@@ -27,8 +26,7 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, global::Andro
         {
             _adConsentService = IPlatformApplication.Current!.Services
                 .GetRequiredService<IAdConsentService>();
-            _consentInfoUpdatedHandler = (_, _) => LoadAd();
-            _adConsentService.OnConsentInfoUpdated += _consentInfoUpdatedHandler;
+            _adConsentService.OnConsentInfoUpdated += OnConsentInfoUpdated;
         }
         else
         {
@@ -39,11 +37,9 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, global::Andro
 
     protected override void DisconnectHandler(global::Android.Gms.Ads.NativeAd.NativeAdView platformView)
     {
-        // Unsubscribe from consent service events to avoid accessing disposed objects
-        if (_adConsentService is not null && _consentInfoUpdatedHandler is not null)
+        if (_adConsentService is not null)
         {
-            _adConsentService.OnConsentInfoUpdated -= _consentInfoUpdatedHandler;
-            _consentInfoUpdatedHandler = null;
+            _adConsentService.OnConsentInfoUpdated -= OnConsentInfoUpdated;
         }
 
         base.DisconnectHandler(platformView);
@@ -102,5 +98,10 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, global::Andro
         }
 
         return VirtualView.AdUnitId ?? AdConfig.DefaultBannerAdUnitId;
+    }
+
+    private void OnConsentInfoUpdated(object? sender, IConsentInformation? e)
+    {
+        LoadAd();
     }
 }

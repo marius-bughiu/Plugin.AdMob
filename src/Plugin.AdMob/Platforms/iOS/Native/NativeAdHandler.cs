@@ -9,7 +9,6 @@ namespace Plugin.AdMob.Handlers;
 internal partial class NativeAdHandler : ViewHandler<NativeAdView, Google.MobileAds.NativeAdView>
 {
     private IAdConsentService? _adConsentService;
-    private EventHandler? _consentInfoUpdatedHandler;
 
     public static IPropertyMapper<NativeAdView, NativeAdHandler> PropertyMapper
         = new PropertyMapper<NativeAdView, NativeAdHandler>(ViewMapper);
@@ -17,11 +16,9 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, Google.Mobile
 
     protected override void DisconnectHandler(Google.MobileAds.NativeAdView platformView)
     {
-        // Unsubscribe from consent service events to avoid accessing disposed objects
-        if (_adConsentService is not null && _consentInfoUpdatedHandler is not null)
+        if (_adConsentService is not null)
         {
-            _adConsentService.OnConsentInfoUpdated -= _consentInfoUpdatedHandler;
-            _consentInfoUpdatedHandler = null;
+            _adConsentService.OnConsentInfoUpdated -= OnConsentInfoUpdated;
         }
 
         platformView.Dispose();
@@ -43,8 +40,7 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, Google.Mobile
             }
             else
             {
-                _consentInfoUpdatedHandler = (_, _) => LoadAd();
-                _adConsentService.OnConsentInfoUpdated += _consentInfoUpdatedHandler;
+                _adConsentService.OnConsentInfoUpdated += OnConsentInfoUpdated;
             }
 
             bool CanRequestAds()
@@ -131,5 +127,10 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, Google.Mobile
         }
 
         return VirtualView.AdUnitId ?? AdConfig.DefaultNativeAdUnitId;
+    }
+
+    private void OnConsentInfoUpdated(object? sender, IConsentInformation? e)
+    {
+        LoadAd();
     }
 }
