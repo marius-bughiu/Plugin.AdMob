@@ -1,5 +1,3 @@
-## Plugin.AdMob documentation
-
 These docs describe how to integrate and use `Plugin.AdMob` in a .NET MAUI app.
 
 > [!NOTE]
