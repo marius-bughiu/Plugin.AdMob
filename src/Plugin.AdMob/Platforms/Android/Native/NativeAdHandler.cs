@@ -16,16 +16,6 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, global::Andro
     {        
     }
 
-    protected override void DisconnectHandler(global::Android.Gms.Ads.NativeAd.NativeAdView platformView)
-    {
-        if (_adConsentService is not null && _consentInfoUpdatedHandler is not null)
-        {
-            _adConsentService.OnConsentInfoUpdated -= _consentInfoUpdatedHandler;
-        }
-        
-        base.DisconnectHandler(platformView);
-    }
-
     protected override void ConnectHandler(Android.Gms.Ads.NativeAd.NativeAdView platformView)
     {
         base.ConnectHandler(platformView);
