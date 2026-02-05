@@ -8,6 +8,12 @@ _This project has no affiliation with Microsoft or the Maui/Xamarin teams._
 dotnet add package Plugin.AdMob
 ```
 
+## Using with Plugin.Firebase
+
+Plugin.AdMob includes a `buildTransitive/Plugin.AdMob.props` targets file that automatically resolves dependency conflicts when used alongside Plugin.Firebase packages.
+
+For more information, see the [Firebase compatibility documentation](https://github.com/marius-bughiu/Plugin.AdMob/wiki/Firebase-Compatibility).
+
 ## Features
 
 |         | Banner | Interstitial | Rewarded | Rewarded interstitial | App open | Native | Native video |

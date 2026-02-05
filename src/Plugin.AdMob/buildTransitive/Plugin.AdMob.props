@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  
+  <!--
+    This file is automatically included when Plugin.AdMob is installed via NuGet.
+    
+    IMPORTANT: Known Issue with Plugin.Firebase Compatibility
+    
+    When using Plugin.AdMob with Plugin.Firebase packages, you may encounter this error:
+    "Type com.google.android.gms.measurement.internal.zzip is defined multiple times"
+    
+    This happens because both packages include overlapping Google Play Services and Firebase dependencies.
+    
+    AUTOMATIC FIX:
+    This props file automatically enables settings to help mitigate this issue.
+    
+    If you still encounter problems, add this to your project's .csproj file:
+    
+    <PropertyGroup Condition="'$(TargetFramework)' != '' AND $([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
+      <AndroidDexTool>d8</AndroidDexTool>
+      <AndroidLinkTool>r8</AndroidLinkTool>
+    </PropertyGroup>
+    
+    For more information and advanced solutions, see:
+    https://github.com/marius-bughiu/Plugin.AdMob/wiki
+  -->
+
+  <PropertyGroup Condition="'$(TargetFramework)' != '' AND $([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
+    <!-- Enable MultiDex to support large dependency trees -->
+    <AndroidEnableMultiDex Condition="'$(AndroidEnableMultiDex)' == ''">true</AndroidEnableMultiDex>
+    
+    <!-- Use modern D8/R8 tools which handle duplicate types better -->
+    <AndroidDexTool Condition="'$(AndroidDexTool)' == ''">d8</AndroidDexTool>
+    <AndroidLinkTool Condition="'$(AndroidLinkTool)' == ''">r8</AndroidLinkTool>
+  </PropertyGroup>
+
+</Project>
