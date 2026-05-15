@@ -1,4 +1,4 @@
-﻿using Android.Gms.Ads;
+using Android.Gms.Ads;
 using Android.Util;
 using Microsoft.Maui.Handlers;
 using Plugin.AdMob.Configuration;
@@ -49,13 +49,13 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
         };
 
         var listener = new Platforms.Android.AdListener();
-        listener.AdLoaded += VirtualView.RaiseOnAdLoaded;
-        listener.AdFailedToLoad += (s, e) => VirtualView.RaiseOnAdFailedToLoad(s, new AdError(e.Message));
-        listener.AdImpression += VirtualView.RaiseOnAdImpression;
-        listener.AdClicked += VirtualView.RaiseOnAdClicked;
-        listener.AdSwiped += VirtualView.RaiseOnAdSwiped;
-        listener.AdOpened += VirtualView.RaiseOnAdOpened;
-        listener.AdClosed += VirtualView.RaiseOnAdClosed;
+        listener.AdLoaded += (s, e) => SafeRaise(() => VirtualView.RaiseOnAdLoaded(s, e));
+        listener.AdFailedToLoad += (s, e) => SafeRaise(() => VirtualView.RaiseOnAdFailedToLoad(s, new AdError(e.Message)));
+        listener.AdImpression += (s, e) => SafeRaise(() => VirtualView.RaiseOnAdImpression(s, e));
+        listener.AdClicked += (s, e) => SafeRaise(() => VirtualView.RaiseOnAdClicked(s, e));
+        listener.AdSwiped += (s, e) => SafeRaise(() => VirtualView.RaiseOnAdSwiped(s, e));
+        listener.AdOpened += (s, e) => SafeRaise(() => VirtualView.RaiseOnAdOpened(s, e));
+        listener.AdClosed += (s, e) => SafeRaise(() => VirtualView.RaiseOnAdClosed(s, e));
 
         adView.AdListener = listener;
 
@@ -165,6 +165,19 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
         catch (InvalidOperationException)
         {
             // Handler has been disconnected, ignore consent update
+        }
+    }
+
+    private void SafeRaise(Action action)
+    {
+        try
+        {
+            action();
+        }
+        catch (InvalidOperationException)
+        {
+            // Handler has been disconnected, ignore ad event.
+            // This prevents: System.InvalidOperationException: VirtualView cannot be null here
         }
     }
 }
