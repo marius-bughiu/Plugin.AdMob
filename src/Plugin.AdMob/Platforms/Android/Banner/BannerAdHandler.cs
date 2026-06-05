@@ -4,11 +4,17 @@ using Microsoft.Maui.Handlers;
 using Plugin.AdMob.Configuration;
 using Plugin.AdMob.Platforms.Android;
 using Plugin.AdMob.Services;
+using System.Collections.Generic;
 
 namespace Plugin.AdMob.Handlers;
 
 internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
 {
+    // Active banner views are tracked so app lifecycle can pause/resume them
+    // without forcing the host app to recreate the MAUI control.
+    private static readonly object _activeViewsLock = new();
+    private static readonly List<WeakReference<AdView>> _activeViews = [];
+
     private IAdConsentService? _adConsentService;
     private EventHandler<IConsentInformation?>? _consentInfoUpdatedHandler;
 
@@ -17,6 +23,34 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
 
     public BannerAdHandler() : base(PropertyMapper) { }
 
+    internal static void PauseActiveBanners()
+    {
+        foreach (var adView in GetActiveViews())
+        {
+            try
+            {
+                adView.Pause();
+            }
+            catch (Exception)
+            {
+            }
+        }
+    }
+
+    internal static void ResumeActiveBanners()
+    {
+        foreach (var adView in GetActiveViews())
+        {
+            try
+            {
+                adView.Resume();
+            }
+            catch (Exception)
+            {
+            }
+        }
+    }
+
     protected override void DisconnectHandler(AdView platformView)
     {
         if (_adConsentService is not null)
@@ -24,6 +58,12 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
             _adConsentService.OnConsentInfoUpdated -= OnConsentInfoUpdated;
         }
 
+        RemoveActiveView(platformView);
+        // Explicitly stop the native AdView before disposal so Android does not
+        // keep banner work alive after the handler has been disconnected.
+        platformView.AdListener = null;
+        platformView.Pause();
+        platformView.Destroy();
         platformView.Dispose();
         base.DisconnectHandler(platformView);
     }
@@ -69,6 +109,7 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
             VirtualView.WidthRequest = 0;
         }
 
+        AddActiveView(adView);
         return adView;
     }
 
@@ -179,5 +220,50 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
             // Handler has been disconnected, ignore ad event.
             // This prevents: System.InvalidOperationException: VirtualView cannot be null here
         }
+    }
+
+    private static void AddActiveView(AdView adView)
+    {
+        lock (_activeViewsLock)
+        {
+            _activeViews.Add(new WeakReference<AdView>(adView));
+        }
+    }
+
+    private static void RemoveActiveView(AdView adView)
+    {
+        lock (_activeViewsLock)
+        {
+            _activeViews.RemoveAll(reference =>
+            {
+                if (!reference.TryGetTarget(out var target))
+                {
+                    return true;
+                }
+
+                return ReferenceEquals(target, adView);
+            });
+        }
+    }
+
+    private static List<AdView> GetActiveViews()
+    {
+        List<AdView> activeViews = [];
+
+        lock (_activeViewsLock)
+        {
+            _activeViews.RemoveAll(reference =>
+            {
+                if (!reference.TryGetTarget(out var target))
+                {
+                    return true;
+                }
+
+                activeViews.Add(target);
+                return false;
+            });
+        }
+
+        return activeViews;
     }
 }

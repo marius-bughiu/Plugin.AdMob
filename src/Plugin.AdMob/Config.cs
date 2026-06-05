@@ -91,17 +91,33 @@ public static class Config
         builder.Services.AddSingleton<IAdConsentService>(adConsentService);
 
 #if ANDROID || IOS
+#if ANDROID
+        builder.ConfigureLifecycleEvents(events =>
+        {
+            events.AddAndroid(android =>
+            {
+                // Banner handlers manage native AdView instances, so they need
+                // explicit pause/resume hooks when the app moves through Android lifecycle.
+                var lifecycle = android
+                    .OnResume(_ => BannerAdHandler.ResumeActiveBanners())
+                    .OnPause(_ => BannerAdHandler.PauseActiveBanners())
+                    .OnStop(_ => BannerAdHandler.PauseActiveBanners());
+
+                if (automaticallyAskForConsent is true)
+                {
+                    lifecycle.OnStart(_ => OnStart());
+                }
+            });
+        });
+#elif IOS
         if (automaticallyAskForConsent is true)
         {
             builder.ConfigureLifecycleEvents(events =>
             {
-#if ANDROID
-                events.AddAndroid(android => android.OnStart(_ => OnStart()));
-#elif IOS
                 events.AddiOS(ios => ios.OnActivated(_ => OnStart()));
-#endif
             });
         }
+#endif
 
         void OnStart()
         {
