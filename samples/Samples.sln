@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Plugin.AdMob", "..\src\Plug
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Foo.Bar.SampleApp.Hybrid", "Foo.Bar.SampleApp.Hybrid\Foo.Bar.SampleApp.Hybrid.csproj", "{C07F479D-2CFF-4975-B7F1-BFD0C1A370EA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Foo.Bar.SampleApp.Net10", "Foo.Bar.SampleApp.Net10\Foo.Bar.SampleApp.Net10.csproj", "{FD1B1A5A-9D13-7AD7-C4E4-1AFDD9208DEB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Foo.Bar.SampleApp", "Foo.Bar.SampleApp\Foo.Bar.SampleApp.csproj", "{FD1B1A5A-9D13-7AD7-C4E4-1AFDD9208DEB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
