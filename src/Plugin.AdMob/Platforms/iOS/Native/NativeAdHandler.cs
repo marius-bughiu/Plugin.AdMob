@@ -8,7 +8,11 @@ namespace Plugin.AdMob.Handlers;
 
 internal partial class NativeAdHandler : ViewHandler<NativeAdView, Google.MobileAds.NativeAdView>
 {
+    // Insets applied by the constraints pinning the ad content inside the platform view.
+    private const double ContentInset = 8;
+
     private IAdConsentService? _adConsentService;
+    private bool _adContentAttached;
 
     public static IPropertyMapper<NativeAdView, NativeAdHandler> PropertyMapper
         = new PropertyMapper<NativeAdView, NativeAdHandler>(ViewMapper);
@@ -89,24 +93,45 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, Google.Mobile
         this.VirtualView.AdContent.BindingContext = ad;
 
         var adContentView = this.VirtualView.AdContent.ToPlatform(MauiContext);
-        PlatformView.TranslatesAutoresizingMaskIntoConstraints = false;
+
+        // The platform view is positioned by MAUI via its Frame, so it must keep
+        // TranslatesAutoresizingMaskIntoConstraints = true; only the embedded ad
+        // content participates in Auto Layout.
+        adContentView.TranslatesAutoresizingMaskIntoConstraints = false;
 
         PlatformView.AddSubview(adContentView);
 
         NSLayoutConstraint.ActivateConstraints(new[]
         {
-            // Pin the label's top/left to container
-            adContentView.TopAnchor.ConstraintEqualTo(PlatformView.TopAnchor, 8),
-            adContentView.LeadingAnchor.ConstraintEqualTo(PlatformView.LeadingAnchor, 8),
-            
-            // Make the container expand by pinning container’s bottom/trailing 
-            // to label’s bottom/trailing
-            PlatformView.BottomAnchor.ConstraintEqualTo(adContentView.BottomAnchor, 8),
-            PlatformView.TrailingAnchor.ConstraintEqualTo(adContentView.TrailingAnchor, 8),
+            adContentView.TopAnchor.ConstraintEqualTo(PlatformView.TopAnchor, (nfloat)ContentInset),
+            adContentView.LeadingAnchor.ConstraintEqualTo(PlatformView.LeadingAnchor, (nfloat)ContentInset),
+            PlatformView.BottomAnchor.ConstraintEqualTo(adContentView.BottomAnchor, (nfloat)ContentInset),
+            PlatformView.TrailingAnchor.ConstraintEqualTo(adContentView.TrailingAnchor, (nfloat)ContentInset),
         });
 
         PlatformView.NativeAd = ((NativeAd)ad).GetPlatformAd();
         VirtualView.BindingContext = ad;
+
+        _adContentAttached = true;
+        ((IView)VirtualView).InvalidateMeasure();
+    }
+
+    // Google.MobileAds.NativeAdView is a plain UIView whose SizeThatFits reports its
+    // current (initially zero) bounds, so MAUI must be given the ad content's size.
+    public override Microsoft.Maui.Graphics.Size GetDesiredSize(double widthConstraint, double heightConstraint)
+    {
+        if (!_adContentAttached)
+        {
+            return base.GetDesiredSize(widthConstraint, heightConstraint);
+        }
+
+        var contentSize = ((IView)VirtualView.AdContent).Measure(
+            Math.Max(0, widthConstraint - 2 * ContentInset),
+            Math.Max(0, heightConstraint - 2 * ContentInset));
+
+        return new Microsoft.Maui.Graphics.Size(
+            contentSize.Width + 2 * ContentInset,
+            contentSize.Height + 2 * ContentInset);
     }
 
     private void RegisterEventHandlers(INativeAd ad)
