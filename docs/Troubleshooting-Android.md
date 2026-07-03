@@ -14,7 +14,7 @@
   - Clean the solution
   - Delete `bin` and `obj`
   - Rebuild
-- **If you use .NET 10 and hit duplicate Compose annotation classes** (see closed issue #67), exclude the JVM variant from your app project:
+- **If you use .NET 10 and hit duplicate Compose annotation classes** (see closed issue #67): this is fixed in .NET MAUI 10.0.80 — update `Microsoft.Maui.Controls` to 10.0.80 or later and remove the workaround. On older MAUI 10 versions, exclude the JVM variant from your app project:
 
 ```
 <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-android'">
