@@ -20,6 +20,10 @@ An interstitial only shows after it has loaded. If you call `ShowAd()` while no 
 
 - [`#31`](https://github.com/marius-bughiu/Plugin.AdMob/issues/31) (request for load state tracking; the service now exposes `IsAdLoaded`)
 
+## Test interstitials fail with "no fill" on an Android emulator
+
+Full-screen test ads (interstitial, rewarded, app open) can fail with `Ad failed to load : 3` on emulators running with software GPU rendering, while banner test ads work fine. See [Troubleshooting-Android](Troubleshooting-Android.md#full-screen-test-ads-fail-with-no-fill-on-emulators-banners-work).
+
 ## Interstitial does not show while a MAUI modal is open (iOS)
 
 ### Symptoms

@@ -50,6 +50,30 @@ Make sure your app explicitly sets a minimum Android platform version compatible
 
 - [`#68`](https://github.com/marius-bughiu/Plugin.AdMob/issues/68) (namespace warnings when min platform is too low)
 
+## Full-screen test ads fail with "no fill" on emulators (banners work)
+
+### Symptoms
+
+- Interstitial, rewarded, rewarded interstitial, and app open test ads fail to load with `Ad failed to load : 3` ("No fill.") on an Android emulator, while banner test ads load and render fine.
+- Consent is granted and `AdConfig.UseTestAdUnitIds = true`, so a fill is expected every time.
+- The full `LoadAdError` response shows the demo campaign *was* served, but the adapter failed instantly:
+
+```
+"Ad Source Instance Name": "[DO NOT EDIT] Publisher Test Interstitial",
+"Ad Error": { "Code": 0, "Message": "Internal error.", ... },
+"Latency": 0
+```
+
+### Root cause
+
+The emulator is running with software GPU rendering (`-gpu swiftshader_indirect`, or "Graphics: Software" in the AVD settings). Full-screen ad creatives are pre-rendered at load time and fail with an internal error without hardware acceleration. The SDK surfaces this as a generic no-fill. Banner ads are not affected, which makes it look like an ad-serving or plugin problem when it is not.
+
+### Fix / mitigation
+
+- Start the emulator with hardware graphics acceleration: `emulator -avd <name> -gpu host`, or set **Graphics: Hardware** in the AVD settings in Android Studio.
+- To see the underlying error instead of a bare "no fill", subscribe to `OnAdFailedToLoad` on the ad or ad service and log the message.
+- Physical devices are unaffected.
+
 ## Runtime errors on older Android versions
 
 ### Symptoms

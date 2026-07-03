@@ -21,6 +21,10 @@ For new apps / new or re-activated AdMob accounts, it can take time for real ads
 
 - [`#11`](https://github.com/marius-bughiu/Plugin.AdMob/issues/11) (real ads not showing; resolved after AdMob account/app became ready)
 
+## Full-screen test ads fail on an Android emulator (banners work)
+
+Interstitial, rewarded, and app open test ads can fail with `Ad failed to load : 3` ("No fill.") on emulators running with software GPU rendering, while banner test ads load fine. Run the emulator with hardware graphics acceleration. See [Troubleshooting-Android](Troubleshooting-Android.md#full-screen-test-ads-fail-with-no-fill-on-emulators-banners-work) for details.
+
 ## Ads not loading in sample or on real device
 
 ### Symptoms
