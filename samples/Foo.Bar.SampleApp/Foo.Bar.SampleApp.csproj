@@ -25,6 +25,11 @@
 	<PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-android'">
 		<SupportedOSPlatformVersion>23.0</SupportedOSPlatformVersion>
 	</PropertyGroup>
+
+	<!-- Jc.UMP.iOS 2.7.5 buildTransitive targets fail unless SupportedOSPlatformVersion is set explicitly -->
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-ios'">
+		<SupportedOSPlatformVersion>15.0</SupportedOSPlatformVersion>
+	</PropertyGroup>
 	
 	<!-- See: https://github.com/marius-bughiu/Plugin.AdMob/issues/67 -->
 	<ItemGroup Condition="'$(TargetFramework)' == 'net10.0-android'">
