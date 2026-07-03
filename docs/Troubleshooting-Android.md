@@ -22,7 +22,15 @@
 </ItemGroup>
 ```
 
-- **If you use Firebase and hit duplicate Google measurement classes** (see closed issue #29): this is usually a dependency graph conflict. After cleaning, you may need to pin or exclude the offending transitive package versions in your app.
+- **If you use Firebase and hit duplicate Google measurement classes** (see issues #29 and #55, e.g. `Type com.google.android.gms.internal.measurement.zzbm is defined multiple times`): the Google "measurement" classes ship in both `Xamarin.GooglePlayServices.Measurement.*` (pulled in by this plugin via `Xamarin.GooglePlayServices.Ads.Lite`) and `Xamarin.Firebase.Analytics` (pulled in by Plugin.Firebase). The build only works when the whole family resolves to the same Google release train. Align them by referencing `Xamarin.Firebase.Analytics` directly in your app at the version matching the resolved `Xamarin.GooglePlayServices.Measurement.Base` (check `obj/project.assets.json`). Verified with Plugin.Firebase 4.2.1 and Xamarin.GooglePlayServices.Ads.Lite 124.0.0.6:
+
+```
+<ItemGroup Condition="'$(TargetFramework)' == 'net10.0-android'">
+	<PackageReference Include="Xamarin.Firebase.Analytics" Version="123.2.0.1" />
+</ItemGroup>
+```
+
+  Note: enabling MultiDex or switching to d8/r8 does **not** fix this — d8/r8 fail on duplicate type definitions rather than deduplicating them.
 
 ### Related issues
 
