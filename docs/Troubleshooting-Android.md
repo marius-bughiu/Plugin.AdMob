@@ -14,13 +14,23 @@
   - Clean the solution
   - Delete `bin` and `obj`
   - Rebuild
-- **If you use .NET 10 and hit duplicate Compose annotation classes** (see closed issue #67): this is fixed in .NET MAUI 10.0.80 — update `Microsoft.Maui.Controls` to 10.0.80 or later and remove the workaround. On older MAUI 10 versions, exclude the JVM variant from your app project:
+- **If you hit duplicate Compose annotation classes on .NET 10** (issues #67 and #80, e.g. `Type androidx.compose.runtime.StableMarker is defined multiple times`): the root cause is `Xamarin.GooglePlayServices.Ads.Lite` 124.0.0.4 (shipped with plugin 3.0.2 and earlier) transitively pulling both the `.Android` and `.Jvm` variants of `Xamarin.AndroidX.Compose.Runtime.Annotation`. This is fixed in `Xamarin.GooglePlayServices.Ads.Lite` 124.0.0.5+, which plugin versions after 3.0.2 reference. On plugin 3.0.2 or earlier, either update the Ads SDK directly in your app project (verified fix):
+
+```
+<ItemGroup Condition="'$(TargetFramework)' == 'net10.0-android'">
+	<PackageReference Include="Xamarin.GooglePlayServices.Ads.Lite" Version="124.0.0.6" />
+</ItemGroup>
+```
+
+  or exclude the JVM variant (also verified):
 
 ```
 <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-android'">
 	<PackageReference Include="Xamarin.AndroidX.Compose.Runtime.Annotation.Jvm" Version="1.10.0.1" ExcludeAssets="all" />
 </ItemGroup>
 ```
+
+  Note: updating your app's `Microsoft.Maui.Controls` version does **not** fix this — the duplicate variants come from the Ads SDK's dependency graph, not MAUI's.
 
 - **If you use Firebase and hit duplicate Google measurement classes** (see issues #29 and #55, e.g. `Type com.google.android.gms.internal.measurement.zzbm is defined multiple times`): the Google "measurement" classes ship in both `Xamarin.GooglePlayServices.Measurement.*` (pulled in by this plugin via `Xamarin.GooglePlayServices.Ads.Lite`) and `Xamarin.Firebase.Analytics` (pulled in by Plugin.Firebase). The build only works when the whole family resolves to the same Google release train. Align them by referencing `Xamarin.Firebase.Analytics` directly in your app at the version matching the resolved `Xamarin.GooglePlayServices.Measurement.Base` (check `obj/project.assets.json`). Verified with Plugin.Firebase 4.2.1 and Xamarin.GooglePlayServices.Ads.Lite 124.0.0.6:
 
@@ -36,6 +46,7 @@
 
 - [`#29`](https://github.com/marius-bughiu/Plugin.AdMob/issues/29) (duplicate measurement classes when combined with Firebase)
 - [`#67`](https://github.com/marius-bughiu/Plugin.AdMob/issues/67) (duplicate Compose runtime annotation classes on .NET 10)
+- [`#80`](https://github.com/marius-bughiu/Plugin.AdMob/issues/80) (duplicate Compose annotation classes in Release builds on plugin 3.0.2)
 
 ## AndroidManifest namespace warnings on .NET 10 / API 35+
 
