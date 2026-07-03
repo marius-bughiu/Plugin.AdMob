@@ -94,10 +94,10 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, global::Andro
     {
         if (AdConfig.UseTestAdUnitIds)
         {
-            return AdMobTestAdUnits.Banner;
+            return AdMobTestAdUnits.Native;
         }
 
-        return VirtualView.AdUnitId ?? AdConfig.DefaultBannerAdUnitId;
+        return VirtualView.AdUnitId ?? AdConfig.DefaultNativeAdUnitId;
     }
 
     private void OnConsentInfoUpdated(object? sender, IConsentInformation? e)

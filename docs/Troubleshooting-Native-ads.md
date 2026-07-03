@@ -22,3 +22,25 @@
 
 - [`#66`](https://github.com/marius-bughiu/Plugin.AdMob/issues/66) (native ads gated by consent)
 
+## Native test ads fail on Android emulators without the Play Store
+
+### Symptoms
+
+- Native test ads fail with `Ad failed to load : 0` on an Android emulator, while banner test ads work.
+- Logcat shows:
+
+```
+Received log message: <Google:HTML> Incorrect native ad response. Click actions were not properly specified
+```
+
+- The full `LoadAdError` response shows the demo campaign *was* served (`"Ad Source Instance Name": "[DevRel] [DO NOT EDIT] Native Ads Campaign"`, `"app_promotion_type": "INSTALL"`) but the SDK rejected it.
+
+### Root cause
+
+The native demo campaign serves app-install creatives whose click actions target the Play Store (`market://` links). On emulator images without the Play Store (**Google APIs** images, as opposed to **Google Play** images), those click actions cannot be resolved, so the SDK rejects the response.
+
+### Fix / mitigation
+
+- Use an emulator image that includes the Play Store (a **Google Play** system image, e.g. `system-images;android-36;google_apis_playstore;x86_64`).
+- Physical devices with the Play Store are unaffected.
+
