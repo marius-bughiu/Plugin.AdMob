@@ -74,6 +74,10 @@ The emulator is running with software GPU rendering (`-gpu swiftshader_indirect`
 - To see the underlying error instead of a bare "no fill", subscribe to `OnAdFailedToLoad` on the ad or ad service and log the message.
 - Physical devices are unaffected.
 
+## Native test ads fail on emulators without the Play Store
+
+Native test ads fail with `Ad failed to load : 0` and `Incorrect native ad response. Click actions were not properly specified` on **Google APIs** emulator images: the native demo campaign serves app-install creatives whose click actions need the Play Store. Use a **Google Play** system image. See [Troubleshooting-Native-ads](Troubleshooting-Native-ads.md#native-test-ads-fail-on-android-emulators-without-the-play-store) for details.
+
 ## Runtime errors on older Android versions
 
 ### Symptoms
