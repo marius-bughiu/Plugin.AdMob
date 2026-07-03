@@ -18,8 +18,20 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<!-- The plugin version tracks the .NET MAUI version it targets. -->
-		<Version>10.0.30</Version>
+		<!--
+			The plugin version tracks the targeted .NET MAUI version, with a build number
+			appended so multiple plugin releases can ship per MAUI version: 10.0.30.<build>.
+			Releases are driven by git tags of the form v10.0.30.<build>. MinVer itself only
+			understands 3-part SemVer tags, so the ApplyMauiTrackedVersion target below applies
+			the 4-part release tags; MinVer still provides the pre-release height for untagged
+			Release builds ($(MauiPackageVersion)-beta.<height>). Debug builds are versioned
+			$(MauiPackageVersion)-dev.<timestamp>.
+		-->
+		<MauiPackageVersion>10.0.30</MauiPackageVersion>
+		<MinVerTagPrefix>v</MinVerTagPrefix>
+		<MinVerDefaultPreReleaseIdentifiers>beta</MinVerDefaultPreReleaseIdentifiers>
+		<MinVerSkip Condition="'$(Configuration)' == 'Debug'">true</MinVerSkip>
+		<PackageVersion>$(MauiPackageVersion)-dev.$([System.DateTime]::UtcNow.ToString("yyMMddHHmm"))</PackageVersion>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -49,8 +61,15 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.30" />
-		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="10.0.30" />
+		<PackageReference Include="MinVer" Version="6.0.0">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiPackageVersion)" />
+		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiPackageVersion)" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net10.0-android'">
@@ -61,4 +80,31 @@
 		<PackageReference Include="Jc.GMA.iOS" Version="12.2.1" />
 		<PackageReference Include="Jc.UMP.iOS" Version="2.7.3" />
 	</ItemGroup>
+
+	<Target Name="ApplyMauiTrackedVersion" AfterTargets="MinVer" Condition="'$(MinVerSkip)' != 'true'">
+		<Exec Command="git describe --tags --exact-match --match &quot;v$(MauiPackageVersion).*&quot;"
+			ConsoleToMSBuild="true" IgnoreExitCode="true" EchoOff="true"
+			StandardOutputImportance="low" StandardErrorImportance="low">
+			<Output TaskParameter="ConsoleOutput" PropertyName="_ReleaseTag" />
+			<Output TaskParameter="ExitCode" PropertyName="_ReleaseTagExitCode" />
+		</Exec>
+
+		<!-- HEAD carries a release tag: v10.0.30.<build> -> 10.0.30.<build> -->
+		<PropertyGroup Condition="'$(_ReleaseTagExitCode)' == '0'">
+			<Version>$(_ReleaseTag.Substring(1))</Version>
+			<PackageVersion>$(Version)</PackageVersion>
+			<AssemblyVersion>$(Version)</AssemblyVersion>
+			<FileVersion>$(Version)</FileVersion>
+			<InformationalVersion>$(Version)</InformationalVersion>
+		</PropertyGroup>
+
+		<!-- Untagged build: MAUI version + MinVer's pre-release height, e.g. 10.0.30-beta.5. -->
+		<PropertyGroup Condition="'$(_ReleaseTagExitCode)' != '0' And '$(MinVerPreRelease)' != ''">
+			<Version>$(MauiPackageVersion)-$(MinVerPreRelease)</Version>
+			<PackageVersion>$(Version)</PackageVersion>
+			<AssemblyVersion>$(MauiPackageVersion).0</AssemblyVersion>
+			<FileVersion>$(MauiPackageVersion).0</FileVersion>
+			<InformationalVersion>$(Version)</InformationalVersion>
+		</PropertyGroup>
+	</Target>
 </Project>
