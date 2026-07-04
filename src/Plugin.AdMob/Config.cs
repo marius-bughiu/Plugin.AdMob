@@ -10,8 +10,9 @@ namespace Plugin.AdMob;
 /// </summary>
 public static class Config
 {
+#if ANDROID || IOS
     private static bool _initialized;
-
+#endif
     /// <summary>
     /// Registers the AdMob plugin's services and view handlers.
     /// </summary>
