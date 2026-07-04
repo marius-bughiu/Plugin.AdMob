@@ -25,6 +25,45 @@ and then place the ad view in your page, making sure to specify an `AdContent` w
 > [!NOTE]
 > The `AdUnitId` is optional when using test ads. You can enable test ads by setting `AdConfig.UseTestAdUnitIds` to `true`.
 
+## Displaying media content (video ads)
+
+To display a native ad's media content (a video, or the main image when the ad has no video), place a `MediaView` inside your `AdContent`. The Google Mobile Ads SDK renders the media into it and manages playback automatically:
+
+```
+<admob:NativeAdView>
+    <admob:NativeAdView.AdContent>
+        <ContentView>
+            <VerticalStackLayout>
+                <admob:MediaView HeightRequest="200" />
+                <Label Text="{Binding Headline}" FontAttributes="Bold" FontSize="18" />
+                <Label Text="{Binding Body}" />
+            </VerticalStackLayout>
+        </ContentView>
+    </admob:NativeAdView.AdContent>
+</admob:NativeAdView>
+```
+
+Video playback can be configured by passing `VideoOptions` when creating the ad through the service:
+
+```
+var nativeAd = _nativeAdService.CreateAd(
+    "ca-app-pub-xxxxxxxxxxxxxxxx/xxxxxxxxxx",
+    new VideoOptions
+    {
+        StartMuted = true,
+        CustomControlsRequested = false,
+        ClickToExpandRequested = false,
+    });
+```
+
+After the ad loads, `INativeAd` exposes the media details (`HasVideoContent`, `VideoAspectRatio`, `VideoDuration`, `VideoCurrentTime`) and raises the video lifecycle events (`OnVideoStart`, `OnVideoPlay`, `OnVideoPause`, `OnVideoEnd`, `OnVideoMuted`). Use `VideoAspectRatio` to size the `MediaView` to match the creative.
+
+> [!NOTE]
+> During development you can use Google's native **video** demo ad unit `ca-app-pub-3940256099942544/1044960115`. An explicitly specified ad unit ID always wins over `AdConfig.UseTestAdUnitIds`, which would otherwise route the request to the image-only native demo unit.
+
+> [!NOTE]
+> Some creatives report `VideoDuration` as zero at load time; the value becomes accurate once playback starts.
+
 ## Native ad model (`INativeAd`)
 
 The binding context for `NativeAdView.AdContent` is an `INativeAd` instance. Some assets are required by policy (for example `Headline` and `Body`) and some are optional, and may be `null`.
@@ -45,6 +84,12 @@ public interface INativeAd
     double? StarRating { get; }
     string? Store { get; }
 
+    VideoOptions? VideoOptions { get; }
+    bool HasVideoContent { get; }
+    double VideoAspectRatio { get; }
+    TimeSpan VideoDuration { get; }
+    TimeSpan VideoCurrentTime { get; }
+
     event EventHandler OnAdLoaded;
     event EventHandler<IAdError> OnAdFailedToLoad;
     event EventHandler? OnAdImpression;
@@ -52,10 +97,18 @@ public interface INativeAd
     event EventHandler? OnAdSwiped;
     event EventHandler? OnAdOpened;
     event EventHandler? OnAdClosed;
+    event EventHandler? OnVideoStart;
+    event EventHandler? OnVideoPlay;
+    event EventHandler? OnVideoPause;
+    event EventHandler? OnVideoEnd;
+    event EventHandler<bool>? OnVideoMuted;
 
     void Load();
 }
 ```
+
+> [!NOTE]
+> `OnVideoStart` is supported only by Android. On iOS the first `OnVideoPlay` marks the beginning of playback.
 
 ### Advanced usage
 

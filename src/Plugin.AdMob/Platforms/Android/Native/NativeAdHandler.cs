@@ -108,6 +108,11 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, global::Andro
         ad.OnAdSwiped += VirtualView.RaiseOnAdSwiped;
         ad.OnAdOpened += VirtualView.RaiseOnAdOpened;
         ad.OnAdClosed += VirtualView.RaiseOnAdClosed;
+        ad.OnVideoStart += VirtualView.RaiseOnVideoStart;
+        ad.OnVideoPlay += VirtualView.RaiseOnVideoPlay;
+        ad.OnVideoPause += VirtualView.RaiseOnVideoPause;
+        ad.OnVideoEnd += VirtualView.RaiseOnVideoEnd;
+        ad.OnVideoMuted += VirtualView.RaiseOnVideoMuted;
     }
 
     private string? GetAdUnitId()

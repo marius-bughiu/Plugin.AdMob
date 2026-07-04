@@ -7,6 +7,7 @@ namespace Plugin.AdMob;
 internal partial class NativeAd : NativeAdLoaderDelegate
 {
     private Google.MobileAds.NativeAd? _ad;
+    private NativeVideoControllerDelegate? _videoControllerDelegate;
 
     public string? Advertiser => _ad?.Advertiser;
 
@@ -30,14 +31,35 @@ internal partial class NativeAd : NativeAdLoaderDelegate
 
     public string? Store => _ad?.Store;
 
+    public bool HasVideoContent => _ad?.MediaContent?.HasVideoContent ?? false;
+
+    public double VideoAspectRatio => _ad?.MediaContent?.AspectRatio ?? 0;
+
+    public TimeSpan VideoDuration => TimeSpan.FromSeconds(_ad?.MediaContent?.Duration ?? 0);
+
+    public TimeSpan VideoCurrentTime => TimeSpan.FromSeconds(_ad?.MediaContent?.CurrentTime ?? 0);
+
     public void Load()
     {
         MobileAds.SharedInstance.RequestConfiguration.ApplyGlobalAdConfiguration();
+
+        var options = new List<AdLoaderOptions>();
+
+        if (VideoOptions is not null)
+        {
+            options.Add(new Google.MobileAds.VideoOptions
+            {
+                StartMuted = VideoOptions.StartMuted,
+                CustomControlsRequested = VideoOptions.CustomControlsRequested,
+                ClickToExpandRequested = VideoOptions.ClickToExpandRequested,
+            });
+        }
+
         var adLoader = new AdLoader(adUnitID: AdUnitId,
             // The UIViewController parameter is optional.
             rootViewController: null,
             adTypes: [AdLoadAdTypeConstants.Native],
-            options: []);
+            options: [.. options]);
 
         adLoader.Delegate = this;
 
@@ -57,7 +79,26 @@ internal partial class NativeAd : NativeAdLoaderDelegate
         _ad.WillPresentScreen += (s, e) => OnAdOpened?.Invoke(this, EventArgs.Empty);
         _ad.ScreenDismissed += (s, e) => OnAdClosed?.Invoke(this, EventArgs.Empty);
 
+        RegisterVideoControllerDelegate(nativeAd);
+
         OnAdLoaded?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void RegisterVideoControllerDelegate(Google.MobileAds.NativeAd nativeAd)
+    {
+        var videoController = nativeAd.MediaContent?.VideoController;
+        if (videoController is null)
+        {
+            return;
+        }
+
+        _videoControllerDelegate = new NativeVideoControllerDelegate();
+        _videoControllerDelegate.WhenVideoPlayed += (s, e) => OnVideoPlay?.Invoke(this, EventArgs.Empty);
+        _videoControllerDelegate.WhenVideoPaused += (s, e) => OnVideoPause?.Invoke(this, EventArgs.Empty);
+        _videoControllerDelegate.WhenVideoEnded += (s, e) => OnVideoEnd?.Invoke(this, EventArgs.Empty);
+        _videoControllerDelegate.WhenVideoMuted += (s, isMuted) => OnVideoMuted?.Invoke(this, isMuted);
+
+        videoController.Delegate = _videoControllerDelegate;
     }
 
     public override void DidFailToReceiveAd(AdLoader adLoader, NSError error)

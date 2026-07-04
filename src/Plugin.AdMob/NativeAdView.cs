@@ -43,6 +43,31 @@ public class NativeAdView : ContentView
     public event EventHandler? OnAdClosed;
 
     /// <summary>
+    /// Raised when video playback first begins. Supported only by Android.
+    /// </summary>
+    public event EventHandler? OnVideoStart;
+
+    /// <summary>
+    /// Raised when video playback is playing.
+    /// </summary>
+    public event EventHandler? OnVideoPlay;
+
+    /// <summary>
+    /// Raised when video playback is paused.
+    /// </summary>
+    public event EventHandler? OnVideoPause;
+
+    /// <summary>
+    /// Raised when video playback finishes playing.
+    /// </summary>
+    public event EventHandler? OnVideoEnd;
+
+    /// <summary>
+    /// Raised when the video changes mute state. The argument is true when the video was muted.
+    /// </summary>
+    public event EventHandler<bool>? OnVideoMuted;
+
+    /// <summary>
     /// The ad unit id.
     /// </summary>
     public static readonly BindableProperty AdUnitIdProperty =
@@ -100,4 +125,9 @@ public class NativeAdView : ContentView
     internal void RaiseOnAdSwiped(object? sender, EventArgs e) => OnAdSwiped?.Invoke(sender, e);
     internal void RaiseOnAdOpened(object? sender, EventArgs e) => OnAdOpened?.Invoke(sender, e);
     internal void RaiseOnAdClosed(object? sender, EventArgs e) => OnAdClosed?.Invoke(sender, e);
+    internal void RaiseOnVideoStart(object? sender, EventArgs e) => OnVideoStart?.Invoke(sender, e);
+    internal void RaiseOnVideoPlay(object? sender, EventArgs e) => OnVideoPlay?.Invoke(sender, e);
+    internal void RaiseOnVideoPause(object? sender, EventArgs e) => OnVideoPause?.Invoke(sender, e);
+    internal void RaiseOnVideoEnd(object? sender, EventArgs e) => OnVideoEnd?.Invoke(sender, e);
+    internal void RaiseOnVideoMuted(object? sender, bool isMuted) => OnVideoMuted?.Invoke(sender, isMuted);
 }
