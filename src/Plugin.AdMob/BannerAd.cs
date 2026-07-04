@@ -49,7 +49,7 @@ public class BannerAd : ContentView
     /// <summary>
     /// Determines whether the ad is loaded or not.
     /// </summary>
-    public bool IsLoaded
+    public new bool IsLoaded
     {
         get { return (bool)GetValue(IsLoadedProperty); }
         private set { SetValue(IsLoadedProperty, value); }

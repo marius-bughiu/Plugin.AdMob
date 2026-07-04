@@ -10,7 +10,6 @@ namespace Plugin.AdMob.Handlers;
 internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
 {
     private IAdConsentService? _adConsentService;
-    private EventHandler<IConsentInformation?>? _consentInfoUpdatedHandler;
 
     public static IPropertyMapper<BannerAd, BannerAdHandler> PropertyMapper
         = new PropertyMapper<BannerAd, BannerAdHandler>(ViewMapper);
