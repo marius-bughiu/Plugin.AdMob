@@ -57,6 +57,18 @@
         <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.9" />
     </ItemGroup>
 
+    <!-- Aligns the AndroidX Ktx packages with the resolved base package versions to silence NU1608 warnings. See: https://github.com/marius-bughiu/Plugin.AdMob/issues/82 -->
+    <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-android'">
+        <PackageReference Include="Xamarin.AndroidX.Fragment.Ktx" Version="1.8.9.4" />
+        <PackageReference Include="Xamarin.AndroidX.Collection.Ktx" Version="1.6.0.1" />
+        <PackageReference Include="Xamarin.AndroidX.Activity.Ktx" Version="1.13.0.1" />
+        <PackageReference Include="Xamarin.AndroidX.Lifecycle.ViewModel.Ktx" Version="2.11.0.1" />
+        <PackageReference Include="Xamarin.AndroidX.SavedState.SavedState.Ktx" Version="1.5.0.1" />
+        <PackageReference Include="Xamarin.AndroidX.Lifecycle.Runtime.Ktx.Android" Version="2.11.0.1" />
+        <PackageReference Include="Xamarin.AndroidX.Lifecycle.Runtime.Ktx" Version="2.11.0.1" />
+        <PackageReference Include="Xamarin.AndroidX.Lifecycle.Process" Version="2.11.0.1" />
+    </ItemGroup>
+
 	<ItemGroup>
 		<ProjectReference Include="..\..\src\Plugin.AdMob\Plugin.AdMob.csproj" />
 	</ItemGroup>

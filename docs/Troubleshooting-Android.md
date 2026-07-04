@@ -58,6 +58,43 @@ Make sure your app explicitly sets a minimum Android platform version compatible
 
 - [`#68`](https://github.com/marius-bughiu/Plugin.AdMob/issues/68) (namespace warnings when min platform is too low)
 
+## NU1608 warnings: "Detected package version outside of dependency constraint"
+
+### Symptoms
+
+Building an app that references the plugin emits warnings like:
+
+```
+warning NU1608: Detected package version outside of dependency constraint: Xamarin.AndroidX.Fragment.Ktx 1.8.8.1 requires Xamarin.AndroidX.Fragment (>= 1.8.8.1 && < 1.8.9) but version Xamarin.AndroidX.Fragment 1.8.9.1 was resolved.
+```
+
+### Root cause
+
+Google Play Services (pulled in via `Xamarin.GooglePlayServices.Ads.Lite`) depends on older `Xamarin.AndroidX.*.Ktx` packages, whose declared upper bounds don't admit the newer AndroidX base packages that .NET MAUI resolves. The pairs are compatible in practice — NU1608 is a warning, not an error — but the noise is legitimate to want gone.
+
+### Fix / mitigation
+
+Reference the `Ktx` packages directly in your app project at versions aligned with the resolved base packages. Verified to produce zero NU1608 warnings with Plugin.AdMob 10.0.80-beta.7 and .NET MAUI 10.0.80 (the sample apps carry the same set):
+
+```
+<ItemGroup Condition="'$(TargetFramework)' == 'net10.0-android'">
+	<PackageReference Include="Xamarin.AndroidX.Fragment.Ktx" Version="1.8.9.4" />
+	<PackageReference Include="Xamarin.AndroidX.Collection.Ktx" Version="1.6.0.1" />
+	<PackageReference Include="Xamarin.AndroidX.Activity.Ktx" Version="1.13.0.1" />
+	<PackageReference Include="Xamarin.AndroidX.Lifecycle.ViewModel.Ktx" Version="2.11.0.1" />
+	<PackageReference Include="Xamarin.AndroidX.SavedState.SavedState.Ktx" Version="1.5.0.1" />
+	<PackageReference Include="Xamarin.AndroidX.Lifecycle.Runtime.Ktx.Android" Version="2.11.0.1" />
+	<PackageReference Include="Xamarin.AndroidX.Lifecycle.Runtime.Ktx" Version="2.11.0.1" />
+	<PackageReference Include="Xamarin.AndroidX.Lifecycle.Process" Version="2.11.0.1" />
+</ItemGroup>
+```
+
+If new NU1608 warnings appear after a MAUI or plugin update, adjust the pinned versions to match the newly resolved base packages (check the warnings themselves or `obj/project.assets.json`).
+
+### Related issues
+
+- [`#82`](https://github.com/marius-bughiu/Plugin.AdMob/issues/82) (NU1608 dependency constraint warnings)
+
 ## Full-screen test ads fail with "no fill" on emulators (banners work)
 
 ### Symptoms
