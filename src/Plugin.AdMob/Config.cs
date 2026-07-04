@@ -80,6 +80,7 @@ public static class Config
         {
             handlers.AddHandler(typeof(BannerAd), typeof(BannerAdHandler));
             handlers.AddHandler(typeof(NativeAdView), typeof(NativeAdHandler));
+            handlers.AddHandler(typeof(MediaView), typeof(MediaViewHandler));
         });
 
         builder.Services.AddSingleton<IInterstitialAdService, InterstitialAdService>();

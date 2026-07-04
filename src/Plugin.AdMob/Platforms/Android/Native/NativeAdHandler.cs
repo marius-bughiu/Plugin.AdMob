@@ -76,8 +76,28 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, global::Andro
         var adContentView = this.VirtualView.AdContent.ToPlatform(MauiContext!);
         PlatformView.AddView(adContentView);
 
+        var mediaView = FindMediaView(this.VirtualView.AdContent);
+        if (mediaView is not null)
+        {
+            PlatformView.MediaView = mediaView;
+        }
+
         PlatformView.SetNativeAd(((NativeAd)ad).GetPlatformAd());
         VirtualView.BindingContext = ad;
+    }
+
+    private static global::Android.Gms.Ads.NativeAd.MediaView? FindMediaView(IVisualTreeElement root)
+    {
+        foreach (var element in root.GetVisualTreeDescendants())
+        {
+            if (element is MediaView mediaView &&
+                mediaView.Handler?.PlatformView is global::Android.Gms.Ads.NativeAd.MediaView platformMediaView)
+            {
+                return platformMediaView;
+            }
+        }
+
+        return null;
     }
 
     private void RegisterEventHandlers(INativeAd ad)
