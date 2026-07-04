@@ -27,6 +27,38 @@ Google.MobileAds.MobileAds.SharedInstance.Start(completionHandler: null);
 - [`#21`](https://github.com/marius-bughiu/Plugin.AdMob/issues/21) (iOS crash with `GADInvalidInitializationException`)
 - [`#58`](https://github.com/marius-bughiu/Plugin.AdMob/issues/58) (TestFlight crash; typically points to iOS configuration differences between debug and distribution)
 
+## NullReferenceException from `MobileAds.SharedInstance.Start(...)` on a physical device
+
+### Symptoms
+
+- `An error occurred: 'Object reference not set to an instance of an object.'` thrown from `AppDelegate.CreateMauiApp()` at the `Google.MobileAds.MobileAds.SharedInstance.Start(...)` call.
+- Typically reproduces on a physical device; the simulator may appear fine.
+
+### Root cause
+
+The app's minimum iOS version is below what the Google Mobile Ads SDK supports (15.0). The `Jc.GMA.iOS` binding also declares this requirement.
+
+### Fix / mitigation
+
+Set the minimum supported iOS version to 15.0 in your app's `.csproj`:
+
+```
+<PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-ios'">
+	<SupportedOSPlatformVersion>15.0</SupportedOSPlatformVersion>
+</PropertyGroup>
+```
+
+and add the matching key to `Platforms/iOS/Info.plist` (Release builds fail without it):
+
+```
+<key>MinimumOSVersion</key>
+<string>15.0</string>
+```
+
+### Related issues
+
+- [`#56`](https://github.com/marius-bughiu/Plugin.AdMob/issues/56) (null reference on physical device when the minimum OS version is too low)
+
 ## Banner view controller cannot be detected
 
 ### Symptoms

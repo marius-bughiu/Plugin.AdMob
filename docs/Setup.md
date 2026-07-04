@@ -32,6 +32,14 @@ You need to update your app's manifest (`Platforms/Android/AndroidManifest.xml`)
 </manifest>
 ```
 
+Set the minimum supported Android version to **23** in your app's `.csproj` — Google Play Services requires it, and lower values cause manifest merger errors on .NET 10 (see [Troubleshooting-Android](Troubleshooting-Android.md#androidmanifest-namespace-warnings-on-net-10--api-35)):
+
+```
+<PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-android'">
+	<SupportedOSPlatformVersion>23.0</SupportedOSPlatformVersion>
+</PropertyGroup>
+```
+
 For more details you can check the official docs: [Get started with AdMob on Android](https://developers.google.com/admob/android/quick-start)
 
 For a fully working example, check out the [samples folder](https://github.com/marius-bughiu/Plugin.AdMob/tree/main/samples).
@@ -82,6 +90,21 @@ public class AppDelegate : MauiUIApplicationDelegate
         <_CustomLinkFlags Include="-Wl,/usr/lib/swift" />
     </ItemGroup>
 </Target>
+```
+
+5. Set the minimum supported iOS version to **15.0** — the Google Mobile Ads SDK requires it. Without it, `MobileAds.SharedInstance.Start(...)` can fail with a `NullReferenceException` on physical devices (see issue #56), and the `Jc.UMP.iOS` build targets fail unless `SupportedOSPlatformVersion` is set explicitly. In your app's `.csproj`:
+
+```
+<PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-ios'">
+	<SupportedOSPlatformVersion>15.0</SupportedOSPlatformVersion>
+</PropertyGroup>
+```
+
+Also add the matching key to your `Platforms/iOS/Info.plist` — Release builds fail without it:
+
+```
+<key>MinimumOSVersion</key>
+<string>15.0</string>
 ```
 
 For a fully working example, check out the [samples folder](https://github.com/marius-bughiu/Plugin.AdMob/tree/main/samples).
