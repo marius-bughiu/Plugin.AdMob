@@ -1,0 +1,69 @@
+name: Bump MAUI
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check NuGet for a newer MAUI release
+        id: check
+        run: |
+          current=$(sed -n 's:.*<MauiPackageVersion>\(.*\)</MauiPackageVersion>.*:\1:p' src/Plugin.AdMob/Plugin.AdMob.csproj)
+          major=${current%%.*}
+          latest=$(curl -sf https://api.nuget.org/v3-flatcontainer/microsoft.maui.controls/index.json |
+            jq -r --arg m "$major" '.versions[] | select(startswith($m + ".") and (contains("-") | not))' |
+            sort -V | tail -n 1)
+          [ -n "$current" ] && [ -n "$latest" ]
+          echo "current=$current" >> "$GITHUB_OUTPUT"
+          echo "latest=$latest" >> "$GITHUB_OUTPUT"
+          if [ "$latest" != "$current" ] && [ "$(printf '%s\n%s\n' "$current" "$latest" | sort -V | tail -n 1)" = "$latest" ]; then
+            echo "bump=true" >> "$GITHUB_OUTPUT"
+            echo "MAUI $current -> $latest"
+          else
+            echo "bump=false" >> "$GITHUB_OUTPUT"
+            echo "MAUI $current is up to date"
+          fi
+
+      - name: Apply the version bump
+        if: steps.check.outputs.bump == 'true'
+        env:
+          LATEST: ${{ steps.check.outputs.latest }}
+        run: |
+          sed -i -E "s|<MauiPackageVersion>[^<]+</MauiPackageVersion>|<MauiPackageVersion>$LATEST</MauiPackageVersion>|" \
+            src/Plugin.AdMob/Plugin.AdMob.csproj
+          sed -i -E \
+            -e "s|(Include=\"Microsoft\.Maui\.Controls\" Version=\")[^\"]+|\1$LATEST|" \
+            -e "s|(Include=\"Microsoft\.Maui\.Controls\.Compatibility\" Version=\")[^\"]+|\1$LATEST|" \
+            -e "s|(Include=\"Microsoft\.AspNetCore\.Components\.WebView\.Maui\" Version=\")[^\"]+|\1$LATEST|" \
+            samples/Foo.Bar.SampleApp/Foo.Bar.SampleApp.csproj \
+            samples/Foo.Bar.SampleApp.Hybrid/Foo.Bar.SampleApp.Hybrid.csproj
+          git diff --stat
+
+      - name: Open pull request
+        if: steps.check.outputs.bump == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: bump-maui-version
+          delete-branch: true
+          commit-message: Bump .NET MAUI to ${{ steps.check.outputs.latest }}
+          title: Bump .NET MAUI to ${{ steps.check.outputs.latest }}
+          body: |
+            Bumps .NET MAUI from `${{ steps.check.outputs.current }}` to `${{ steps.check.outputs.latest }}`.
+
+            Updates `MauiPackageVersion` in the plugin (which also becomes the next plugin package version) and the pinned MAUI packages in both sample apps.
+
+            Release notes: https://github.com/dotnet/maui/releases
