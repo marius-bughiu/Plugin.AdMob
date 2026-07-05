@@ -17,6 +17,7 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, Google.Mobile
     // The ad outlives the handler on disconnect/reconnect, so the subscriptions
     // made in RegisterEventHandlers must be removed to avoid raising events N times.
     private INativeAd? _registeredAd;
+    private EventHandler? _onAdLoaded;
     private EventHandler<IAdError>? _onAdFailedToLoad;
 
     public static IPropertyMapper<NativeAdView, NativeAdHandler> PropertyMapper
@@ -87,11 +88,12 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, Google.Mobile
         var ad = nativeAdService.CreateAd(adUnitId);
 
         RegisterEventHandlers(ad);
-        ad.OnAdLoaded += (s, e) =>
+        _onAdLoaded = (s, e) =>
         {
             VirtualView.RaiseOnAdLoaded(s, e);
             ShowAd(ad);
         };
+        ad.OnAdLoaded += _onAdLoaded;
 
         ad.Load();
     }
@@ -170,6 +172,11 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, Google.Mobile
             return;
         }
 
+        if (_onAdLoaded is not null)
+        {
+            _registeredAd.OnAdLoaded -= _onAdLoaded;
+        }
+
         _registeredAd.OnAdFailedToLoad -= _onAdFailedToLoad;
         _registeredAd.OnAdImpression -= VirtualView.RaiseOnAdImpression;
         _registeredAd.OnAdClicked -= VirtualView.RaiseOnAdClicked;
@@ -178,6 +185,7 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, Google.Mobile
         _registeredAd.OnAdClosed -= VirtualView.RaiseOnAdClosed;
 
         _registeredAd = null;
+        _onAdLoaded = null;
         _onAdFailedToLoad = null;
     }
 
