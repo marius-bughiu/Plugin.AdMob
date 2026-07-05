@@ -27,7 +27,15 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, global::Andro
         {
             _adConsentService = IPlatformApplication.Current!.Services
                 .GetRequiredService<IAdConsentService>();
-            _adConsentService.OnConsentInfoUpdated += OnConsentInfoUpdated;
+
+            if (CanRequestAds() is true)
+            {
+                LoadAd();
+            }
+            else
+            {
+                _adConsentService.OnConsentInfoUpdated += OnConsentInfoUpdated;
+            }
         }
         else
         {
@@ -109,10 +117,20 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, global::Andro
         return VirtualView.AdUnitId ?? AdConfig.DefaultNativeAdUnitId;
     }
 
+    private bool CanRequestAds()
+    {
+        if (AdConfig.DisableConsentCheck)
+        {
+            return true;
+        }
+
+        return _adConsentService?.CanRequestAds() ?? false;
+    }
+
     private void OnConsentInfoUpdated(object? sender, IConsentInformation? e)
     {
         // Consent updates repeatedly (resets, privacy forms); load a single ad once consent allows it.
-        if (!AdConfig.DisableConsentCheck && _adConsentService?.CanRequestAds() is not true)
+        if (CanRequestAds() is false)
         {
             return;
         }
