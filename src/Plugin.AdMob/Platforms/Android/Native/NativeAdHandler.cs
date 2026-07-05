@@ -129,7 +129,11 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, global::Andro
             return;
         }
 
-        _registeredAd.OnAdLoaded -= _onAdLoaded;
+        if (_onAdLoaded is not null)
+        {
+            _registeredAd.OnAdLoaded -= _onAdLoaded;
+        }
+
         _registeredAd.OnAdFailedToLoad -= _onAdFailedToLoad;
         _registeredAd.OnAdImpression -= VirtualView.RaiseOnAdImpression;
         _registeredAd.OnAdClicked -= VirtualView.RaiseOnAdClicked;
