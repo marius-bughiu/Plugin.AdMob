@@ -8,6 +8,7 @@ namespace Plugin.AdMob.Handlers;
 internal partial class NativeAdHandler : ViewHandler<NativeAdView, global::Android.Gms.Ads.NativeAd.NativeAdView>
 {
     private IAdConsentService? _adConsentService;
+    private bool _adContentAttached;
 
     public static IPropertyMapper<NativeAdView, NativeAdHandler> PropertyMapper =
         new PropertyMapper<NativeAdView, NativeAdHandler>(ViewMapper);
@@ -42,6 +43,7 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, global::Andro
             _adConsentService.OnConsentInfoUpdated -= OnConsentInfoUpdated;
         }
 
+        _adContentAttached = false;
         base.DisconnectHandler(platformView);
     }
 
@@ -71,6 +73,11 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, global::Andro
 
     private void ShowAd(INativeAd ad)
     {
+        if (_adContentAttached)
+        {
+            return;
+        }
+
         this.VirtualView.AdContent.BindingContext = ad;
 
         var adContentView = this.VirtualView.AdContent.ToPlatform(MauiContext!);
@@ -78,6 +85,8 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, global::Andro
 
         PlatformView.SetNativeAd(((NativeAd)ad).GetPlatformAd());
         VirtualView.BindingContext = ad;
+
+        _adContentAttached = true;
     }
 
     private void RegisterEventHandlers(INativeAd ad)
@@ -102,12 +111,19 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, global::Andro
 
     private void OnConsentInfoUpdated(object? sender, IConsentInformation? e)
     {
+        // Consent updates repeatedly (resets, privacy forms); load a single ad once consent allows it.
+        if (!AdConfig.DisableConsentCheck && _adConsentService?.CanRequestAds() is not true)
+        {
+            return;
+        }
+
         // Check if the handler is still connected before loading ad
         // In .NET MAUI 10+, PlatformView throws InvalidOperationException when disconnected
         try
         {
             if (PlatformView is not null)
             {
+                _adConsentService!.OnConsentInfoUpdated -= OnConsentInfoUpdated;
                 LoadAd();
             }
         }
