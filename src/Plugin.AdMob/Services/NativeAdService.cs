@@ -9,8 +9,8 @@ public interface INativeAdService
 {
     /// <summary>
     /// Creates a native ad instance given the specified ad unit ID. If no ad unit ID is specified, <see cref="AdConfig.DefaultNativeAdUnitId" /> will be used
-    /// (or Google's native test ad unit when <see cref="AdConfig.UseTestAdUnitIds" /> is enabled). An explicitly specified ad unit ID always wins over
-    /// <see cref="AdConfig.UseTestAdUnitIds" />, so ad units such as Google's native video test unit can be requested during development.
+    /// (or Google's native test ad unit when <see cref="AdConfig.UseTestAdUnitIds" /> is enabled; when <paramref name="videoOptions" /> is provided, the
+    /// platform-specific native video test ad unit is used instead). An explicitly specified ad unit ID always wins over <see cref="AdConfig.UseTestAdUnitIds" />.
     /// </summary>
     /// <param name="adUnitId">The ad unit ID.</param>
     /// <param name="videoOptions">Optional video playback options, used when the ad unit serves video media content.</param>
@@ -22,7 +22,7 @@ internal class NativeAdService : INativeAdService
 {
     public INativeAd CreateAd(string? adUnitId = null, VideoOptions? videoOptions = null)
     {
-        adUnitId = GetAdUnitId(adUnitId);
+        adUnitId = GetAdUnitId(adUnitId, videoOptions);
 
         if (adUnitId is null)
         {
@@ -32,12 +32,12 @@ internal class NativeAdService : INativeAdService
         return new NativeAd(adUnitId, videoOptions);
     }
 
-    private static string? GetAdUnitId(string? adUnitId)
+    private static string? GetAdUnitId(string? adUnitId, VideoOptions? videoOptions)
     {
 #if ANDROID || IOS
         if (adUnitId is null && AdConfig.UseTestAdUnitIds)
         {
-            return AdMobTestAdUnits.Native;
+            return videoOptions is null ? AdMobTestAdUnits.Native : AdMobTestAdUnits.NativeVideo;
         }
 #endif
 

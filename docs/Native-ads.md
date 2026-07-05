@@ -59,7 +59,7 @@ var nativeAd = _nativeAdService.CreateAd(
 After the ad loads, `INativeAd` exposes the media details (`HasVideoContent`, `VideoAspectRatio`, `VideoDuration`, `VideoCurrentTime`) and raises the video lifecycle events (`OnVideoStart`, `OnVideoPlay`, `OnVideoPause`, `OnVideoEnd`, `OnVideoMuted`). Use `VideoAspectRatio` to size the `MediaView` to match the creative.
 
 > [!NOTE]
-> During development you can use Google's native **video** demo ad unit `ca-app-pub-3940256099942544/1044960115`. An explicitly specified ad unit ID always wins over `AdConfig.UseTestAdUnitIds`, which would otherwise route the request to the image-only native demo unit.
+> During development, enable `AdConfig.UseTestAdUnitIds` and pass `VideoOptions` to `CreateAd` — the request is then routed to Google's platform-specific native **video** demo ad unit automatically. An explicitly specified ad unit ID always wins over `AdConfig.UseTestAdUnitIds`.
 
 > [!NOTE]
 > Some creatives report `VideoDuration` as zero at load time; the value becomes accurate once playback starts.
