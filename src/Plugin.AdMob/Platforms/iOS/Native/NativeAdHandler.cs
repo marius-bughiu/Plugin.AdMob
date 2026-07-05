@@ -14,6 +14,11 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, Google.Mobile
     private IAdConsentService? _adConsentService;
     private bool _adContentAttached;
 
+    // The ad outlives the handler on disconnect/reconnect, so the subscriptions
+    // made in RegisterEventHandlers must be removed to avoid raising events N times.
+    private INativeAd? _registeredAd;
+    private EventHandler<IAdError>? _onAdFailedToLoad;
+
     public static IPropertyMapper<NativeAdView, NativeAdHandler> PropertyMapper
         = new PropertyMapper<NativeAdView, NativeAdHandler>(ViewMapper);
     public NativeAdHandler() : base(PropertyMapper) { }
@@ -24,6 +29,8 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, Google.Mobile
         {
             _adConsentService.OnConsentInfoUpdated -= OnConsentInfoUpdated;
         }
+
+        UnregisterEventHandlers();
 
         platformView.Dispose();
         _adContentAttached = false;
@@ -142,12 +149,36 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, Google.Mobile
 
     private void RegisterEventHandlers(INativeAd ad)
     {
-        ad.OnAdFailedToLoad += (s, e) => VirtualView.RaiseOnAdFailedToLoad(s, new AdError(e.Message));
+        UnregisterEventHandlers();
+
+        _onAdFailedToLoad = (s, e) => VirtualView.RaiseOnAdFailedToLoad(s, new AdError(e.Message));
+
+        ad.OnAdFailedToLoad += _onAdFailedToLoad;
         ad.OnAdImpression += VirtualView.RaiseOnAdImpression;
         ad.OnAdClicked += VirtualView.RaiseOnAdClicked;
         ad.OnAdSwiped += VirtualView.RaiseOnAdSwiped;
         ad.OnAdOpened += VirtualView.RaiseOnAdOpened;
         ad.OnAdClosed += VirtualView.RaiseOnAdClosed;
+
+        _registeredAd = ad;
+    }
+
+    private void UnregisterEventHandlers()
+    {
+        if (_registeredAd is null)
+        {
+            return;
+        }
+
+        _registeredAd.OnAdFailedToLoad -= _onAdFailedToLoad;
+        _registeredAd.OnAdImpression -= VirtualView.RaiseOnAdImpression;
+        _registeredAd.OnAdClicked -= VirtualView.RaiseOnAdClicked;
+        _registeredAd.OnAdSwiped -= VirtualView.RaiseOnAdSwiped;
+        _registeredAd.OnAdOpened -= VirtualView.RaiseOnAdOpened;
+        _registeredAd.OnAdClosed -= VirtualView.RaiseOnAdClosed;
+
+        _registeredAd = null;
+        _onAdFailedToLoad = null;
     }
 
     private string? GetAdUnitId()
