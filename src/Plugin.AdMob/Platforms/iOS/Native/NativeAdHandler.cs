@@ -26,6 +26,7 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, Google.Mobile
         }
 
         platformView.Dispose();
+        _adContentAttached = false;
         base.DisconnectHandler(platformView);
     }
 
@@ -90,6 +91,11 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, Google.Mobile
 
     private void ShowAd(INativeAd ad)
     {
+        if (_adContentAttached)
+        {
+            return;
+        }
+
         this.VirtualView.AdContent.BindingContext = ad;
 
         var adContentView = this.VirtualView.AdContent.ToPlatform(MauiContext);
@@ -156,12 +162,19 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, Google.Mobile
 
     private void OnConsentInfoUpdated(object? sender, IConsentInformation? e)
     {
+        // Consent updates repeatedly (resets, privacy forms); load a single ad once consent allows it.
+        if (!AdConfig.DisableConsentCheck && _adConsentService?.CanRequestAds() is not true)
+        {
+            return;
+        }
+
         // Check if the handler is still connected before loading ad
         // In .NET MAUI 10+, PlatformView throws InvalidOperationException when disconnected
         try
         {
             if (PlatformView is not null)
             {
+                _adConsentService!.OnConsentInfoUpdated -= OnConsentInfoUpdated;
                 LoadAd();
             }
         }
