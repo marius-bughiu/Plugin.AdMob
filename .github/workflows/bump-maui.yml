@@ -9,6 +9,9 @@ permissions:
   contents: write
   pull-requests: write
 
+concurrency:
+  group: bump-maui
+
 defaults:
   run:
     shell: bash
@@ -27,7 +30,10 @@ jobs:
           latest=$(curl -sf https://api.nuget.org/v3-flatcontainer/microsoft.maui.controls/index.json |
             jq -r --arg m "$major" '.versions[] | select(startswith($m + ".") and (contains("-") | not))' |
             sort -V | tail -n 1)
-          [ -n "$current" ] && [ -n "$latest" ]
+          if [ -z "$current" ] || [ -z "$latest" ]; then
+            echo "::error::Could not determine MAUI versions (current='$current', latest='$latest')"
+            exit 1
+          fi
           echo "current=$current" >> "$GITHUB_OUTPUT"
           echo "latest=$latest" >> "$GITHUB_OUTPUT"
           if [ "$latest" != "$current" ] && [ "$(printf '%s\n%s\n' "$current" "$latest" | sort -V | tail -n 1)" = "$latest" ]; then
