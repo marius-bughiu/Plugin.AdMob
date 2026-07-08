@@ -8,6 +8,13 @@ namespace Plugin.AdMob.Handlers;
 internal partial class NativeAdHandler : ViewHandler<NativeAdView, global::Android.Gms.Ads.NativeAd.NativeAdView>
 {
     private IAdConsentService? _adConsentService;
+    private bool _adContentAttached;
+
+    // The ad outlives the handler on disconnect/reconnect, so the subscriptions
+    // made in RegisterEventHandlers must be removed to avoid raising events N times.
+    private INativeAd? _registeredAd;
+    private EventHandler? _onAdLoaded;
+    private EventHandler<IAdError>? _onAdFailedToLoad;
 
     public static IPropertyMapper<NativeAdView, NativeAdHandler> PropertyMapper =
         new PropertyMapper<NativeAdView, NativeAdHandler>(ViewMapper);
@@ -26,7 +33,15 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, global::Andro
         {
             _adConsentService = IPlatformApplication.Current!.Services
                 .GetRequiredService<IAdConsentService>();
-            _adConsentService.OnConsentInfoUpdated += OnConsentInfoUpdated;
+
+            if (CanRequestAds() is true)
+            {
+                LoadAd();
+            }
+            else
+            {
+                _adConsentService.OnConsentInfoUpdated += OnConsentInfoUpdated;
+            }
         }
         else
         {
@@ -42,6 +57,9 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, global::Andro
             _adConsentService.OnConsentInfoUpdated -= OnConsentInfoUpdated;
         }
 
+        UnregisterEventHandlers();
+
+        _adContentAttached = false;
         base.DisconnectHandler(platformView);
     }
 
@@ -60,17 +78,23 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, global::Andro
         var ad = nativeAdService.CreateAd(adUnitId);
 
         RegisterEventHandlers(ad);
-        ad.OnAdLoaded += (s, e) =>
+        _onAdLoaded = (s, e) =>
         {
             VirtualView.RaiseOnAdLoaded(s, e);
             ShowAd(ad);
         };
+        ad.OnAdLoaded += _onAdLoaded;
 
         ad.Load();
     }
 
     private void ShowAd(INativeAd ad)
     {
+        if (_adContentAttached)
+        {
+            return;
+        }
+
         this.VirtualView.AdContent.BindingContext = ad;
 
         var adContentView = this.VirtualView.AdContent.ToPlatform(MauiContext!);
@@ -84,6 +108,8 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, global::Andro
 
         PlatformView.SetNativeAd(((NativeAd)ad).GetPlatformAd());
         VirtualView.BindingContext = ad;
+
+        _adContentAttached = true;
     }
 
     private static global::Android.Gms.Ads.NativeAd.MediaView? FindMediaView(IVisualTreeElement root)
@@ -102,7 +128,11 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, global::Andro
 
     private void RegisterEventHandlers(INativeAd ad)
     {
-        ad.OnAdFailedToLoad += (s, e) => VirtualView.RaiseOnAdFailedToLoad(s, new AdError(e.Message));
+        UnregisterEventHandlers();
+
+        _onAdFailedToLoad = (s, e) => VirtualView.RaiseOnAdFailedToLoad(s, new AdError(e.Message));
+
+        ad.OnAdFailedToLoad += _onAdFailedToLoad;
         ad.OnAdImpression += VirtualView.RaiseOnAdImpression;
         ad.OnAdClicked += VirtualView.RaiseOnAdClicked;
         ad.OnAdSwiped += VirtualView.RaiseOnAdSwiped;
@@ -113,6 +143,37 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, global::Andro
         ad.OnVideoPause += VirtualView.RaiseOnVideoPause;
         ad.OnVideoEnd += VirtualView.RaiseOnVideoEnd;
         ad.OnVideoMuted += VirtualView.RaiseOnVideoMuted;
+
+        _registeredAd = ad;
+    }
+
+    private void UnregisterEventHandlers()
+    {
+        if (_registeredAd is null)
+        {
+            return;
+        }
+
+        if (_onAdLoaded is not null)
+        {
+            _registeredAd.OnAdLoaded -= _onAdLoaded;
+        }
+
+        _registeredAd.OnAdFailedToLoad -= _onAdFailedToLoad;
+        _registeredAd.OnAdImpression -= VirtualView.RaiseOnAdImpression;
+        _registeredAd.OnAdClicked -= VirtualView.RaiseOnAdClicked;
+        _registeredAd.OnAdSwiped -= VirtualView.RaiseOnAdSwiped;
+        _registeredAd.OnAdOpened -= VirtualView.RaiseOnAdOpened;
+        _registeredAd.OnAdClosed -= VirtualView.RaiseOnAdClosed;
+        _registeredAd.OnVideoStart -= VirtualView.RaiseOnVideoStart;
+        _registeredAd.OnVideoPlay -= VirtualView.RaiseOnVideoPlay;
+        _registeredAd.OnVideoPause -= VirtualView.RaiseOnVideoPause;
+        _registeredAd.OnVideoEnd -= VirtualView.RaiseOnVideoEnd;
+        _registeredAd.OnVideoMuted -= VirtualView.RaiseOnVideoMuted;
+
+        _registeredAd = null;
+        _onAdLoaded = null;
+        _onAdFailedToLoad = null;
     }
 
     private string? GetAdUnitId()
@@ -125,14 +186,31 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, global::Andro
         return VirtualView.AdUnitId ?? AdConfig.DefaultNativeAdUnitId;
     }
 
+    private bool CanRequestAds()
+    {
+        if (AdConfig.DisableConsentCheck)
+        {
+            return true;
+        }
+
+        return _adConsentService?.CanRequestAds() ?? false;
+    }
+
     private void OnConsentInfoUpdated(object? sender, IConsentInformation? e)
     {
+        // Consent updates repeatedly (resets, privacy forms); load a single ad once consent allows it.
+        if (CanRequestAds() is false)
+        {
+            return;
+        }
+
         // Check if the handler is still connected before loading ad
         // In .NET MAUI 10+, PlatformView throws InvalidOperationException when disconnected
         try
         {
             if (PlatformView is not null)
             {
+                _adConsentService!.OnConsentInfoUpdated -= OnConsentInfoUpdated;
                 LoadAd();
             }
         }

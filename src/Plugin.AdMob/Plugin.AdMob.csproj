@@ -7,13 +7,14 @@
 		<SingleProject>true</SingleProject>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<Description>AdMob plugin for .NET MAUI.</Description>
+		<Title>Google AdMob for .NET MAUI</Title>
+		<Description>Google AdMob ads for .NET MAUI on Android and iOS. Supports every ad format — banner, interstitial, rewarded, rewarded interstitial, app open, and native ads including native video — plus automatic GDPR consent via Google's User Messaging Platform (UMP). Free and open source.</Description>
 		<PackageProjectUrl>https://github.com/marius-bughiu/Plugin.AdMob</PackageProjectUrl>
 		<Authors>Marius Bughiu</Authors>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<PackageIcon>icon.png</PackageIcon>
-		<PackageTags>maui;admob;ump;dotnet;dotnet-maui;cross-platform;ios;android;google;ads;user-messaging-platform</PackageTags>
+		<PackageTags>maui;dotnet-maui;dotnet;admob;google-admob;google;google-mobile-ads;ads;advertising;monetization;banner;interstitial;rewarded;rewarded-interstitial;app-open;native-ads;native-video;consent;ump;user-messaging-platform;gdpr;android;ios;cross-platform</PackageTags>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
 
