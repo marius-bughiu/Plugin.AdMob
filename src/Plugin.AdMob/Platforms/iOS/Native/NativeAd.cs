@@ -39,6 +39,18 @@ internal partial class NativeAd : NativeAdLoaderDelegate
 
     public TimeSpan VideoCurrentTime => TimeSpan.FromSeconds(_ad?.MediaContent?.CurrentTime ?? 0);
 
+    public bool IsVideoMuted => _ad?.MediaContent?.VideoController?.IsMuted ?? false;
+
+    public bool VideoCustomControlsEnabled => _ad?.MediaContent?.VideoController?.IsCustomControlsEnabled ?? false;
+
+    public bool VideoClickToExpandEnabled => _ad?.MediaContent?.VideoController?.IsClickToExpandEnabled ?? false;
+
+    public void PlayVideo() => _ad?.MediaContent?.VideoController?.Play();
+
+    public void PauseVideo() => _ad?.MediaContent?.VideoController?.Pause();
+
+    public void SetVideoMuted(bool muted) => _ad?.MediaContent?.VideoController?.SetMute(muted);
+
     public void Load()
     {
         MobileAds.SharedInstance.RequestConfiguration.ApplyGlobalAdConfiguration();

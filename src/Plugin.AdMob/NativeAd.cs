@@ -92,6 +92,37 @@ public interface INativeAd
     TimeSpan VideoCurrentTime => throw new NotImplementedException();
 
     /// <summary>
+    /// Returns true when the ad's video is currently muted, or false when there is no video content.
+    /// </summary>
+    bool IsVideoMuted => throw new NotImplementedException();
+
+    /// <summary>
+    /// Returns true when custom video controls (play/pause/mute) are enabled for the ad's video. Custom controls must be
+    /// requested via <see cref="Configuration.VideoOptions.CustomControlsRequested" /> and supported by the loaded ad.
+    /// </summary>
+    bool VideoCustomControlsEnabled => throw new NotImplementedException();
+
+    /// <summary>
+    /// Returns true when click-to-expand behavior is enabled for the ad's video.
+    /// </summary>
+    bool VideoClickToExpandEnabled => throw new NotImplementedException();
+
+    /// <summary>
+    /// Plays the ad's video. Does nothing unless <see cref="VideoCustomControlsEnabled" /> is true and the video is paused.
+    /// </summary>
+    void PlayVideo() => throw new NotImplementedException();
+
+    /// <summary>
+    /// Pauses the ad's video. Does nothing unless <see cref="VideoCustomControlsEnabled" /> is true and the video is playing.
+    /// </summary>
+    void PauseVideo() => throw new NotImplementedException();
+
+    /// <summary>
+    /// Mutes or unmutes the ad's video. Does nothing unless <see cref="VideoCustomControlsEnabled" /> is true.
+    /// </summary>
+    void SetVideoMuted(bool muted) => throw new NotImplementedException();
+
+    /// <summary>
     /// Raised when an ad is loaded.
     /// </summary>
     event EventHandler OnAdLoaded;

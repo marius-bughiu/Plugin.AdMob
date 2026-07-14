@@ -33,12 +33,13 @@ public partial class NativeAdsPage : ContentPage
     private void OnLoadNativeVideoAdClicked(object sender, EventArgs e)
     {
         var nativeAd = _nativeAdService.CreateAd(
-            videoOptions: new VideoOptions { StartMuted = true });
+            videoOptions: new VideoOptions { StartMuted = true, CustomControlsRequested = true });
 
         nativeAd.OnAdLoaded += (_, _) =>
         {
             var nativeAdView = new NativeAdView(nativeAd, BuildVideoAdTemplate());
             this.LayoutRoot.Add(nativeAdView);
+            this.LayoutRoot.Add(BuildVideoControls(nativeAd));
         };
         nativeAd.OnAdFailedToLoad += (_, error) =>
         {
@@ -57,6 +58,39 @@ public partial class NativeAdsPage : ContentPage
     private static void LogVideoEvent(string name)
     {
         System.Diagnostics.Debug.WriteLine($"Native video event: {name}.");
+    }
+
+    private static View BuildVideoControls(INativeAd ad)
+    {
+        var status = new Label { FontSize = 12 };
+
+        void UpdateStatus() => status.Text =
+            $"custom controls: {ad.VideoCustomControlsEnabled}, click-to-expand: {ad.VideoClickToExpandEnabled}, muted: {ad.IsVideoMuted}";
+
+        var play = new Button { Text = "Play" };
+        play.Clicked += (_, _) => ad.PlayVideo();
+
+        var pause = new Button { Text = "Pause" };
+        pause.Clicked += (_, _) => ad.PauseVideo();
+
+        var mute = new Button { Text = "Mute/unmute" };
+        mute.Clicked += (_, _) => ad.SetVideoMuted(!ad.IsVideoMuted);
+
+        ad.OnVideoPlay += (_, _) => MainThread.BeginInvokeOnMainThread(UpdateStatus);
+        ad.OnVideoPause += (_, _) => MainThread.BeginInvokeOnMainThread(UpdateStatus);
+        ad.OnVideoMuted += (_, _) => MainThread.BeginInvokeOnMainThread(UpdateStatus);
+
+        UpdateStatus();
+
+        return new VerticalStackLayout
+        {
+            Spacing = 8,
+            Children =
+            {
+                new HorizontalStackLayout { Spacing = 8, Children = { play, pause, mute } },
+                status,
+            },
+        };
     }
 
     private static ContentView BuildVideoAdTemplate()
