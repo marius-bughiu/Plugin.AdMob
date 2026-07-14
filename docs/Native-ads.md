@@ -64,6 +64,32 @@ After the ad loads, `INativeAd` exposes the media details (`HasVideoContent`, `V
 > [!NOTE]
 > Some creatives report `VideoDuration` as zero at load time; the value becomes accurate once playback starts.
 
+## Custom video controls
+
+By default the Google Mobile Ads SDK renders its own play/pause/mute overlay on the video. If you want to drive playback from your own UI instead, request custom controls and use the playback methods on `INativeAd`:
+
+```
+var nativeAd = _nativeAdService.CreateAd(
+    adUnitId,
+    new VideoOptions { StartMuted = true, CustomControlsRequested = true });
+
+nativeAd.OnAdLoaded += (_, _) =>
+{
+    if (nativeAd.VideoCustomControlsEnabled)
+    {
+        // Your own buttons can now drive playback:
+        nativeAd.PlayVideo();
+        nativeAd.PauseVideo();
+        nativeAd.SetVideoMuted(true);
+    }
+};
+```
+
+`PlayVideo()`, `PauseVideo()` and `SetVideoMuted(bool)` are no-ops unless `VideoCustomControlsEnabled` is `true`. Custom controls are only ever enabled when **both** your request opted in (`CustomControlsRequested = true`) **and** the served ad allows them — so always gate your controls on `VideoCustomControlsEnabled` after the ad loads, and keep a fallback for when it is `false`.
+
+> [!IMPORTANT]
+> Custom video controls require ad inventory that enables them. **AdMob does not** — neither its production inventory nor its native video demo ad unit grants custom controls, so `VideoCustomControlsEnabled` will be `false` and the SDK's built-in overlay controls are shown. Custom controls are an **Google Ad Manager** feature. See [Troubleshooting-Native-ads](Troubleshooting-Native-ads.md#custom-video-controls-are-never-enabled-videocustomcontrolsenabled-is-always-false).
+
 ## Native ad model (`INativeAd`)
 
 The binding context for `NativeAdView.AdContent` is an `INativeAd` instance. Some assets are required by policy (for example `Headline` and `Body`) and some are optional, and may be `null`.
@@ -89,6 +115,13 @@ public interface INativeAd
     double VideoAspectRatio { get; }
     TimeSpan VideoDuration { get; }
     TimeSpan VideoCurrentTime { get; }
+    bool IsVideoMuted { get; }
+    bool VideoCustomControlsEnabled { get; }
+    bool VideoClickToExpandEnabled { get; }
+
+    void PlayVideo();
+    void PauseVideo();
+    void SetVideoMuted(bool muted);
 
     event EventHandler OnAdLoaded;
     event EventHandler<IAdError> OnAdFailedToLoad;
