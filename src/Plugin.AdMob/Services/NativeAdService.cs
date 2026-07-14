@@ -9,18 +9,28 @@ public interface INativeAdService
 {
     /// <summary>
     /// Creates a native ad instance given the specified ad unit ID. If no ad unit ID is specified, <see cref="AdConfig.DefaultNativeAdUnitId" /> will be used
-    /// (or Google's native test ad unit when <see cref="AdConfig.UseTestAdUnitIds" /> is enabled; when <paramref name="videoOptions" /> is provided, the
-    /// platform-specific native video test ad unit is used instead). An explicitly specified ad unit ID always wins over <see cref="AdConfig.UseTestAdUnitIds" />.
+    /// (or Google's native test ad unit when <see cref="AdConfig.UseTestAdUnitIds" /> is enabled).
     /// </summary>
     /// <param name="adUnitId">The ad unit ID.</param>
-    /// <param name="videoOptions">Optional video playback options, used when the ad unit serves video media content.</param>
     /// <returns>A native ad instance.</returns>
-    INativeAd CreateAd(string? adUnitId = null, VideoOptions? videoOptions = null);
+    INativeAd CreateAd(string? adUnitId = null);
+
+    /// <summary>
+    /// Creates a native ad instance configured with the specified video playback options. If no ad unit ID is specified,
+    /// <see cref="AdConfig.DefaultNativeAdUnitId" /> will be used (or Google's native video test ad unit when <see cref="AdConfig.UseTestAdUnitIds" />
+    /// is enabled). An explicitly specified ad unit ID always wins over <see cref="AdConfig.UseTestAdUnitIds" />.
+    /// </summary>
+    /// <param name="adUnitId">The ad unit ID.</param>
+    /// <param name="videoOptions">Video playback options, used when the ad unit serves video media content.</param>
+    /// <returns>A native ad instance.</returns>
+    INativeAd CreateAd(string? adUnitId, VideoOptions? videoOptions) => CreateAd(adUnitId);
 }
 
 internal class NativeAdService : INativeAdService
 {
-    public INativeAd CreateAd(string? adUnitId = null, VideoOptions? videoOptions = null)
+    public INativeAd CreateAd(string? adUnitId = null) => CreateAd(adUnitId, videoOptions: null);
+
+    public INativeAd CreateAd(string? adUnitId, VideoOptions? videoOptions)
     {
         adUnitId = GetAdUnitId(adUnitId, videoOptions);
 

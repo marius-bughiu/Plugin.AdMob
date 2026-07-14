@@ -67,7 +67,8 @@ public interface INativeAd
     string? Store => throw new NotImplementedException();
 
     /// <summary>
-    /// The video options this ad was requested with, if any. Display them in a <see cref="MediaView" /> placed inside the ad content template.
+    /// The <see cref="Configuration.VideoOptions" /> this ad was requested with, or <c>null</c> when none were specified. The ad's media content
+    /// itself is rendered by placing a <see cref="MediaView" /> inside the ad content template.
     /// </summary>
     VideoOptions? VideoOptions => null;
 

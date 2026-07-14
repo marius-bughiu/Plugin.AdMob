@@ -33,6 +33,7 @@ public partial class NativeAdsPage : ContentPage
     private void OnLoadNativeVideoAdClicked(object sender, EventArgs e)
     {
         var nativeAd = _nativeAdService.CreateAd(
+            adUnitId: null,
             videoOptions: new VideoOptions { StartMuted = true, CustomControlsRequested = true });
 
         nativeAd.OnAdLoaded += (_, _) =>
