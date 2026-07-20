@@ -33,6 +33,7 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
             }
             catch (Exception)
             {
+                RemoveActiveView(adView);
             }
         }
     }
@@ -47,6 +48,7 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
             }
             catch (Exception)
             {
+                RemoveActiveView(adView);
             }
         }
     }
@@ -58,14 +60,23 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
             _adConsentService.OnConsentInfoUpdated -= OnConsentInfoUpdated;
         }
 
-        RemoveActiveView(platformView);
-        // Explicitly stop the native AdView before disposal so Android does not
-        // keep banner work alive after the handler has been disconnected.
-        platformView.AdListener = null;
-        platformView.Pause();
-        platformView.Destroy();
-        platformView.Dispose();
-        base.DisconnectHandler(platformView);
+        try
+        {
+            RemoveActiveView(platformView);
+            // Explicitly stop the native AdView before disposal so Android does not
+            // keep banner work alive after the handler has been disconnected.
+            platformView.AdListener = null;
+            platformView.Pause();
+            platformView.Destroy();
+            platformView.Dispose();
+        }
+        catch (Exception)
+        {
+        }
+        finally
+        {
+            base.DisconnectHandler(platformView);
+        }
     }
 
     protected override AdView CreatePlatformView()
