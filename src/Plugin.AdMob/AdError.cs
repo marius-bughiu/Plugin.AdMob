@@ -1,7 +1,9 @@
-﻿namespace Plugin.AdMob;
+﻿using System.Diagnostics;
+
+namespace Plugin.AdMob;
 
 /// <summary>
-/// An error which occurred while loading an ad.
+/// An error which occurred while loading or showing an ad.
 /// </summary>
 public interface IAdError
 {
@@ -11,8 +13,13 @@ public interface IAdError
     string Message { get; }
 }
 
-internal class AdError(string message) 
-    : IAdError
+internal class AdError : IAdError
 {
-    public string Message { get; } = message;
+    public AdError(string message)
+    {
+        Message = message;
+        Debug.WriteLine($"[Plugin.AdMob] Ad error: {message}");
+    }
+
+    public string Message { get; }
 }
