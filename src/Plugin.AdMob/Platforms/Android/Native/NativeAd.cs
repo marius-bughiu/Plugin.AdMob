@@ -31,14 +31,44 @@ internal partial class NativeAd
 
     public string? Store => _ad?.Store;
 
+    public bool HasVideoContent => _ad?.MediaContent?.HasVideoContent ?? false;
+
+    public double VideoAspectRatio => _ad?.MediaContent?.AspectRatio ?? 0;
+
+    public TimeSpan VideoDuration => TimeSpan.FromSeconds(_ad?.MediaContent?.Duration ?? 0);
+
+    public TimeSpan VideoCurrentTime => TimeSpan.FromSeconds(_ad?.MediaContent?.CurrentTime ?? 0);
+
+    public bool IsVideoMuted => _ad?.MediaContent?.VideoController?.IsMuted ?? false;
+
+    public bool VideoCustomControlsEnabled => _ad?.MediaContent?.VideoController?.IsCustomControlsEnabled ?? false;
+
+    public bool VideoClickToExpandEnabled => _ad?.MediaContent?.VideoController?.IsClickToExpandEnabled ?? false;
+
+    public void PlayVideo() => _ad?.MediaContent?.VideoController?.Play();
+
+    public void PauseVideo() => _ad?.MediaContent?.VideoController?.Pause();
+
+    public void SetVideoMuted(bool muted) => _ad?.MediaContent?.VideoController?.Mute(muted);
+
     public void Load()
     {
         var configBuilder = new RequestConfiguration.Builder();
         configBuilder.ApplyGlobalAdConfiguration();
         MobileAds.RequestConfiguration = configBuilder.Build();
 
-        var options = new Android.Gms.Ads.NativeAd.NativeAdOptions.Builder()
-            .Build();
+        var optionsBuilder = new Android.Gms.Ads.NativeAd.NativeAdOptions.Builder();
+
+        if (VideoOptions is not null)
+        {
+            optionsBuilder.SetVideoOptions(new Android.Gms.Ads.VideoOptions.Builder()
+                .SetStartMuted(VideoOptions.StartMuted)
+                .SetCustomControlsRequested(VideoOptions.CustomControlsRequested)
+                .SetClickToExpandRequested(VideoOptions.ClickToExpandRequested)
+                .Build());
+        }
+
+        var options = optionsBuilder.Build();
 
         var listener = new AdListener();
         listener.AdFailedToLoad += (s, e) => OnAdFailedToLoad?.Invoke(s, new AdError(e.Message));
@@ -67,6 +97,26 @@ internal partial class NativeAd
         _ad = nativeAd;
         IsLoaded = true;
 
+        RegisterVideoLifecycleCallbacks(nativeAd);
+
         OnAdLoaded?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void RegisterVideoLifecycleCallbacks(Android.Gms.Ads.NativeAd.NativeAd nativeAd)
+    {
+        var videoController = nativeAd.MediaContent?.VideoController;
+        if (videoController is null)
+        {
+            return;
+        }
+
+        var callbacks = new VideoLifecycleCallbacks();
+        callbacks.WhenVideoStarted += (s, e) => OnVideoStart?.Invoke(this, EventArgs.Empty);
+        callbacks.WhenVideoPlayed += (s, e) => OnVideoPlay?.Invoke(this, EventArgs.Empty);
+        callbacks.WhenVideoPaused += (s, e) => OnVideoPause?.Invoke(this, EventArgs.Empty);
+        callbacks.WhenVideoEnded += (s, e) => OnVideoEnd?.Invoke(this, EventArgs.Empty);
+        callbacks.WhenVideoMuted += (s, isMuted) => OnVideoMuted?.Invoke(this, isMuted);
+
+        videoController.SetVideoLifecycleCallbacks(callbacks);
     }
 }

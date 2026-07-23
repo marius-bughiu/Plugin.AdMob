@@ -57,6 +57,9 @@ For a fully working example, check out the [samples folder](https://github.com/m
 <string>This identifier will be used to deliver personalized ads to you.</string>
 ```
 
+> [!NOTE]
+> Google also recommends adding [App Transport Security exceptions](https://developers.google.com/admob/ios/app-transport-security) to your `Info.plist`, as production ad creatives may serve media over non-HTTPS connections.
+
 3. Go to your `Platforms/iOS/AppDelegate.cs` and make a call to `Google.MobileAds.MobileAds.SharedInstance.Start(completionHandler: null)`. Your `AppDelegate` should look similar to this:
 ```
 [Register("AppDelegate")]

@@ -44,3 +44,19 @@ The native demo campaign serves app-install creatives whose click actions target
 - Use an emulator image that includes the Play Store (a **Google Play** system image, e.g. `system-images;android-36;google_apis_playstore;x86_64`).
 - Physical devices with the Play Store are unaffected.
 
+## Custom video controls are never enabled (`VideoCustomControlsEnabled` is always `false`)
+
+### Symptoms
+
+- You request custom controls (`new VideoOptions { CustomControlsRequested = true }`), but after the ad loads `VideoCustomControlsEnabled` is `false`.
+- `PlayVideo()`, `PauseVideo()` and `SetVideoMuted(bool)` do nothing, and the SDK draws its own play/pause/mute overlay on the video instead.
+
+### Root cause
+
+Custom video controls require ad inventory that grants them. Requesting them only opts you in — the served ad decides whether they are enabled. **AdMob does not enable custom controls** on any of its inventory, including the native video demo ad unit (`ca-app-pub-3940256099942544/1044960115`), so `VideoCustomControlsEnabled` stays `false`. Custom controls are a **Google Ad Manager** feature; Google's own "Custom Video Controls" sample uses an Ad Manager ad unit (`/21775744923/example/native-video`), which is requested through the Ad Manager request APIs — not currently supported by this plugin (see [`#106`](https://github.com/marius-bughiu/Plugin.AdMob/issues/106)).
+
+### Fix / mitigation
+
+- Always gate your custom control UI on `VideoCustomControlsEnabled` after the ad loads, and fall back to the SDK's built-in overlay controls when it is `false`.
+- This is expected behavior on AdMob — there is no AdMob test ad unit that serves custom controls.
+

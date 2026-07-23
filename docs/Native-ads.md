@@ -25,6 +25,71 @@ and then place the ad view in your page, making sure to specify an `AdContent` w
 > [!NOTE]
 > The `AdUnitId` is optional when using test ads. You can enable test ads by setting `AdConfig.UseTestAdUnitIds` to `true`.
 
+## Displaying media content (video ads)
+
+To display a native ad's media content (a video, or the main image when the ad has no video), place a `MediaView` inside your `AdContent`. The Google Mobile Ads SDK renders the media into it and manages playback automatically:
+
+```
+<admob:NativeAdView>
+    <admob:NativeAdView.AdContent>
+        <ContentView>
+            <VerticalStackLayout>
+                <admob:MediaView HeightRequest="200" />
+                <Label Text="{Binding Headline}" FontAttributes="Bold" FontSize="18" />
+                <Label Text="{Binding Body}" />
+            </VerticalStackLayout>
+        </ContentView>
+    </admob:NativeAdView.AdContent>
+</admob:NativeAdView>
+```
+
+Video playback can be configured by passing `VideoOptions` when creating the ad through the service:
+
+```
+var nativeAd = _nativeAdService.CreateAd(
+    "ca-app-pub-xxxxxxxxxxxxxxxx/xxxxxxxxxx",
+    new VideoOptions
+    {
+        StartMuted = true,
+        CustomControlsRequested = false,
+        ClickToExpandRequested = false,
+    });
+```
+
+After the ad loads, `INativeAd` exposes the media details (`HasVideoContent`, `VideoAspectRatio`, `VideoDuration`, `VideoCurrentTime`) and raises the video lifecycle events (`OnVideoStart`, `OnVideoPlay`, `OnVideoPause`, `OnVideoEnd`, `OnVideoMuted`). Use `VideoAspectRatio` to size the `MediaView` to match the creative.
+
+> [!NOTE]
+> During development, enable `AdConfig.UseTestAdUnitIds` and pass `VideoOptions` to `CreateAd` — the request is then routed to Google's platform-specific native **video** demo ad unit automatically. An explicitly specified ad unit ID always wins over `AdConfig.UseTestAdUnitIds`.
+
+> [!NOTE]
+> Some creatives report `VideoDuration` as zero at load time; the value becomes accurate once playback starts.
+
+## Custom video controls
+
+By default the Google Mobile Ads SDK renders its own play/pause/mute overlay on the video. If you want to drive playback from your own UI instead, request custom controls and use the playback methods on `INativeAd`:
+
+```
+var nativeAd = _nativeAdService.CreateAd(
+    adUnitId,
+    new VideoOptions { StartMuted = true, CustomControlsRequested = true });
+
+nativeAd.OnAdLoaded += (_, _) =>
+{
+    if (nativeAd.VideoCustomControlsEnabled)
+    {
+        // Your own buttons can now drive playback:
+        nativeAd.PlayVideo();
+        nativeAd.PauseVideo();
+        nativeAd.SetVideoMuted(true);
+    }
+};
+```
+
+`PlayVideo()`, `PauseVideo()` and `SetVideoMuted(bool)` are no-ops unless `VideoCustomControlsEnabled` is `true`. Custom controls are only ever enabled when **both** your request opted in (`CustomControlsRequested = true`) **and** the served ad allows them — so always gate your controls on `VideoCustomControlsEnabled` after the ad loads, and keep a fallback for when it is `false`.
+
+> [!IMPORTANT]
+> Custom video controls require ad inventory that enables them. **AdMob does not** — neither its production inventory nor its native video demo ad unit grants custom controls, so `VideoCustomControlsEnabled` will be `false` and the SDK's built-in overlay controls are shown. Custom controls are an **Google Ad Manager** feature. See [Troubleshooting-Native-ads](Troubleshooting-Native-ads.md#custom-video-controls-are-never-enabled-videocustomcontrolsenabled-is-always-false).
+
 ## Native ad model (`INativeAd`)
 
 The binding context for `NativeAdView.AdContent` is an `INativeAd` instance. Some assets are required by policy (for example `Headline` and `Body`) and some are optional, and may be `null`.
@@ -45,6 +110,19 @@ public interface INativeAd
     double? StarRating { get; }
     string? Store { get; }
 
+    VideoOptions? VideoOptions { get; }
+    bool HasVideoContent { get; }
+    double VideoAspectRatio { get; }
+    TimeSpan VideoDuration { get; }
+    TimeSpan VideoCurrentTime { get; }
+    bool IsVideoMuted { get; }
+    bool VideoCustomControlsEnabled { get; }
+    bool VideoClickToExpandEnabled { get; }
+
+    void PlayVideo();
+    void PauseVideo();
+    void SetVideoMuted(bool muted);
+
     event EventHandler OnAdLoaded;
     event EventHandler<IAdError> OnAdFailedToLoad;
     event EventHandler? OnAdImpression;
@@ -52,10 +130,18 @@ public interface INativeAd
     event EventHandler? OnAdSwiped;
     event EventHandler? OnAdOpened;
     event EventHandler? OnAdClosed;
+    event EventHandler? OnVideoStart;
+    event EventHandler? OnVideoPlay;
+    event EventHandler? OnVideoPause;
+    event EventHandler? OnVideoEnd;
+    event EventHandler<bool>? OnVideoMuted;
 
     void Load();
 }
 ```
+
+> [!NOTE]
+> `OnVideoStart` is supported only by Android. On iOS the first `OnVideoPlay` marks the beginning of playback.
 
 ### Advanced usage
 

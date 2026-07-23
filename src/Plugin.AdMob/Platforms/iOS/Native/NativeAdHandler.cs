@@ -124,11 +124,31 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, Google.Mobile
             PlatformView.TrailingAnchor.ConstraintEqualTo(adContentView.TrailingAnchor, (nfloat)ContentInset),
         });
 
+        var mediaView = FindMediaView(this.VirtualView.AdContent);
+        if (mediaView is not null)
+        {
+            PlatformView.MediaView = mediaView;
+        }
+
         PlatformView.NativeAd = ((NativeAd)ad).GetPlatformAd();
         VirtualView.BindingContext = ad;
 
         _adContentAttached = true;
         ((IView)VirtualView).InvalidateMeasure();
+    }
+
+    private static Google.MobileAds.MediaView? FindMediaView(IVisualTreeElement root)
+    {
+        foreach (var element in root.GetVisualTreeDescendants())
+        {
+            if (element is MediaView mediaView &&
+                mediaView.Handler?.PlatformView is Google.MobileAds.MediaView platformMediaView)
+            {
+                return platformMediaView;
+            }
+        }
+
+        return null;
     }
 
     // Google.MobileAds.NativeAdView is a plain UIView whose SizeThatFits reports its
@@ -161,6 +181,11 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, Google.Mobile
         ad.OnAdSwiped += VirtualView.RaiseOnAdSwiped;
         ad.OnAdOpened += VirtualView.RaiseOnAdOpened;
         ad.OnAdClosed += VirtualView.RaiseOnAdClosed;
+        ad.OnVideoStart += VirtualView.RaiseOnVideoStart;
+        ad.OnVideoPlay += VirtualView.RaiseOnVideoPlay;
+        ad.OnVideoPause += VirtualView.RaiseOnVideoPause;
+        ad.OnVideoEnd += VirtualView.RaiseOnVideoEnd;
+        ad.OnVideoMuted += VirtualView.RaiseOnVideoMuted;
 
         _registeredAd = ad;
     }
@@ -183,6 +208,11 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, Google.Mobile
         _registeredAd.OnAdSwiped -= VirtualView.RaiseOnAdSwiped;
         _registeredAd.OnAdOpened -= VirtualView.RaiseOnAdOpened;
         _registeredAd.OnAdClosed -= VirtualView.RaiseOnAdClosed;
+        _registeredAd.OnVideoStart -= VirtualView.RaiseOnVideoStart;
+        _registeredAd.OnVideoPlay -= VirtualView.RaiseOnVideoPlay;
+        _registeredAd.OnVideoPause -= VirtualView.RaiseOnVideoPause;
+        _registeredAd.OnVideoEnd -= VirtualView.RaiseOnVideoEnd;
+        _registeredAd.OnVideoMuted -= VirtualView.RaiseOnVideoMuted;
 
         _registeredAd = null;
         _onAdLoaded = null;

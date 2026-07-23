@@ -74,11 +74,11 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net10.0-android'">
-		<PackageReference Include="Xamarin.GooglePlayServices.Ads.Lite" Version="124.0.0.6" />
+		<PackageReference Include="Xamarin.GooglePlayServices.Ads.Lite" Version="124.0.0.8" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net10.0-ios'">
-		<PackageReference Include="Jc.GMA.iOS" Version="12.7.1" />
+		<PackageReference Include="Jc.GMA.iOS" Version="12.10.0" />
 		<PackageReference Include="Jc.UMP.iOS" Version="2.7.5" />
 	</ItemGroup>
 

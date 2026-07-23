@@ -1,4 +1,6 @@
-﻿namespace Plugin.AdMob;
+﻿using Plugin.AdMob.Configuration;
+
+namespace Plugin.AdMob;
 
 /// <summary>
 /// Manages a native ad instance.
@@ -65,6 +67,63 @@ public interface INativeAd
     string? Store => throw new NotImplementedException();
 
     /// <summary>
+    /// The <see cref="Configuration.VideoOptions" /> this ad was requested with, or <c>null</c> when none were specified. The ad's media content
+    /// itself is rendered by placing a <see cref="MediaView" /> inside the ad content template.
+    /// </summary>
+    VideoOptions? VideoOptions => null;
+
+    /// <summary>
+    /// Returns true when the loaded ad's media content is a video. Media content is displayed by placing a <see cref="MediaView" /> inside the ad content template.
+    /// </summary>
+    bool HasVideoContent => throw new NotImplementedException();
+
+    /// <summary>
+    /// Returns the aspect ratio of the loaded ad's media content (width/height), or 0 if unknown.
+    /// </summary>
+    double VideoAspectRatio => throw new NotImplementedException();
+
+    /// <summary>
+    /// Returns the duration of the ad's video, or <see cref="TimeSpan.Zero" /> when there is no video content.
+    /// </summary>
+    TimeSpan VideoDuration => throw new NotImplementedException();
+
+    /// <summary>
+    /// Returns the current playback time of the ad's video, or <see cref="TimeSpan.Zero" /> when there is no video content.
+    /// </summary>
+    TimeSpan VideoCurrentTime => throw new NotImplementedException();
+
+    /// <summary>
+    /// Returns true when the ad's video is currently muted, or false when there is no video content.
+    /// </summary>
+    bool IsVideoMuted => throw new NotImplementedException();
+
+    /// <summary>
+    /// Returns true when custom video controls (play/pause/mute) are enabled for the ad's video. Custom controls must be
+    /// requested via <see cref="Configuration.VideoOptions.CustomControlsRequested" /> and supported by the loaded ad.
+    /// </summary>
+    bool VideoCustomControlsEnabled => throw new NotImplementedException();
+
+    /// <summary>
+    /// Returns true when click-to-expand behavior is enabled for the ad's video.
+    /// </summary>
+    bool VideoClickToExpandEnabled => throw new NotImplementedException();
+
+    /// <summary>
+    /// Plays the ad's video. Does nothing unless <see cref="VideoCustomControlsEnabled" /> is true and the video is paused.
+    /// </summary>
+    void PlayVideo() => throw new NotImplementedException();
+
+    /// <summary>
+    /// Pauses the ad's video. Does nothing unless <see cref="VideoCustomControlsEnabled" /> is true and the video is playing.
+    /// </summary>
+    void PauseVideo() => throw new NotImplementedException();
+
+    /// <summary>
+    /// Mutes or unmutes the ad's video. Does nothing unless <see cref="VideoCustomControlsEnabled" /> is true.
+    /// </summary>
+    void SetVideoMuted(bool muted) => throw new NotImplementedException();
+
+    /// <summary>
     /// Raised when an ad is loaded.
     /// </summary>
     event EventHandler OnAdLoaded;
@@ -100,14 +159,41 @@ public interface INativeAd
     event EventHandler? OnAdClosed;
 
     /// <summary>
+    /// Raised when video playback first begins. Supported only by Android.
+    /// </summary>
+    event EventHandler? OnVideoStart;
+
+    /// <summary>
+    /// Raised when video playback is playing.
+    /// </summary>
+    event EventHandler? OnVideoPlay;
+
+    /// <summary>
+    /// Raised when video playback is paused.
+    /// </summary>
+    event EventHandler? OnVideoPause;
+
+    /// <summary>
+    /// Raised when video playback finishes playing.
+    /// </summary>
+    event EventHandler? OnVideoEnd;
+
+    /// <summary>
+    /// Raised when the video changes mute state. The argument is true when the video was muted.
+    /// </summary>
+    event EventHandler<bool>? OnVideoMuted;
+
+    /// <summary>
     /// Loads a native ad using the specified <see cref="AdUnitId" />.
     /// </summary>
     void Load() => throw new NotImplementedException();
 }
 
-internal partial class NativeAd(string adUnitId) : INativeAd
+internal partial class NativeAd(string adUnitId, VideoOptions? videoOptions = null) : INativeAd
 {
     public string AdUnitId { get; } = adUnitId;
+
+    public VideoOptions? VideoOptions { get; } = videoOptions;
 
     public bool IsLoaded { get; private set; }
 
@@ -118,4 +204,9 @@ internal partial class NativeAd(string adUnitId) : INativeAd
     public event EventHandler? OnAdSwiped;
     public event EventHandler? OnAdOpened;
     public event EventHandler? OnAdClosed;
+    public event EventHandler? OnVideoStart;
+    public event EventHandler? OnVideoPlay;
+    public event EventHandler? OnVideoPause;
+    public event EventHandler? OnVideoEnd;
+    public event EventHandler<bool>? OnVideoMuted;
 }

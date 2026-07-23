@@ -1,5 +1,6 @@
 using Foo.Bar.SampleApp.Views;
 using Plugin.AdMob;
+using Plugin.AdMob.Configuration;
 using Plugin.AdMob.Services;
 using ServiceProvider = Foo.Bar.SampleApp.Services.ServiceProvider;
 
@@ -27,5 +28,94 @@ public partial class NativeAdsPage : ContentPage
         };
 
         nativeAd.Load();
+    }
+
+    private void OnLoadNativeVideoAdClicked(object sender, EventArgs e)
+    {
+        var nativeAd = _nativeAdService.CreateAd(
+            adUnitId: null,
+            videoOptions: new VideoOptions { StartMuted = true, CustomControlsRequested = true });
+
+        nativeAd.OnAdLoaded += (_, _) =>
+        {
+            var nativeAdView = new NativeAdView(nativeAd, BuildVideoAdTemplate());
+            this.LayoutRoot.Add(nativeAdView);
+            this.LayoutRoot.Add(BuildVideoControls(nativeAd));
+        };
+        nativeAd.OnAdFailedToLoad += (_, error) =>
+        {
+            System.Diagnostics.Debug.WriteLine($"Native video ad failed to load: {error.Message}");
+        };
+
+        nativeAd.OnVideoStart += (_, _) => LogVideoEvent("start");
+        nativeAd.OnVideoPlay += (_, _) => LogVideoEvent($"play, duration: {nativeAd.VideoDuration:mm\\:ss}");
+        nativeAd.OnVideoPause += (_, _) => LogVideoEvent("pause");
+        nativeAd.OnVideoEnd += (_, _) => LogVideoEvent("end");
+        nativeAd.OnVideoMuted += (_, isMuted) => LogVideoEvent(isMuted ? "muted" : "unmuted");
+
+        nativeAd.Load();
+    }
+
+    private static void LogVideoEvent(string name)
+    {
+        System.Diagnostics.Debug.WriteLine($"Native video event: {name}.");
+    }
+
+    private static View BuildVideoControls(INativeAd ad)
+    {
+        var status = new Label { FontSize = 12 };
+
+        void UpdateStatus() => status.Text =
+            $"custom controls: {ad.VideoCustomControlsEnabled}, click-to-expand: {ad.VideoClickToExpandEnabled}, muted: {ad.IsVideoMuted}";
+
+        var play = new Button { Text = "Play" };
+        play.Clicked += (_, _) => ad.PlayVideo();
+
+        var pause = new Button { Text = "Pause" };
+        pause.Clicked += (_, _) => ad.PauseVideo();
+
+        var mute = new Button { Text = "Mute/unmute" };
+        mute.Clicked += (_, _) => ad.SetVideoMuted(!ad.IsVideoMuted);
+
+        ad.OnVideoPlay += (_, _) => MainThread.BeginInvokeOnMainThread(UpdateStatus);
+        ad.OnVideoPause += (_, _) => MainThread.BeginInvokeOnMainThread(UpdateStatus);
+        ad.OnVideoMuted += (_, _) => MainThread.BeginInvokeOnMainThread(UpdateStatus);
+
+        UpdateStatus();
+
+        return new VerticalStackLayout
+        {
+            Spacing = 8,
+            Children =
+            {
+                new HorizontalStackLayout { Spacing = 8, Children = { play, pause, mute } },
+                status,
+            },
+        };
+    }
+
+    private static ContentView BuildVideoAdTemplate()
+    {
+        var headline = new Label { FontAttributes = FontAttributes.Bold, FontSize = 16 };
+        headline.SetBinding(Label.TextProperty, nameof(INativeAd.Headline));
+
+        var body = new Label { FontSize = 13 };
+        body.SetBinding(Label.TextProperty, nameof(INativeAd.Body));
+
+        return new ContentView
+        {
+            WidthRequest = 340,
+            HeightRequest = 280,
+            Content = new VerticalStackLayout
+            {
+                Spacing = 8,
+                Children =
+                {
+                    new MediaView { HeightRequest = 200, WidthRequest = 340 },
+                    headline,
+                    body,
+                },
+            },
+        };
     }
 }
