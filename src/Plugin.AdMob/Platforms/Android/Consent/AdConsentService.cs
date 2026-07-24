@@ -1,11 +1,10 @@
-using Android.Gms.Ads;
 using System.Diagnostics;
 using Xamarin.Google.UserMesssagingPlatform;
 
 namespace Plugin.AdMob.Services;
 
 internal partial class AdConsentService :
-    AdLoadCallback,
+    Java.Lang.Object,
     IConsentFormOnConsentFormDismissedListener,
     IConsentInformationOnConsentInfoUpdateFailureListener,
     IConsentInformationOnConsentInfoUpdateSuccessListener

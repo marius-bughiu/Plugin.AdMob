@@ -98,17 +98,18 @@ public static class Config
         {
             events.AddAndroid(android =>
             {
-                // Banner handlers manage native AdView instances, so they need
-                // explicit pause/resume hooks when the app moves through Android lifecycle.
-                var lifecycle = android
-                    .OnResume(_ => BannerAdHandler.ResumeActiveBanners())
-                    .OnPause(_ => BannerAdHandler.PauseActiveBanners())
-                    .OnStop(_ => BannerAdHandler.PauseActiveBanners());
-
-                if (automaticallyAskForConsent is true)
+                // The next-gen Mobile Ads SDK manages banner lifecycle internally, so the plugin no longer
+                // pauses/resumes AdView instances. It does, however, require explicit initialization, which
+                // we kick off here (and again lazily before the first ad request).
+                android.OnStart(_ =>
                 {
-                    lifecycle.OnStart(_ => OnStart());
-                }
+                    Platforms.Android.AdMobInitializer.EnsureInitialized();
+
+                    if (automaticallyAskForConsent is true)
+                    {
+                        OnStart();
+                    }
+                });
             });
         });
 #elif IOS

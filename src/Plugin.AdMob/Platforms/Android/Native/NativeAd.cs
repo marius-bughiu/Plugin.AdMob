@@ -1,13 +1,17 @@
-﻿using Android.Gms.Ads;
+using Google.Android.Libraries.Ads.Mobile.Sdk;
+using Google.Android.Libraries.Ads.Mobile.Sdk.Common;
+using Google.Android.Libraries.Ads.Mobile.Sdk.NativeAd;
 using Plugin.AdMob.Platforms.Android;
 using Plugin.AdMob.Platforms.Android.Native;
-using AdListener = Plugin.AdMob.Platforms.Android.AdListener;
+using SdkINativeAd = Google.Android.Libraries.Ads.Mobile.Sdk.NativeAd.INativeAd;
+using SdkNativeAdLoader = Google.Android.Libraries.Ads.Mobile.Sdk.NativeAd.NativeAdLoader;
+using SdkVideoOptions = Google.Android.Libraries.Ads.Mobile.Sdk.Common.VideoOptions;
 
 namespace Plugin.AdMob;
 
 internal partial class NativeAd
 {
-    private Android.Gms.Ads.NativeAd.NativeAd? _ad;
+    private SdkINativeAd? _ad;
 
     public string? Advertiser => _ad?.Advertiser;
 
@@ -17,13 +21,9 @@ internal partial class NativeAd
 
     public string? Headline => _ad?.Headline;
 
-    //public string? Icon => _ad?.Icon;
-
     public string? IconUri => _ad?.Icon?.Uri?.ToString();
 
-    //public string? Images => _ad?.Images;
-
-    public string? ImageUri => _ad?.Images?.First()?.Uri?.ToString();
+    public string? ImageUri => _ad?.Image?.Uri?.ToString();
 
     public string? Price => _ad?.Price;
 
@@ -43,7 +43,8 @@ internal partial class NativeAd
 
     public bool VideoCustomControlsEnabled => _ad?.MediaContent?.VideoController?.IsCustomControlsEnabled ?? false;
 
-    public bool VideoClickToExpandEnabled => _ad?.MediaContent?.VideoController?.IsClickToExpandEnabled ?? false;
+    // The next-gen video controller no longer reports the click-to-expand state, so we surface what was requested.
+    public bool VideoClickToExpandEnabled => VideoOptions?.ClickToExpandRequested ?? false;
 
     public void PlayVideo() => _ad?.MediaContent?.VideoController?.Play();
 
@@ -53,56 +54,57 @@ internal partial class NativeAd
 
     public void Load()
     {
-        var configBuilder = new RequestConfiguration.Builder();
-        configBuilder.ApplyGlobalAdConfiguration();
-        MobileAds.RequestConfiguration = configBuilder.Build();
-
-        var optionsBuilder = new Android.Gms.Ads.NativeAd.NativeAdOptions.Builder();
-
-        if (VideoOptions is not null)
+        AdMobInitializer.RunWhenInitialized(() =>
         {
-            optionsBuilder.SetVideoOptions(new Android.Gms.Ads.VideoOptions.Builder()
-                .SetStartMuted(VideoOptions.StartMuted)
-                .SetCustomControlsRequested(VideoOptions.CustomControlsRequested)
-                .SetClickToExpandRequested(VideoOptions.ClickToExpandRequested)
-                .Build());
-        }
+            var configBuilder = new RequestConfiguration.Builder();
+            configBuilder.ApplyGlobalAdConfiguration();
+            MobileAds.RequestConfiguration = configBuilder.Build();
 
-        var options = optionsBuilder.Build();
+            var requestBuilder = new NativeAdRequest.Builder(AdUnitId, [NativeAdNativeAdType.Native!]);
 
-        var listener = new AdListener();
-        listener.AdFailedToLoad += (s, e) => OnAdFailedToLoad?.Invoke(s, new AdError(e.Message));
-        listener.AdImpression += OnAdImpression;
-        listener.AdClicked += OnAdClicked;
-        listener.AdSwiped += OnAdSwiped;
-        listener.AdOpened += OnAdOpened;
-        listener.AdClosed += OnAdClosed;
+            if (VideoOptions is not null)
+            {
+                requestBuilder.SetVideoOptions(new SdkVideoOptions.Builder()
+                    .SetStartMuted(VideoOptions.StartMuted)!
+                    .SetCustomControlsRequested(VideoOptions.CustomControlsRequested)!
+                    .SetClickToExpandRequested(VideoOptions.ClickToExpandRequested)!
+                    .Build());
+            }
 
-        var nativeAdListener = new NativeAdListener();
-        nativeAdListener.AdLoaded += OnAdLoadedInternal;
+            var callback = new NativeAdLoaderCallback();
+            callback.AdLoaded += (s, ad) => OnAdLoadedInternal(ad);
+            callback.AdFailedToLoad += (s, e) => OnAdFailedToLoad?.Invoke(s, new AdError(e.Message));
 
-        AdLoader adLoader = new AdLoader.Builder(Android.App.Application.Context, AdUnitId)
-            .WithNativeAdOptions(options)
-            .WithAdListener(listener)
-            .ForNativeAd(nativeAdListener)
-            .Build();
-
-        adLoader.LoadAd(new AdRequest.Builder().Build());
+            SdkNativeAdLoader.Load(requestBuilder.Build(), callback);
+        });
     }
 
-    internal Android.Gms.Ads.NativeAd.NativeAd GetPlatformAd() => _ad!;
+    internal SdkINativeAd GetPlatformAd() => _ad!;
 
-    private void OnAdLoadedInternal(object? sender, Android.Gms.Ads.NativeAd.NativeAd nativeAd)
+    private void OnAdLoadedInternal(SdkINativeAd nativeAd)
     {
         _ad = nativeAd;
         IsLoaded = true;
 
+        RegisterEventCallback(nativeAd);
         RegisterVideoLifecycleCallbacks(nativeAd);
 
         OnAdLoaded?.Invoke(this, EventArgs.Empty);
     }
 
-    private void RegisterVideoLifecycleCallbacks(Android.Gms.Ads.NativeAd.NativeAd nativeAd)
+    private void RegisterEventCallback(SdkINativeAd nativeAd)
+    {
+        var callback = new NativeAdEventCallback();
+        callback.AdImpression += (s, e) => OnAdImpression?.Invoke(this, EventArgs.Empty);
+        callback.AdClicked += (s, e) => OnAdClicked?.Invoke(this, EventArgs.Empty);
+        callback.AdSwiped += (s, e) => OnAdSwiped?.Invoke(this, EventArgs.Empty);
+        callback.AdOpened += (s, e) => OnAdOpened?.Invoke(this, EventArgs.Empty);
+        callback.AdClosed += (s, e) => OnAdClosed?.Invoke(this, EventArgs.Empty);
+
+        nativeAd.AdEventCallback = callback;
+    }
+
+    private void RegisterVideoLifecycleCallbacks(SdkINativeAd nativeAd)
     {
         var videoController = nativeAd.MediaContent?.VideoController;
         if (videoController is null)
@@ -117,6 +119,6 @@ internal partial class NativeAd
         callbacks.WhenVideoEnded += (s, e) => OnVideoEnd?.Invoke(this, EventArgs.Empty);
         callbacks.WhenVideoMuted += (s, isMuted) => OnVideoMuted?.Invoke(this, isMuted);
 
-        videoController.SetVideoLifecycleCallbacks(callbacks);
+        videoController.VideoLifecycleCallbacks = callbacks;
     }
 }

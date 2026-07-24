@@ -32,15 +32,15 @@ You need to update your app's manifest (`Platforms/Android/AndroidManifest.xml`)
 </manifest>
 ```
 
-Set the minimum supported Android version to **23** in your app's `.csproj` — Google Play Services requires it, and lower values cause manifest merger errors on .NET 10 (see [Troubleshooting-Android](Troubleshooting-Android.md#androidmanifest-namespace-warnings-on-net-10--api-35)):
+Set the minimum supported Android version to **24** in your app's `.csproj` — the Google Mobile Ads Next-Gen SDK depends on `androidx.webkit`, which requires API 24, and lower values cause manifest merger errors (see [Troubleshooting-Android](Troubleshooting-Android.md#androidmanifest-namespace-warnings-on-net-10--api-35)):
 
 ```
 <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-android'">
-	<SupportedOSPlatformVersion>23.0</SupportedOSPlatformVersion>
+	<SupportedOSPlatformVersion>24.0</SupportedOSPlatformVersion>
 </PropertyGroup>
 ```
 
-For more details you can check the official docs: [Get started with AdMob on Android](https://developers.google.com/admob/android/quick-start)
+For more details you can check the official docs: [Get started with the GMA Next-Gen SDK on Android](https://developers.google.com/admob/android/next-gen/quick-start)
 
 For a fully working example, check out the [samples folder](https://github.com/marius-bughiu/Plugin.AdMob/tree/main/samples).
 
