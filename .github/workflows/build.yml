@@ -1,0 +1,96 @@
+name: Build
+
+# Source-build gate. Restores + compiles the plugin and the sample app across every
+# platform it ships, on every PR and push to main. Hard-fails on NU1605 (package
+# downgrade) and surfaces NU1608 (native binding constraint drift, the issue #68 / #82
+# class) to the run summary. Also callable (workflow_call) so the MAUI auto-bump can
+# validate its own change before opening a PR.
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      ref:
+        description: Git ref to check out and build.
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: ${{ matrix.tfm }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Android builds the sample APP, so the manifest merge (issue #68) is exercised,
+          # not just the library — and an Android app build needs no code signing.
+          - os: ubuntu-latest
+            tfm: net10.0-android
+            workload: maui-android
+            project: samples/Foo.Bar.SampleApp/Foo.Bar.SampleApp.csproj
+          # iOS / MacCatalyst / Windows compile the plugin library (same as release.yml). App-level
+          # iOS link is covered advisorily by device-tests.yml; keeping it out of the hard gate
+          # avoids iOS app signing/link flaking the gate for non-code reasons.
+          - os: macos-latest
+            tfm: net10.0-ios
+            workload: maui-ios
+            project: src/Plugin.AdMob/Plugin.AdMob.csproj
+          - os: macos-latest
+            tfm: net10.0-maccatalyst
+            workload: maui-maccatalyst
+            project: src/Plugin.AdMob/Plugin.AdMob.csproj
+          - os: windows-latest
+            tfm: net10.0-windows10.0.19041.0
+            workload: maui-windows
+            project: src/Plugin.AdMob/Plugin.AdMob.csproj
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      # Install the leg's workload explicitly rather than `dotnet workload restore <project>`:
+      # that has to evaluate the project first, and on a clean runner the platform TFMs aren't
+      # known yet, so a MAUI app degrades to plain net10.0 and can't reference the
+      # platform-targeted plugin ("It cannot be referenced by a project that targets
+      # '.NETCoreApp,Version=v10.0'").
+      - name: Install MAUI workload
+        run: dotnet workload install ${{ matrix.workload }}
+
+      # -p:TargetFrameworks (not -f): `-f` still leaves restore cross-targeting, which would
+      # demand every platform's workload on every leg. Setting the property as a global
+      # property narrows restore, and propagates through the ProjectReference so the plugin
+      # is restored for this TFM only.
+      - name: Build (${{ matrix.tfm }})
+        shell: pwsh
+        run: |
+          dotnet build ${{ matrix.project }} -p:TargetFrameworks=${{ matrix.tfm }} -warnaserror:NU1605 --nologo | Tee-Object -FilePath build.log
+          exit $LASTEXITCODE
+
+      - name: Surface NU1608 native binding drift
+        if: always()
+        shell: pwsh
+        run: |
+          if (Test-Path build.log) {
+            $nu = Select-String -Path build.log -Pattern 'warning NU1608' |
+                  ForEach-Object { ($_.Line -replace '.*warning NU1608', 'NU1608').Trim() } |
+                  Sort-Object -Unique
+            if ($nu) {
+              "### NU1608 dependency-constraint conflicts — ${{ matrix.tfm }}" | Out-File $env:GITHUB_STEP_SUMMARY -Append
+              "These are transitive native-binding version skews. New entries (vs. previous runs) indicate upstream drift worth investigating." | Out-File $env:GITHUB_STEP_SUMMARY -Append
+              '```' | Out-File $env:GITHUB_STEP_SUMMARY -Append
+              $nu | Out-File $env:GITHUB_STEP_SUMMARY -Append
+              '```' | Out-File $env:GITHUB_STEP_SUMMARY -Append
+            }
+          }

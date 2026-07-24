@@ -1,0 +1,102 @@
+name: Nightly (published package)
+
+# Exercises the LATEST PUBLISHED Plugin.AdMob package (not the source) to catch upstream /
+# time-driven drift under a shipped release: new transitive native-binding versions, a MAUI
+# release that breaks restore, or Google SDK behavior changes. Runs before the MAUI auto-bump.
+
+on:
+  schedule:
+    - cron: '0 4 * * *'   # 04:00 UTC, ahead of bump-maui (06:00 UTC)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  resolve:
+    name: resolve latest published version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+      maui: ${{ steps.v.outputs.maui }}
+    steps:
+      - id: v
+        run: |
+          latest=$(curl -sf https://api.nuget.org/v3-flatcontainer/plugin.admob/index.json \
+            | jq -r '.versions[] | select(contains("-") | not)' | sort -V | tail -1)
+          if [ -z "$latest" ]; then echo "::error::Could not resolve latest published Plugin.AdMob version"; exit 1; fi
+          # The plugin version tracks MAUI: X.Y.Z[.build] -> MAUI X.Y.Z.
+          maui=$(echo "$latest" | awk -F. '{print $1"."$2"."$3}')
+          echo "version=$latest" >> "$GITHUB_OUTPUT"
+          echo "maui=$maui" >> "$GITHUB_OUTPUT"
+          echo "Latest published Plugin.AdMob: $latest (MAUI floor $maui)"
+
+  smoke:
+    name: build smoke ${{ matrix.tfm }}
+    needs: resolve
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            tfm: net10.0-android
+            workload: maui-android
+          - os: macos-latest
+            tfm: net10.0-ios
+            workload: maui-ios
+          - os: macos-latest
+            tfm: net10.0-maccatalyst
+            workload: maui-maccatalyst
+          - os: windows-latest
+            tfm: net10.0-windows10.0.19041.0
+            workload: maui-windows
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      # Explicit install + -p:TargetFrameworks below, so restore stays single-TFM and this
+      # leg only needs its own workload. See the note in build.yml.
+      - name: Install MAUI workload
+        run: dotnet workload install ${{ matrix.workload }}
+
+      - name: Clear NuGet cache (force today's published package)
+        run: dotnet nuget locals all --clear
+
+      - name: Build against published ${{ needs.resolve.outputs.version }}
+        shell: pwsh
+        run: |
+          dotnet build tests/Plugin.AdMob.PackageConsumer/Plugin.AdMob.PackageConsumer.csproj `
+            -p:TargetFrameworks=${{ matrix.tfm }} `
+            -p:AdMobPackageVersion=${{ needs.resolve.outputs.version }} `
+            -p:MauiVersion=${{ needs.resolve.outputs.maui }} `
+            -warnaserror:NU1605 --nologo | Tee-Object -FilePath build.log
+          exit $LASTEXITCODE
+
+      - name: Surface NU1608 native binding drift
+        if: always()
+        shell: pwsh
+        run: |
+          if (Test-Path build.log) {
+            $nu = Select-String -Path build.log -Pattern 'warning NU1608' |
+                  ForEach-Object { ($_.Line -replace '.*warning NU1608', 'NU1608').Trim() } |
+                  Sort-Object -Unique
+            if ($nu) {
+              "### NU1608 dependency-constraint conflicts — ${{ matrix.tfm }}" | Out-File $env:GITHUB_STEP_SUMMARY -Append
+              '```' | Out-File $env:GITHUB_STEP_SUMMARY -Append
+              $nu | Out-File $env:GITHUB_STEP_SUMMARY -Append
+              '```' | Out-File $env:GITHUB_STEP_SUMMARY -Append
+            }
+          }
+
+  device-tests:
+    name: device tests
+    needs: resolve
+    uses: ./.github/workflows/device-tests.yml
+    with:
+      use_published: true
+      admob_version: ${{ needs.resolve.outputs.version }}
+      maui_version: ${{ needs.resolve.outputs.maui }}

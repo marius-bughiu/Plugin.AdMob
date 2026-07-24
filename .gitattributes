@@ -1,0 +1,2 @@
+# Shell scripts run on Linux CI runners — CRLF would break the shebang.
+*.sh text eol=lf
