@@ -52,7 +52,7 @@
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.90" />
 		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="10.0.90" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.9" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.10" />
 	</ItemGroup>
 
 	<!-- Aligns the AndroidX Ktx packages with the resolved base package versions to silence NU1608 warnings. See: https://github.com/marius-bughiu/Plugin.AdMob/issues/82 -->
