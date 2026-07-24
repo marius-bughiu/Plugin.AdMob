@@ -1,0 +1,167 @@
+name: Device tests
+
+# Runs the on-device ad-load harness (tests/Plugin.AdMob.DeviceTests) on an Android emulator
+# and, best-effort, an iOS simulator. Each format is loaded with Google's test ad units and we
+# assert OnAdLoaded fires. Reusable (workflow_call) so both the nightly job (published package)
+# and the MAUI auto-bump gate (source) can invoke it.
+#
+# GATING MODEL — banner is the hard gate. On a headless, software-GPU emulator (all GitHub-hosted
+# runners) only the banner format reliably fills; full-screen / native creatives need a GPU-backed
+# emulator (-gpu host) to pre-render, so they are advisory here. Set require_all_formats: true only
+# when pointing this at a GPU-capable / self-hosted runner.
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        required: false
+        type: string
+      use_published:
+        description: Reference the published NuGet package instead of the source.
+        required: false
+        type: boolean
+        default: false
+      admob_version:
+        required: false
+        type: string
+        default: ''
+      maui_version:
+        required: false
+        type: string
+        default: ''
+      require_all_formats:
+        description: Hard-fail unless every format loads (only meaningful on a -gpu host runner).
+        required: false
+        type: boolean
+        default: false
+  workflow_dispatch:
+    inputs:
+      use_published:
+        description: Reference the published NuGet package instead of the source.
+        type: boolean
+        default: true
+      admob_version:
+        description: Package version to test (blank = latest).
+        type: string
+        default: ''
+      maui_version:
+        description: MAUI version to pin (blank = float).
+        type: string
+        default: ''
+      require_all_formats:
+        description: Hard-fail unless every format loads.
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    name: android emulator
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      # `workload restore` (not `workload install maui-android`): the harness multi-targets
+      # android+ios and NuGet restore stays cross-targeting even under `-f net10.0-android`,
+      # so a missing iOS workload aborts the restore with NETSDK1147 before any APK is built.
+      - name: Install MAUI workloads
+        run: dotnet workload restore tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj
+
+      - name: Build test APK
+        run: |
+          props=""
+          if [ "${{ inputs.use_published }}" = "true" ]; then props="-p:UsePublishedAdMob=true"; fi
+          if [ -n "${{ inputs.admob_version }}" ]; then props="$props -p:AdMobPackageVersion=${{ inputs.admob_version }}"; fi
+          if [ -n "${{ inputs.maui_version }}" ]; then props="$props -p:MauiVersion=${{ inputs.maui_version }}"; fi
+          echo "Build props: $props"
+          dotnet build tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj -c Debug -f net10.0-android $props
+          apk=$(find "$PWD/tests/Plugin.AdMob.DeviceTests/bin" -name '*-Signed.apk' | head -1)
+          if [ -z "$apk" ]; then apk=$(find "$PWD/tests/Plugin.AdMob.DeviceTests/bin" -name '*.apk' | head -1); fi
+          if [ -z "$apk" ]; then echo "::error::No APK produced"; exit 1; fi
+          echo "APK=$apk" >> "$GITHUB_ENV"
+          echo "REQUIRE_ALL=${{ inputs.require_all_formats }}" >> "$GITHUB_ENV"
+          echo "Built $apk"
+
+      - name: Run harness on emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          force-avd-creation: false
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-snapshot
+          script: bash tests/ci/run-android-harness.sh
+
+  ios:
+    name: ios simulator (advisory)
+    runs-on: macos-latest
+    continue-on-error: true   # iOS full-screen fill is flaky headless; never block a gate on it.
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      # Same cross-targeting restore constraint as the Android job — see the note there.
+      - name: Install MAUI workloads
+        run: dotnet workload restore tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj
+
+      - name: Build for the simulator
+        run: |
+          props=""
+          if [ "${{ inputs.use_published }}" = "true" ]; then props="-p:UsePublishedAdMob=true"; fi
+          if [ -n "${{ inputs.admob_version }}" ]; then props="$props -p:AdMobPackageVersion=${{ inputs.admob_version }}"; fi
+          if [ -n "${{ inputs.maui_version }}" ]; then props="$props -p:MauiVersion=${{ inputs.maui_version }}"; fi
+          dotnet build tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj -c Debug -f net10.0-ios -p:RuntimeIdentifier=iossimulator-arm64 $props
+          app=$(find tests/Plugin.AdMob.DeviceTests/bin -name '*.app' -type d | head -1)
+          echo "APP=$app" >> "$GITHUB_ENV"
+          echo "Built $app"
+
+      - name: Boot simulator, launch, scrape console
+        run: |
+          set -euo pipefail
+          device=$(xcrun simctl list devices available | grep -Eo 'iPhone 1[0-9][^(]*' | head -1 | xargs)
+          echo "Using simulator: $device"
+          xcrun simctl create harness-sim "$device" >/dev/null || true
+          udid=$(xcrun simctl list devices | grep harness-sim | grep -Eo '[0-9A-Fa-f-]{36}' | head -1)
+          # `boot` returns as soon as the boot is *initiated*; bootstatus -b boots if needed and
+          # blocks until the device is actually usable. install/launch both gate on device state.
+          xcrun simctl bootstatus "$udid" -b
+          xcrun simctl install "$udid" "$APP"
+          # Redirect rather than pipe: for a backgrounded pipeline $! is tee, so the later kill
+          # would tear down the log reader and leave the app running.
+          xcrun simctl launch --console-pty "$udid" com.plugin.admob.devicetests > sim.log 2>&1 &
+          launch_pid=$!
+          for _ in $(seq 1 96); do
+            if grep -qF "SUMMARY_ALL" sim.log 2>/dev/null; then break; fi
+            sleep 5
+          done
+          kill "$launch_pid" 2>/dev/null || true
+          echo "===== harness log ====="; grep "AdMobHarness:" sim.log || true; echo "======================="
+          # Distinguish "app never started" (a real, actionable failure) from "banner did not
+          # fill" (expected headless no-fill). The job stays continue-on-error, so this cannot
+          # block a caller — it just makes the advisory lane's red/green mean something.
+          if ! grep -qF "AdMobHarness:" sim.log; then
+            echo "::error::iOS harness produced no output — the app never started."
+            sed -n '1,40p' sim.log || true
+            exit 1
+          fi
+          grep -F "SUMMARY_BANNER" sim.log | tail -1 || echo "(no banner summary — iOS advisory)"

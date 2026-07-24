@@ -1,0 +1,83 @@
+name: Build
+
+# Source-build gate. Restores + compiles the plugin and the sample app across every
+# platform it ships, on every PR and push to main. Hard-fails on NU1605 (package
+# downgrade) and surfaces NU1608 (native binding constraint drift, the issue #68 / #82
+# class) to the run summary. Also callable (workflow_call) so the MAUI auto-bump can
+# validate its own change before opening a PR.
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      ref:
+        description: Git ref to check out and build.
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: ${{ matrix.tfm }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Android builds the sample APP, so the manifest merge (issue #68) is exercised,
+          # not just the library — and an Android app build needs no code signing.
+          - os: ubuntu-latest
+            tfm: net10.0-android
+            project: samples/Foo.Bar.SampleApp/Foo.Bar.SampleApp.csproj
+          # iOS / MacCatalyst / Windows compile the plugin library (same as release.yml). App-level
+          # iOS link is covered advisorily by device-tests.yml; keeping it out of the hard gate
+          # avoids iOS app signing/link flaking the gate for non-code reasons.
+          - os: macos-latest
+            tfm: net10.0-ios
+            project: src/Plugin.AdMob/Plugin.AdMob.csproj
+          - os: macos-latest
+            tfm: net10.0-maccatalyst
+            project: src/Plugin.AdMob/Plugin.AdMob.csproj
+          - os: windows-latest
+            tfm: net10.0-windows10.0.19041.0
+            project: src/Plugin.AdMob/Plugin.AdMob.csproj
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Install MAUI workload
+        run: dotnet workload restore ${{ matrix.project }}
+
+      - name: Build (${{ matrix.tfm }})
+        shell: pwsh
+        run: |
+          dotnet build ${{ matrix.project }} -f ${{ matrix.tfm }} -warnaserror:NU1605 --nologo | Tee-Object -FilePath build.log
+          exit $LASTEXITCODE
+
+      - name: Surface NU1608 native binding drift
+        if: always()
+        shell: pwsh
+        run: |
+          if (Test-Path build.log) {
+            $nu = Select-String -Path build.log -Pattern 'warning NU1608' |
+                  ForEach-Object { ($_.Line -replace '.*warning NU1608', 'NU1608').Trim() } |
+                  Sort-Object -Unique
+            if ($nu) {
+              "### NU1608 dependency-constraint conflicts — ${{ matrix.tfm }}" | Out-File $env:GITHUB_STEP_SUMMARY -Append
+              "These are transitive native-binding version skews. New entries (vs. previous runs) indicate upstream drift worth investigating." | Out-File $env:GITHUB_STEP_SUMMARY -Append
+              '```' | Out-File $env:GITHUB_STEP_SUMMARY -Append
+              $nu | Out-File $env:GITHUB_STEP_SUMMARY -Append
+              '```' | Out-File $env:GITHUB_STEP_SUMMARY -Append
+            }
+          }

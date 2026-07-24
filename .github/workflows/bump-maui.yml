@@ -1,5 +1,10 @@
 name: Bump MAUI
 
+# Nightly check for a newer MAUI patch. Unlike before, the bump is now VALIDATED before a PR
+# is opened: the change is pushed to a branch, built across all target frameworks, and run
+# through the device tests. The PR is only opened when the build gate passes, so a MAUI patch
+# that fails to restore/compile against the native bindings never reaches review as a green PR.
+
 on:
   schedule:
     - cron: '0 6 * * *'
@@ -12,13 +17,16 @@ permissions:
 concurrency:
   group: bump-maui
 
-defaults:
-  run:
-    shell: bash
-
 jobs:
-  bump:
+  check:
     runs-on: ubuntu-latest
+    outputs:
+      bump: ${{ steps.check.outputs.bump }}
+      current: ${{ steps.check.outputs.current }}
+      latest: ${{ steps.check.outputs.latest }}
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v4
 
@@ -44,10 +52,23 @@ jobs:
             echo "MAUI $current is up to date"
           fi
 
-      - name: Apply the version bump
-        if: steps.check.outputs.bump == 'true'
+  prepare:
+    needs: check
+    if: needs.check.outputs.bump == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      # The candidate goes to a THROWAWAY branch, never straight to the reviewed branch. The
+      # reviewed branch is only moved once the gate is green (see open-pr), so a failing bump
+      # can't silently replace the head of an already-open, already-validated PR.
+      - name: Apply the version bump and push a validation branch
+        id: push
         env:
-          LATEST: ${{ steps.check.outputs.latest }}
+          LATEST: ${{ needs.check.outputs.latest }}
         run: |
           sed -i -E "s|<MauiPackageVersion>[^<]+</MauiPackageVersion>|<MauiPackageVersion>$LATEST</MauiPackageVersion>|" \
             src/Plugin.AdMob/Plugin.AdMob.csproj
@@ -58,18 +79,107 @@ jobs:
             samples/Foo.Bar.SampleApp/Foo.Bar.SampleApp.csproj \
             samples/Foo.Bar.SampleApp.Hybrid/Foo.Bar.SampleApp.Hybrid.csproj
           git diff --stat
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B bump-maui-validate
+          git commit -am "Bump .NET MAUI to $LATEST"
+          git push --force origin bump-maui-validate
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
-      - name: Open pull request
-        if: steps.check.outputs.bump == 'true'
-        uses: peter-evans/create-pull-request@v7
+  # Hard gate: the bumped source must restore + compile on every target framework.
+  validate-build:
+    needs: [check, prepare]
+    if: needs.check.outputs.bump == 'true'
+    uses: ./.github/workflows/build.yml
+    with:
+      ref: bump-maui-validate
+
+  # Runtime signal: device tests against the bumped SOURCE. Advisory for opening the PR
+  # (its result is reported in the PR body) so emulator flakiness can't block a valid bump.
+  validate-device:
+    needs: [check, prepare]
+    if: needs.check.outputs.bump == 'true'
+    uses: ./.github/workflows/device-tests.yml
+    with:
+      ref: bump-maui-validate
+      use_published: false
+      # Pin MAUI to the version being bumped to — otherwise the harness's floating
+      # Microsoft.Maui.Controls reference would test a different MAUI than the PR ships.
+      maui_version: ${{ needs.check.outputs.latest }}
+
+  open-pr:
+    needs: [check, prepare, validate-build, validate-device]
+    if: always() && needs.check.outputs.bump == 'true' && needs.validate-build.result == 'success'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
         with:
-          branch: bump-maui-version
-          delete-branch: true
-          commit-message: Bump .NET MAUI to ${{ steps.check.outputs.latest }}
-          title: Bump .NET MAUI to ${{ steps.check.outputs.latest }}
-          body: |
-            Bumps .NET MAUI from `${{ steps.check.outputs.current }}` to `${{ steps.check.outputs.latest }}`.
+          ref: bump-maui-validate
+          fetch-depth: 0   # need real history to tell bot commits from human ones
 
-            Updates `MauiPackageVersion` in the plugin (which also becomes the next plugin package version) and the pinned MAUI packages in both sample apps.
+      # Move the reviewed branch onto the validated commit. Head, title and body therefore
+      # always change together — the atomicity peter-evans/create-pull-request used to give us.
+      - name: Promote the validated commit onto the review branch
+        id: promote
+        run: |
+          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+          git fetch --no-tags origin +refs/heads/bump-maui-version:refs/remotes/origin/bump-maui-version || true
 
-            Release notes: https://github.com/dotnet/maui/releases
+          if ! git rev-parse -q --verify refs/remotes/origin/bump-maui-version >/dev/null; then
+            git push origin HEAD:refs/heads/bump-maui-version
+            echo "pushed=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Already holds exactly this change (open PR, re-run on a later night): leave it alone.
+          if [ "$(git rev-parse refs/remotes/origin/bump-maui-version^{tree})" = "$(git rev-parse HEAD^{tree})" ]; then
+            echo "bump-maui-version already holds this exact change; nothing to push."
+            echo "pushed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Only inspect commits unique to the branch, so main's own human history is ignored.
+          if git log --format=%ae refs/remotes/origin/main..refs/remotes/origin/bump-maui-version |
+             grep -qv '^41898282+github-actions\[bot\]@users\.noreply\.github\.com$'; then
+            echo "::warning::bump-maui-version carries manual commits — skipping the bump rather than clobbering them."
+            echo "pushed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git push --force-with-lease=bump-maui-version:"$(git rev-parse refs/remotes/origin/bump-maui-version)" \
+            origin HEAD:refs/heads/bump-maui-version
+          echo "pushed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Open or update the pull request
+        if: steps.promote.outputs.pushed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CURRENT: ${{ needs.check.outputs.current }}
+          LATEST: ${{ needs.check.outputs.latest }}
+          BUILD_RESULT: ${{ needs.validate-build.result }}
+          DEVICE_RESULT: ${{ needs.validate-device.result }}
+        run: |
+          body=$(printf '%s\n' \
+            "Bumps .NET MAUI from \`$CURRENT\` to \`$LATEST\`." \
+            "" \
+            "Updates \`MauiPackageVersion\` in the plugin (which also becomes the next plugin package version) and the pinned MAUI packages in both sample apps." \
+            "" \
+            "**Pre-merge validation on this exact commit:**" \
+            "- Build gate (all target frameworks): $BUILD_RESULT" \
+            "- Device tests (Android emulator, banner hard-gate): $DEVICE_RESULT" \
+            "" \
+            "Release notes: https://github.com/dotnet/maui/releases")
+          existing=$(gh pr list --head bump-maui-version --state open --json number -q '.[0].number' || true)
+          if [ -n "$existing" ]; then
+            echo "PR #$existing already open; branch push updated it."
+            gh pr edit "$existing" --title "Bump .NET MAUI to $LATEST" --body "$body"
+          else
+            gh pr create --base main --head bump-maui-version --title "Bump .NET MAUI to $LATEST" --body "$body"
+          fi
+
+      - name: Clean up the validation branch
+        if: always()
+        run: git push origin --delete bump-maui-validate || true
