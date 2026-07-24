@@ -41,12 +41,16 @@ jobs:
         include:
           - os: ubuntu-latest
             tfm: net10.0-android
+            workload: maui-android
           - os: macos-latest
             tfm: net10.0-ios
+            workload: maui-ios
           - os: macos-latest
             tfm: net10.0-maccatalyst
+            workload: maui-maccatalyst
           - os: windows-latest
             tfm: net10.0-windows10.0.19041.0
+            workload: maui-windows
     steps:
       - uses: actions/checkout@v4
 
@@ -54,8 +58,10 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
+      # Explicit install + -p:TargetFrameworks below, so restore stays single-TFM and this
+      # leg only needs its own workload. See the note in build.yml.
       - name: Install MAUI workload
-        run: dotnet workload restore tests/Plugin.AdMob.PackageConsumer/Plugin.AdMob.PackageConsumer.csproj
+        run: dotnet workload install ${{ matrix.workload }}
 
       - name: Clear NuGet cache (force today's published package)
         run: dotnet nuget locals all --clear
@@ -64,7 +70,7 @@ jobs:
         shell: pwsh
         run: |
           dotnet build tests/Plugin.AdMob.PackageConsumer/Plugin.AdMob.PackageConsumer.csproj `
-            -f ${{ matrix.tfm }} `
+            -p:TargetFrameworks=${{ matrix.tfm }} `
             -p:AdMobPackageVersion=${{ needs.resolve.outputs.version }} `
             -p:MauiVersion=${{ needs.resolve.outputs.maui }} `
             -warnaserror:NU1605 --nologo | Tee-Object -FilePath build.log

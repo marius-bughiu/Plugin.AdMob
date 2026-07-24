@@ -75,11 +75,8 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
-      # `workload restore` (not `workload install maui-android`): the harness multi-targets
-      # android+ios and NuGet restore stays cross-targeting even under `-f net10.0-android`,
-      # so a missing iOS workload aborts the restore with NETSDK1147 before any APK is built.
-      - name: Install MAUI workloads
-        run: dotnet workload restore tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj
+      - name: Install MAUI Android workload
+        run: dotnet workload install maui-android
 
       - name: Build test APK
         run: |
@@ -88,7 +85,9 @@ jobs:
           if [ -n "${{ inputs.admob_version }}" ]; then props="$props -p:AdMobPackageVersion=${{ inputs.admob_version }}"; fi
           if [ -n "${{ inputs.maui_version }}" ]; then props="$props -p:MauiVersion=${{ inputs.maui_version }}"; fi
           echo "Build props: $props"
-          dotnet build tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj -c Debug -f net10.0-android $props
+          # -p:TargetFrameworks (not -f) so restore is single-TFM: `-f` leaves restore
+          # cross-targeting, which would fail with NETSDK1147 for the iOS TFM on this runner.
+          dotnet build tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj -c Debug -p:TargetFrameworks=net10.0-android $props
           apk=$(find "$PWD/tests/Plugin.AdMob.DeviceTests/bin" -name '*-Signed.apk' | head -1)
           if [ -z "$apk" ]; then apk=$(find "$PWD/tests/Plugin.AdMob.DeviceTests/bin" -name '*.apk' | head -1); fi
           if [ -z "$apk" ]; then echo "::error::No APK produced"; exit 1; fi
@@ -120,9 +119,8 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
-      # Same cross-targeting restore constraint as the Android job — see the note there.
-      - name: Install MAUI workloads
-        run: dotnet workload restore tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj
+      - name: Install MAUI iOS workload
+        run: dotnet workload install maui-ios
 
       - name: Build for the simulator
         run: |
@@ -130,7 +128,7 @@ jobs:
           if [ "${{ inputs.use_published }}" = "true" ]; then props="-p:UsePublishedAdMob=true"; fi
           if [ -n "${{ inputs.admob_version }}" ]; then props="$props -p:AdMobPackageVersion=${{ inputs.admob_version }}"; fi
           if [ -n "${{ inputs.maui_version }}" ]; then props="$props -p:MauiVersion=${{ inputs.maui_version }}"; fi
-          dotnet build tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj -c Debug -f net10.0-ios -p:RuntimeIdentifier=iossimulator-arm64 $props
+          dotnet build tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj -c Debug -p:TargetFrameworks=net10.0-ios -p:RuntimeIdentifier=iossimulator-arm64 $props
           app=$(find tests/Plugin.AdMob.DeviceTests/bin -name '*.app' -type d | head -1)
           echo "APP=$app" >> "$GITHUB_ENV"
           echo "Built $app"

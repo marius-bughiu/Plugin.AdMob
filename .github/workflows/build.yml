@@ -33,18 +33,22 @@ jobs:
           # not just the library — and an Android app build needs no code signing.
           - os: ubuntu-latest
             tfm: net10.0-android
+            workload: maui-android
             project: samples/Foo.Bar.SampleApp/Foo.Bar.SampleApp.csproj
           # iOS / MacCatalyst / Windows compile the plugin library (same as release.yml). App-level
           # iOS link is covered advisorily by device-tests.yml; keeping it out of the hard gate
           # avoids iOS app signing/link flaking the gate for non-code reasons.
           - os: macos-latest
             tfm: net10.0-ios
+            workload: maui-ios
             project: src/Plugin.AdMob/Plugin.AdMob.csproj
           - os: macos-latest
             tfm: net10.0-maccatalyst
+            workload: maui-maccatalyst
             project: src/Plugin.AdMob/Plugin.AdMob.csproj
           - os: windows-latest
             tfm: net10.0-windows10.0.19041.0
+            workload: maui-windows
             project: src/Plugin.AdMob/Plugin.AdMob.csproj
 
     steps:
@@ -56,13 +60,22 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
+      # Install the leg's workload explicitly rather than `dotnet workload restore <project>`:
+      # that has to evaluate the project first, and on a clean runner the platform TFMs aren't
+      # known yet, so a MAUI app degrades to plain net10.0 and can't reference the
+      # platform-targeted plugin ("It cannot be referenced by a project that targets
+      # '.NETCoreApp,Version=v10.0'").
       - name: Install MAUI workload
-        run: dotnet workload restore ${{ matrix.project }}
+        run: dotnet workload install ${{ matrix.workload }}
 
+      # -p:TargetFrameworks (not -f): `-f` still leaves restore cross-targeting, which would
+      # demand every platform's workload on every leg. Setting the property as a global
+      # property narrows restore, and propagates through the ProjectReference so the plugin
+      # is restored for this TFM only.
       - name: Build (${{ matrix.tfm }})
         shell: pwsh
         run: |
-          dotnet build ${{ matrix.project }} -f ${{ matrix.tfm }} -warnaserror:NU1605 --nologo | Tee-Object -FilePath build.log
+          dotnet build ${{ matrix.project }} -p:TargetFrameworks=${{ matrix.tfm }} -warnaserror:NU1605 --nologo | Tee-Object -FilePath build.log
           exit $LASTEXITCODE
 
       - name: Surface NU1608 native binding drift
