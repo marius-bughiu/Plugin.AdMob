@@ -133,7 +133,17 @@ internal static class AdMobInitializer
         {
             foreach (var callback in callbacks)
             {
-                callback();
+                // One ad request failing (for example because its handler was disconnected and its
+                // platform view disposed while we were initializing) must not take down the app or
+                // prevent the remaining queued requests from running.
+                try
+                {
+                    callback();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[Plugin.AdMob] A queued ad request failed after initialization: {ex.Message}");
+                }
             }
         });
     }

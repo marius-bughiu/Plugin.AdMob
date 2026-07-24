@@ -17,6 +17,10 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
 {
     private IAdConsentService? _adConsentService;
 
+    // Loading an ad is deferred until the SDK finishes initializing, so the handler can be disconnected
+    // (and the AdView destroyed) while a load is still queued. The queued work checks this before running.
+    private bool _disconnected;
+
     public static IPropertyMapper<BannerAd, BannerAdHandler> PropertyMapper =
         new PropertyMapper<BannerAd, BannerAdHandler>(ViewMapper);
 
@@ -24,6 +28,8 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
 
     protected override void DisconnectHandler(AdView platformView)
     {
+        _disconnected = true;
+
         if (_adConsentService is not null)
         {
             _adConsentService.OnConsentInfoUpdated -= OnConsentInfoUpdated;
@@ -89,6 +95,13 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
 
         AdMobInitializer.RunWhenInitialized(() =>
         {
+            // The handler can be disconnected while the SDK is still initializing, in which case the
+            // AdView captured above has already been destroyed and disposed.
+            if (_disconnected)
+            {
+                return;
+            }
+
             var configBuilder = new RequestConfiguration.Builder();
             configBuilder.ApplyGlobalAdConfiguration();
             MobileAds.RequestConfiguration = configBuilder.Build();
@@ -104,6 +117,8 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
                     var eventCallback = new BannerAdEventCallback();
                     eventCallback.AdImpression += (s2, e) => SafeRaise(() => VirtualView.RaiseOnAdImpression(s2, e));
                     eventCallback.AdClicked += (s2, e) => SafeRaise(() => VirtualView.RaiseOnAdClicked(s2, e));
+                    eventCallback.AdOpened += (s2, e) => SafeRaise(() => VirtualView.RaiseOnAdOpened(s2, e));
+                    eventCallback.AdClosed += (s2, e) => SafeRaise(() => VirtualView.RaiseOnAdClosed(s2, e));
                     bannerAd.AdEventCallback = eventCallback;
                 }
 
@@ -111,7 +126,14 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
             };
             callback.Failed += (s, e) => SafeRaise(() => VirtualView.RaiseOnAdFailedToLoad(s, new AdError(e.Message)));
 
-            adView.LoadAd(adRequest, callback);
+            try
+            {
+                adView.LoadAd(adRequest, callback);
+            }
+            catch (ObjectDisposedException)
+            {
+                // The AdView was disposed after the check above; nothing left to load into.
+            }
         });
 
         VirtualView.HeightRequest = adSize.Height;
