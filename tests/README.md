@@ -44,11 +44,19 @@ dotnet build tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj -f n
 
 ## The banner-vs-full-screen gating model (important)
 
-On a **headless, software-GPU emulator** — which is every GitHub-hosted runner, since they have
-no GPU — only the **banner** format reliably fills. Full-screen (interstitial / rewarded /
-rewarded-interstitial / app-open) and native creatives need a **GPU-backed emulator (`-gpu host`)**
-to pre-render, and otherwise come back as no-fill. This is a documented, hardware-observed quirk,
-not a plugin bug.
+Not every format fills in every environment, and that is an environment property rather than a
+plugin bug. Measured on the GitHub-hosted runner (headless, software GPU, `google_apis` image):
+
+| Format | Headless CI (`google_apis`) | Local `-gpu host` + Play Store image |
+|---|---|---|
+| banner | ✅ | ✅ |
+| interstitial / rewarded / rewarded-interstitial / app-open | ✅ | ✅ |
+| native, native-video | ❌ `Internal error` | ✅ |
+
+So the full-screen formats *do* load headless. The one real gap is **native**, which serves
+app-install creatives whose click actions need `market://` resolution — that requires a
+**Play Store** system image (`google_apis_playstore`), not merely a GPU. Loads are also
+occasionally flaky (`Internal error` on a first attempt), which is why each format gets a retry.
 
 So the harness emits two summary lines and CI gates accordingly:
 
@@ -56,18 +64,31 @@ So the harness emits two summary lines and CI gates accordingly:
 - `SUMMARY_ALL` → every format; only hard-gated when `require_all_formats: true`.
 
 To get **full-format** coverage, run `device-tests.yml` (or the harness directly) against a
-**`-gpu host` emulator on a self-hosted runner** and pass `require_all_formats: true`. The
-maintainer's local `plugin_admob_ps` (Play Store) AVD is exactly such an environment.
+**Play Store (`google_apis_playstore`) AVD on a self-hosted runner** and pass
+`require_all_formats: true`. The maintainer's local `plugin_admob_ps` AVD is exactly that.
 
-Run the harness locally against a booted `-gpu host` emulator:
+Run the harness locally against a booted emulator:
 
 ```bash
-dotnet build tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj -c Debug -f net10.0-android \
+dotnet build tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj -c Debug \
+  -p:TargetFrameworks=net10.0-android -p:EmbedAssembliesIntoApk=true \
   "-p:AndroidSdkDirectory=%LOCALAPPDATA%\Android\Sdk" "-p:JavaSdkDirectory=%LOCALAPPDATA%\Android\Jdk"
 adb install -r tests/Plugin.AdMob.DeviceTests/bin/Debug/net10.0-android/com.plugin.admob.devicetests-Signed.apk
 adb logcat -c && adb shell monkey -p com.plugin.admob.devicetests -c android.intent.category.LAUNCHER 1
 adb logcat -s AdMobHarness:I   # watch RESULT / SUMMARY_* lines
 ```
+
+`EmbedAssembliesIntoApk=true` is **required** whenever you install with `adb install`. Without
+it a Debug build uses Fast Deployment, leaves the managed assemblies out of the APK, and the app
+aborts at startup with `No assemblies found in .../.__override__/...` before logging anything.
+
+### Known-broken: the iOS leg
+
+The iOS simulator job currently cannot build on GitHub's macOS image. .NET for iOS 26.5.10301
+requires Xcode 26.6; the image's *selected* Xcode is 26.5, and while 26.6 is installed it ships
+without the macOS platform SDK, so `actool` fails (`SDK "…/MacOSX.sdk" cannot be located`). The
+job selects the newest Xcode and stays `continue-on-error`, so it never blocks — the run is still
+green. iOS *compilation* is covered by `build.yml`'s `net10.0-ios` leg, which passes.
 
 ## One manual step: make the gates required
 

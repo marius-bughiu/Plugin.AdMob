@@ -4,10 +4,10 @@ set -euo pipefail
 # Installs the pre-built device-test APK on the booted emulator, launches it, and scrapes the
 # harness's result lines from logcat.
 #
-# Banner is the hard gate: it is the one format that reliably fills on a headless, software-GPU
-# emulator (GitHub-hosted runners have no GPU). The full set (SUMMARY_ALL) is only enforced when
-# REQUIRE_ALL=true — i.e. when running against a GPU-backed / -gpu host emulator (e.g. a
-# self-hosted runner) where full-screen and native creatives can actually pre-render and fill.
+# Banner is the hard gate. On the hosted runner's google_apis image the full-screen formats load
+# too, but native/native-video do not (they need a Play Store image for market:// click
+# resolution), so the full set (SUMMARY_ALL) is only enforced when REQUIRE_ALL=true — i.e. against
+# a google_apis_playstore AVD on a self-hosted runner.
 
 PKG="com.plugin.admob.devicetests"
 TAG="AdMobHarness"

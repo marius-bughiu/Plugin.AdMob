@@ -5,10 +5,10 @@ name: Device tests
 # assert OnAdLoaded fires. Reusable (workflow_call) so both the nightly job (published package)
 # and the MAUI auto-bump gate (source) can invoke it.
 #
-# GATING MODEL — banner is the hard gate. On a headless, software-GPU emulator (all GitHub-hosted
-# runners) only the banner format reliably fills; full-screen / native creatives need a GPU-backed
-# emulator (-gpu host) to pre-render, so they are advisory here. Set require_all_formats: true only
-# when pointing this at a GPU-capable / self-hosted runner.
+# GATING MODEL — banner is the hard gate. Measured on the hosted runner (headless, software GPU,
+# google_apis): banner and all four full-screen formats load; native/native-video do not, because
+# native demo creatives need market:// click resolution and therefore a Play Store system image.
+# Set require_all_formats: true only against a google_apis_playstore AVD on a self-hosted runner.
 
 on:
   workflow_call:
