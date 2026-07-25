@@ -11,12 +11,14 @@ namespace Plugin.AdMob.DeviceTests;
 /// on-screen rendering is what makes this a stable signal for catching upstream binding /
 /// MAUI drift in the published package.
 ///
-/// Environment note baked in from the maintainer's own testing: on a headless, software-GPU
-/// emulator (GitHub-hosted runners have no GPU) only the BANNER format reliably fills. The
-/// full-screen and native formats need a GPU-backed emulator (-gpu host) to pre-render their
-/// creative and otherwise come back as no-fill. Hence two summary lines are emitted:
+/// Environment note, measured on the GitHub-hosted runner (headless, software GPU, google_apis
+/// image): banner AND the full-screen formats (interstitial, rewarded, rewarded-interstitial,
+/// app-open) all load fine. Only NATIVE and NATIVE-VIDEO fail there with "Internal error" —
+/// native demo ads are app-install creatives whose click actions need market:// resolution, so
+/// they want a Play Store system image (google_apis_playstore), not merely a GPU. Hence two
+/// summary lines are emitted:
 ///   SUMMARY_BANNER — the format CI can hard-gate on any runner.
-///   SUMMARY_ALL    — every format; only meaningful (hard-gate-able) on a -gpu host runner.
+///   SUMMARY_ALL    — every format; only hard-gate-able on a Play Store image.
 /// </summary>
 internal static class AdLoadHarness
 {
