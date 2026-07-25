@@ -14,6 +14,17 @@ TAG="AdMobHarness"
 REQUIRE_ALL="${REQUIRE_ALL:-false}"
 APK="${APK:?APK env var not set}"
 
+# Dumped whenever the harness produces no usable result. Without this a startup crash is
+# invisible: the tag-filtered log below is simply empty and says nothing about why.
+dump_diagnostics() {
+  echo "===== app process ====="
+  adb shell pidof "$PKG" || echo "(app is not running)"
+  echo "===== fatal / crash ====="
+  adb logcat -d -s AndroidRuntime:E monodroid:F monodroid-assembly:F DEBUG:F 2>/dev/null | tail -40 || true
+  echo "===== last 120 log lines (unfiltered) ====="
+  adb logcat -d 2>/dev/null | tail -120 || true
+}
+
 echo "Installing $APK"
 adb install -r "$APK"
 
@@ -49,11 +60,13 @@ echo "all:     ${allline:-<none>}"
 
 if [ -z "$banner" ]; then
   echo "::error::Harness did not report a banner result (app crashed or never finished loading)."
+  dump_diagnostics
   exit 1
 fi
 
 if ! echo "$banner" | grep -q "status=PASS"; then
   echo "::error::Banner ad failed to load against Google's test ad unit."
+  dump_diagnostics
   exit 1
 fi
 

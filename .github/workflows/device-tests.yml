@@ -87,7 +87,13 @@ jobs:
           echo "Build props: $props"
           # -p:TargetFrameworks (not -f) so restore is single-TFM: `-f` leaves restore
           # cross-targeting, which would fail with NETSDK1147 for the iOS TFM on this runner.
-          dotnet build tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj -c Debug -p:TargetFrameworks=net10.0-android $props
+          #
+          # EmbedAssembliesIntoApk=true is REQUIRED here. A Debug Android build otherwise uses
+          # Fast Deployment, which keeps the managed assemblies OUT of the APK and expects the
+          # IDE / `dotnet build -t:Run` to push them separately. Installing such an APK with
+          # plain `adb install` yields an app that aborts at startup with
+          # "No assemblies found in .../.__override__/x86_64" before a single line is logged.
+          dotnet build tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj -c Debug -p:TargetFrameworks=net10.0-android -p:EmbedAssembliesIntoApk=true $props
           apk=$(find "$PWD/tests/Plugin.AdMob.DeviceTests/bin" -name '*-Signed.apk' | head -1)
           if [ -z "$apk" ]; then apk=$(find "$PWD/tests/Plugin.AdMob.DeviceTests/bin" -name '*.apk' | head -1); fi
           if [ -z "$apk" ]; then echo "::error::No APK produced"; exit 1; fi
@@ -101,6 +107,9 @@ jobs:
           api-level: 34
           arch: x86_64
           target: google_apis
+          # Embedding the assemblies takes the APK from ~13 MB to ~90 MB; give the AVD headroom
+          # so the install can't fail with INSTALL_FAILED_INSUFFICIENT_STORAGE.
+          disk-size: 8G
           force-avd-creation: false
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-snapshot
@@ -114,6 +123,16 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.ref || github.ref }}
+
+      # .NET for iOS hard-pins a required Xcode and the image's *selected* Xcode can lag it —
+      # the 2026-07-25 nightly failed with "This version of .NET for iOS (26.5.10301) requires
+      # Xcode 26.6. The current version of Xcode is 26.5." Images usually carry several Xcodes,
+      # so select the newest; the listing makes the mismatch obvious if one is still missing.
+      - name: Select the newest available Xcode
+        run: |
+          ls -d /Applications/Xcode*.app || true
+          sudo xcode-select -s "$(ls -d /Applications/Xcode*.app | sort -V | tail -1)"
+          xcodebuild -version
 
       - uses: actions/setup-dotnet@v4
         with:
