@@ -47,7 +47,8 @@
 
 	<PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-android'">
 		<TargetPlatformVersion>36.0</TargetPlatformVersion>
-		<SupportedOSPlatformVersion>23.0</SupportedOSPlatformVersion>
+		<!-- The Google Mobile Ads Next-Gen SDK depends on androidx.webkit, which requires API 24. -->
+		<SupportedOSPlatformVersion>24.0</SupportedOSPlatformVersion>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">
@@ -74,7 +75,12 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net10.0-android'">
-		<PackageReference Include="Xamarin.GooglePlayServices.Ads.Lite" Version="124.0.0.8" />
+		<!--
+			Google Mobile Ads Next-Gen SDK (com.google.android.libraries.ads.mobile.sdk:ads-mobile-sdk),
+			which replaces the legacy play-services-ads SDK. The binding also brings in the User Messaging
+			Platform (UMP) used for consent, so no separate UMP package reference is required.
+		-->
+		<PackageReference Include="Xamarin.Google.Android.Libraries.Ads.Mobile.Sdk" Version="1.2.1.2" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net10.0-ios'">

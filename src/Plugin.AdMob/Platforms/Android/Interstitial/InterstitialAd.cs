@@ -1,51 +1,55 @@
-﻿using Android.Gms.Ads;
+using Android.Runtime;
+using Google.Android.Libraries.Ads.Mobile.Sdk;
+using Google.Android.Libraries.Ads.Mobile.Sdk.Common;
 using Plugin.AdMob.Platforms.Android;
-using Plugin.AdMob.Platforms.Android.Interstitial;
+using SdkIInterstitialAd = Google.Android.Libraries.Ads.Mobile.Sdk.Interstitial.IInterstitialAd;
+using SdkInterstitialAd = Google.Android.Libraries.Ads.Mobile.Sdk.Interstitial.InterstitialAd;
 
 namespace Plugin.AdMob;
 
 internal partial class InterstitialAd
 {
-    private Android.Gms.Ads.Interstitial.InterstitialAd? _ad;
+    private SdkIInterstitialAd? _ad;
 
     public void Load()
     {
-        var configBuilder = new RequestConfiguration.Builder();
-        configBuilder.ApplyGlobalAdConfiguration();
-        MobileAds.RequestConfiguration = configBuilder.Build();
+        AdMobInitializer.RunWhenInitialized(() =>
+        {
+            var configBuilder = new RequestConfiguration.Builder();
+            configBuilder.ApplyGlobalAdConfiguration();
+            MobileAds.RequestConfiguration = configBuilder.Build();
 
-        var requestBuilder = new AdRequest.Builder();
-        var adRequest = requestBuilder.Build();
+            var adRequest = new AdRequest.Builder(AdUnitId).Build();
 
-        var callbacks = new InterstitialAdCallbacks();
-        callbacks.WhenAdLoaded += AdLoaded;
-        callbacks.WhenAdFailedToLoaded += (s, e) => OnAdFailedToLoad?.Invoke(s, new AdError(e.Message));
+            var callback = new AdLoadCallback();
+            callback.Loaded += (s, ad) => AdLoaded(ad.JavaCast<SdkIInterstitialAd>()!);
+            callback.Failed += (s, e) => OnAdFailedToLoad?.Invoke(this, new AdError(e.Message));
 
-        Android.Gms.Ads.Interstitial.InterstitialAd.Load(Android.App.Application.Context, AdUnitId, adRequest, callbacks);
+            SdkInterstitialAd.Load(adRequest, callback);
+        });
     }
 
     public void Show()
     {
-        if (!IsLoaded)
+        if (!IsLoaded || _ad is null)
         {
             return;
         }
 
-        var listener = new FullScreenContentCallback();
+        var callback = new FullScreenContentCallback();
+        callback.AdShowed += (s, e) => OnAdShowed?.Invoke(this, EventArgs.Empty);
+        callback.AdFailedToShow += (s, e) => OnAdFailedToShow?.Invoke(this, new AdError(e.Message));
+        callback.AdImpression += (s, e) => OnAdImpression?.Invoke(this, EventArgs.Empty);
+        callback.AdClicked += (s, e) => OnAdClicked?.Invoke(this, EventArgs.Empty);
+        callback.AdDismissed += (s, e) => OnAdDismissed?.Invoke(this, EventArgs.Empty);
 
-        listener.AdShowed += (s, e) => OnAdShowed?.Invoke(s, EventArgs.Empty);
-        listener.AdFailedToShow += (s, e) => OnAdFailedToShow?.Invoke(s, new AdError(e.Message));
-        listener.AdImpression += (s, e) => OnAdImpression?.Invoke(s, EventArgs.Empty);
-        listener.AdClicked += (s, e) => OnAdClicked?.Invoke(s, EventArgs.Empty);
-        listener.AdDismissed += (s, e) => OnAdDismissed?.Invoke(s, EventArgs.Empty);
-
-        _ad!.FullScreenContentCallback = listener;
+        _ad.AdEventCallback = callback;
 
         var activity = ActivityStateManager.Default.GetCurrentActivity()!;
         _ad.Show(activity);
     }
 
-    private void AdLoaded(object? sender, Android.Gms.Ads.Interstitial.InterstitialAd interstitialAd)
+    private void AdLoaded(SdkIInterstitialAd interstitialAd)
     {
         _ad = interstitialAd;
         IsLoaded = true;

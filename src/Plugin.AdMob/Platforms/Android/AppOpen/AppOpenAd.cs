@@ -1,51 +1,55 @@
-﻿using Android.Gms.Ads;
+using Android.Runtime;
+using Google.Android.Libraries.Ads.Mobile.Sdk;
+using Google.Android.Libraries.Ads.Mobile.Sdk.Common;
 using Plugin.AdMob.Platforms.Android;
-using Plugin.AdMob.Platforms.Android.AppOpen;
+using SdkAppOpenAd = Google.Android.Libraries.Ads.Mobile.Sdk.AppOpen.AppOpenAd;
+using SdkIAppOpenAd = Google.Android.Libraries.Ads.Mobile.Sdk.AppOpen.IAppOpenAd;
 
 namespace Plugin.AdMob;
 
 internal partial class AppOpenAd
 {
-    private Android.Gms.Ads.AppOpen.AppOpenAd? _ad;
+    private SdkIAppOpenAd? _ad;
 
     public void Load()
     {
-        var configBuilder = new RequestConfiguration.Builder();
-        configBuilder.ApplyGlobalAdConfiguration();
-        MobileAds.RequestConfiguration = configBuilder.Build();
+        AdMobInitializer.RunWhenInitialized(() =>
+        {
+            var configBuilder = new RequestConfiguration.Builder();
+            configBuilder.ApplyGlobalAdConfiguration();
+            MobileAds.RequestConfiguration = configBuilder.Build();
 
-        var requestBuilder = new AdRequest.Builder();
-        var adRequest = requestBuilder.Build();
+            var adRequest = new AdRequest.Builder(AdUnitId).Build();
 
-        var callbacks = new AppOpenAdLoadCallbacks();
-        callbacks.WhenAdLoaded += AdLoaded;
-        callbacks.WhenAdFailedToLoaded += (s, e) => OnAdFailedToLoad?.Invoke(s, new AdError(e.Message));
+            var callback = new AdLoadCallback();
+            callback.Loaded += (s, ad) => AdLoaded(ad.JavaCast<SdkIAppOpenAd>()!);
+            callback.Failed += (s, e) => OnAdFailedToLoad?.Invoke(this, new AdError(e.Message));
 
-        Android.Gms.Ads.AppOpen.AppOpenAd.Load(Android.App.Application.Context, AdUnitId, adRequest, callbacks);
+            SdkAppOpenAd.Load(adRequest, callback);
+        });
     }
 
     public void Show()
     {
-        if (!IsLoaded)
+        if (!IsLoaded || _ad is null)
         {
             return;
         }
 
-        var listener = new FullScreenContentCallback();
+        var callback = new FullScreenContentCallback();
+        callback.AdShowed += (s, e) => OnAdShowed?.Invoke(this, EventArgs.Empty);
+        callback.AdFailedToShow += (s, e) => OnAdFailedToShow?.Invoke(this, new AdError(e.Message));
+        callback.AdImpression += (s, e) => OnAdImpression?.Invoke(this, EventArgs.Empty);
+        callback.AdClicked += (s, e) => OnAdClicked?.Invoke(this, EventArgs.Empty);
+        callback.AdDismissed += (s, e) => OnAdDismissed?.Invoke(this, EventArgs.Empty);
 
-        listener.AdShowed += (s, e) => OnAdShowed?.Invoke(s, EventArgs.Empty);
-        listener.AdFailedToShow += (s, e) => OnAdFailedToShow?.Invoke(s, new AdError(e.Message));
-        listener.AdImpression += (s, e) => OnAdImpression?.Invoke(s, EventArgs.Empty);
-        listener.AdClicked += (s, e) => OnAdClicked?.Invoke(s, EventArgs.Empty);
-        listener.AdDismissed += (s, e) => OnAdDismissed?.Invoke(s, EventArgs.Empty);
-
-        _ad!.FullScreenContentCallback = listener;
+        _ad.AdEventCallback = callback;
 
         var activity = ActivityStateManager.Default.GetCurrentActivity()!;
         _ad.Show(activity);
     }
 
-    private void AdLoaded(object? sender, Android.Gms.Ads.AppOpen.AppOpenAd appOpenAd)
+    private void AdLoaded(SdkIAppOpenAd appOpenAd)
     {
         _ad = appOpenAd;
         IsLoaded = true;

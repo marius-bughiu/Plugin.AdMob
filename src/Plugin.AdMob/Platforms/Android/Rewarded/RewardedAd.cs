@@ -1,30 +1,32 @@
-using Android.Gms.Ads;
+using Android.Runtime;
+using Google.Android.Libraries.Ads.Mobile.Sdk;
+using Google.Android.Libraries.Ads.Mobile.Sdk.Common;
 using Plugin.AdMob.Platforms.Android;
-using Plugin.AdMob.Rewarded;
+using SdkIRewardedAd = Google.Android.Libraries.Ads.Mobile.Sdk.Rewarded.IRewardedAd;
+using SdkRewardedAd = Google.Android.Libraries.Ads.Mobile.Sdk.Rewarded.RewardedAd;
 
 namespace Plugin.AdMob;
 
 internal partial class RewardedAd
 {
-    private Android.Gms.Ads.Rewarded.RewardedAd? _ad;
-    private RewardedAdCallbacks? _callbacks;
+    private SdkIRewardedAd? _ad;
 
     public void Load()
     {
-        var configBuilder = new RequestConfiguration.Builder();
-        configBuilder.ApplyGlobalAdConfiguration();
-        MobileAds.RequestConfiguration = configBuilder.Build();
+        AdMobInitializer.RunWhenInitialized(() =>
+        {
+            var configBuilder = new RequestConfiguration.Builder();
+            configBuilder.ApplyGlobalAdConfiguration();
+            MobileAds.RequestConfiguration = configBuilder.Build();
 
-        var requestBuilder = new AdRequest.Builder();
-        var adRequest = requestBuilder.Build();
+            var adRequest = new AdRequest.Builder(AdUnitId).Build();
 
-        _callbacks = new RewardedAdCallbacks();
-        _callbacks.WhenAdLoaded += AdLoaded;
-        _callbacks.WhenAdFailedToLoad += (s, e) => OnAdFailedToLoad?.Invoke(s, new AdError(e.Message));
-        _callbacks.WhenUserEarnedReward += (s, e) => OnUserEarnedReward?.Invoke(s, new RewardItem(e.Amount, e.Type));
+            var callback = new AdLoadCallback();
+            callback.Loaded += (s, ad) => AdLoaded(ad.JavaCast<SdkIRewardedAd>()!);
+            callback.Failed += (s, e) => OnAdFailedToLoad?.Invoke(this, new AdError(e.Message));
 
-        var activity = ActivityStateManager.Default.GetCurrentActivity()!;
-        Android.Gms.Ads.Rewarded.RewardedAd.Load(activity, AdUnitId, adRequest, _callbacks);
+            SdkRewardedAd.Load(adRequest, callback);
+        });
     }
 
     public void Show()
@@ -34,21 +36,23 @@ internal partial class RewardedAd
             return;
         }
 
-        var listener = new FullScreenContentCallback();
+        var callback = new FullScreenContentCallback();
+        callback.AdShowed += (s, _) => OnAdShowed?.Invoke(this, EventArgs.Empty);
+        callback.AdFailedToShow += (s, e) => OnAdFailedToShow?.Invoke(this, new AdError(e.Message));
+        callback.AdImpression += (s, _) => OnAdImpression?.Invoke(this, EventArgs.Empty);
+        callback.AdClicked += (s, _) => OnAdClicked?.Invoke(this, EventArgs.Empty);
+        callback.AdDismissed += (s, _) => OnAdDismissed?.Invoke(this, EventArgs.Empty);
 
-        listener.AdShowed += (s, _) => OnAdShowed?.Invoke(s, EventArgs.Empty);
-        listener.AdFailedToShow += (s, e) => OnAdFailedToShow?.Invoke(s, new AdError(e.Message));
-        listener.AdImpression += (s, _) => OnAdImpression?.Invoke(s, EventArgs.Empty);
-        listener.AdClicked += (s, _) => OnAdClicked?.Invoke(s, EventArgs.Empty);
-        listener.AdDismissed += (s, _) => OnAdDismissed?.Invoke(s, EventArgs.Empty);
+        _ad.AdEventCallback = callback;
 
-        _ad.FullScreenContentCallback = listener;
+        var rewardListener = new UserEarnedRewardListener();
+        rewardListener.UserEarnedReward += (s, reward) => OnUserEarnedReward?.Invoke(this, new RewardItem(reward.Amount, reward.Type));
 
         var activity = ActivityStateManager.Default.GetCurrentActivity()!;
-        _ad.Show(activity, _callbacks!);
+        _ad.Show(activity, rewardListener);
     }
 
-    private void AdLoaded(object? sender, global::Android.Gms.Ads.Rewarded.RewardedAd rewardedAd)
+    private void AdLoaded(SdkIRewardedAd rewardedAd)
     {
         _ad = rewardedAd;
         IsLoaded = true;

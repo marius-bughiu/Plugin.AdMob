@@ -2,10 +2,12 @@
 using Microsoft.Maui.Platform;
 using Plugin.AdMob.Configuration;
 using Plugin.AdMob.Services;
+using SdkMediaView = Google.Android.Libraries.Ads.Mobile.Sdk.NativeAd.MediaView;
+using SdkNativeAdView = Google.Android.Libraries.Ads.Mobile.Sdk.NativeAd.NativeAdView;
 
 namespace Plugin.AdMob.Handlers;
 
-internal partial class NativeAdHandler : ViewHandler<NativeAdView, global::Android.Gms.Ads.NativeAd.NativeAdView>
+internal partial class NativeAdHandler : ViewHandler<NativeAdView, SdkNativeAdView>
 {
     private IAdConsentService? _adConsentService;
     private bool _adContentAttached;
@@ -23,7 +25,7 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, global::Andro
     {        
     }
 
-    protected override void ConnectHandler(Android.Gms.Ads.NativeAd.NativeAdView platformView)
+    protected override void ConnectHandler(SdkNativeAdView platformView)
     {
         base.ConnectHandler(platformView);
 
@@ -50,7 +52,7 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, global::Andro
         }
     }
 
-    protected override void DisconnectHandler(global::Android.Gms.Ads.NativeAd.NativeAdView platformView)
+    protected override void DisconnectHandler(SdkNativeAdView platformView)
     {
         if (_adConsentService is not null)
         {
@@ -63,9 +65,9 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, global::Andro
         base.DisconnectHandler(platformView);
     }
 
-    protected override global::Android.Gms.Ads.NativeAd.NativeAdView CreatePlatformView()
+    protected override SdkNativeAdView CreatePlatformView()
     {
-        var platformView = new global::Android.Gms.Ads.NativeAd.NativeAdView(Android.App.Application.Context);
+        var platformView = new SdkNativeAdView(Android.App.Application.Context);
         platformView.CallToActionView = platformView;
 
         return platformView;
@@ -100,24 +102,22 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, global::Andro
         var adContentView = this.VirtualView.AdContent.ToPlatform(MauiContext!);
         PlatformView.AddView(adContentView);
 
+        // The next-gen NativeAdView takes the media view when the ad is registered rather than
+        // exposing a settable MediaView property.
         var mediaView = FindMediaView(this.VirtualView.AdContent);
-        if (mediaView is not null)
-        {
-            PlatformView.MediaView = mediaView;
-        }
 
-        PlatformView.SetNativeAd(((NativeAd)ad).GetPlatformAd());
+        PlatformView.RegisterNativeAd(((NativeAd)ad).GetPlatformAd(), mediaView);
         VirtualView.BindingContext = ad;
 
         _adContentAttached = true;
     }
 
-    private static global::Android.Gms.Ads.NativeAd.MediaView? FindMediaView(IVisualTreeElement root)
+    private static SdkMediaView? FindMediaView(IVisualTreeElement root)
     {
         foreach (var element in root.GetVisualTreeDescendants())
         {
             if (element is MediaView mediaView &&
-                mediaView.Handler?.PlatformView is global::Android.Gms.Ads.NativeAd.MediaView platformMediaView)
+                mediaView.Handler?.PlatformView is SdkMediaView platformMediaView)
             {
                 return platformMediaView;
             }

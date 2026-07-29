@@ -1,57 +1,62 @@
-using Android.Gms.Ads;
+using Android.Runtime;
+using Google.Android.Libraries.Ads.Mobile.Sdk;
+using Google.Android.Libraries.Ads.Mobile.Sdk.Common;
 using Plugin.AdMob.Platforms.Android;
-using Plugin.AdMob.RewardedInterstitial;
+using SdkIRewardedInterstitialAd = Google.Android.Libraries.Ads.Mobile.Sdk.RewardedInterstitial.IRewardedInterstitialAd;
+using SdkRewardedInterstitialAd = Google.Android.Libraries.Ads.Mobile.Sdk.RewardedInterstitial.RewardedInterstitialAd;
 
 namespace Plugin.AdMob;
 
 internal partial class RewardedInterstitialAd
 {
-    private Android.Gms.Ads.RewardedInterstitial.RewardedInterstitialAd? _ad;
-    private RewardedInterstitialAdCallbacks? _callbacks;
+    private SdkIRewardedInterstitialAd? _ad;
 
     public void Load()
     {
-        var configBuilder = new RequestConfiguration.Builder();
-        configBuilder.ApplyGlobalAdConfiguration();
-        MobileAds.RequestConfiguration = configBuilder.Build();
+        AdMobInitializer.RunWhenInitialized(() =>
+        {
+            var configBuilder = new RequestConfiguration.Builder();
+            configBuilder.ApplyGlobalAdConfiguration();
+            MobileAds.RequestConfiguration = configBuilder.Build();
 
-        var requestBuilder = new AdRequest.Builder();
-        var adRequest = requestBuilder.Build();
+            var adRequest = new AdRequest.Builder(AdUnitId).Build();
 
-        _callbacks = new RewardedInterstitialAdCallbacks();
-        _callbacks.WhenAdLoaded += AdLoaded;
-        _callbacks.WhenAdFailedToLoad += (s, e) => OnAdFailedToLoad?.Invoke(s, new AdError(e.Message));
-        _callbacks.WhenUserEarnedReward += (s, e) => OnUserEarnedReward?.Invoke(s, new RewardItem(e.Amount, e.Type));
+            var callback = new AdLoadCallback();
+            callback.Loaded += (s, ad) => AdLoaded(ad.JavaCast<SdkIRewardedInterstitialAd>()!);
+            callback.Failed += (s, e) => OnAdFailedToLoad?.Invoke(this, new AdError(e.Message));
 
-        Android.Gms.Ads.RewardedInterstitial.RewardedInterstitialAd.Load(Android.App.Application.Context, AdUnitId, adRequest, _callbacks);
+            SdkRewardedInterstitialAd.Load(adRequest, callback);
+        });
     }
 
-    private void AdLoaded(object? sender, Android.Gms.Ads.RewardedInterstitial.RewardedInterstitialAd rewardedInterstitialAd)
+    public void Show()
+    {
+        if (!IsLoaded || _ad is null)
+        {
+            return;
+        }
+
+        var callback = new FullScreenContentCallback();
+        callback.AdShowed += (s, _) => OnAdShowed?.Invoke(this, EventArgs.Empty);
+        callback.AdFailedToShow += (s, e) => OnAdFailedToShow?.Invoke(this, new AdError(e.Message));
+        callback.AdImpression += (s, _) => OnAdImpression?.Invoke(this, EventArgs.Empty);
+        callback.AdClicked += (s, _) => OnAdClicked?.Invoke(this, EventArgs.Empty);
+        callback.AdDismissed += (s, _) => OnAdDismissed?.Invoke(this, EventArgs.Empty);
+
+        _ad.AdEventCallback = callback;
+
+        var rewardListener = new UserEarnedRewardListener();
+        rewardListener.UserEarnedReward += (s, reward) => OnUserEarnedReward?.Invoke(this, new RewardItem(reward.Amount, reward.Type));
+
+        var activity = ActivityStateManager.Default.GetCurrentActivity()!;
+        _ad.Show(activity, rewardListener);
+    }
+
+    private void AdLoaded(SdkIRewardedInterstitialAd rewardedInterstitialAd)
     {
         _ad = rewardedInterstitialAd;
         IsLoaded = true;
 
         OnAdLoaded?.Invoke(this, EventArgs.Empty);
-    }
-
-    public void Show()
-    {
-        if (!IsLoaded)
-        {
-            return;
-        }
-
-        var listener = new FullScreenContentCallback();
-
-        listener.AdShowed += (s, _) => OnAdShowed?.Invoke(s, EventArgs.Empty);
-        listener.AdFailedToShow += (s, e) => OnAdFailedToShow?.Invoke(s, new AdError(e.Message));
-        listener.AdImpression += (s, _) => OnAdImpression?.Invoke(s, EventArgs.Empty);
-        listener.AdClicked += (s, _) => OnAdClicked?.Invoke(s, EventArgs.Empty);
-        listener.AdDismissed += (s, _) => OnAdDismissed?.Invoke(s, EventArgs.Empty);
-
-        _ad!.FullScreenContentCallback = listener;
-
-        var activity = ActivityStateManager.Default.GetCurrentActivity()!;
-        _ad.Show(activity, _callbacks!);
     }
 }
