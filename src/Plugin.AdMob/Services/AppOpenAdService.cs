@@ -8,7 +8,7 @@ namespace Plugin.AdMob.Services;
 public interface IAppOpenAdService
 {
     /// <summary>
-    /// True when an ad is ready to be presented to the user.
+    /// True when an ad is ready to be presented to the user. Turns false once the ad is shown or expires.
     /// </summary>
     public bool IsAdLoaded { get; }
 
@@ -20,7 +20,7 @@ public interface IAppOpenAdService
     IAppOpenAd CreateAd(string? adUnitId = null);
 
     /// <summary>
-    /// Preloads an ad given the specified ad unit ID. If no ad unit ID is specified, <see cref="AdConfig.DefaultAppOpenAdUnitId" /> will be used.
+    /// Preloads an ad given the specified ad unit ID. If no ad unit ID is specified, <see cref="AdConfig.DefaultAppOpenAdUnitId" /> will be used. If consent doesn't allow ad requests yet, the ad is loaded as soon as it does.
     /// </summary>
     /// <param name="adUnitId">The ad unit ID.</param>
     void PrepareAd(string? adUnitId = null);
@@ -43,6 +43,7 @@ internal class AppOpenAdService(IAdConsentService _adConsentService)
     : IAppOpenAdService
 {
     private IAppOpenAd? _appOpenAd;
+    private string? _pendingAdUnitId;
     private bool _isShowingAd;
 
     public bool IsAdLoaded => _appOpenAd?.IsLoaded ?? false;
@@ -63,6 +64,8 @@ internal class AppOpenAdService(IAdConsentService _adConsentService)
 
     public void PrepareAd(string? adUnitId = null)
     {
+        _adConsentService.OnConsentInfoUpdated -= OnConsentInfoUpdated;
+
         if (_appOpenAd is not null)
         {
             _appOpenAd.OnAdLoaded -= OnAdLoadedInternal;
@@ -71,6 +74,8 @@ internal class AppOpenAdService(IAdConsentService _adConsentService)
 
         if (CanRequestAds() is false)
         {
+            _pendingAdUnitId = adUnitId;
+            _adConsentService.OnConsentInfoUpdated += OnConsentInfoUpdated;
             return;
         }
 
@@ -115,6 +120,14 @@ internal class AppOpenAdService(IAdConsentService _adConsentService)
         }
 
         return _adConsentService.CanRequestAds();
+    }
+
+    private void OnConsentInfoUpdated(object? sender, IConsentInformation? e)
+    {
+        if (CanRequestAds())
+        {
+            PrepareAd(_pendingAdUnitId);
+        }
     }
 
     private void OnAdLoadedInternal(object? sender, EventArgs e)
