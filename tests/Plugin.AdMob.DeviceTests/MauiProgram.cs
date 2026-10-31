@@ -29,6 +29,7 @@ public static class MauiProgram
 
         var app = builder.Build();
         HarnessConsent.Observe(app.Services.GetRequiredService<IAdConsentService>());
+        EarlyLoads.Start(app.Services);
 
         return app;
     }
