@@ -1,13 +1,24 @@
 name: Release
 
-on: workflow_dispatch
+# Publishes Plugin.AdMob to nuget.org and creates the GitHub Release. Runs when a release tag
+# is pushed (v<MauiPackageVersion>.<build>, optionally with a prerelease suffix such as
+# v10.0.120.1-beta.1), or manually from such a tag. It refuses to run without one: an untagged
+# pack would publish a <maui>-beta.<height> package (that is how 10.0.80-beta.7 shipped).
+
+on:
+  push:
+    tags: [ 'v*.*.*.*' ]
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 permissions:
   contents: read
-  packages: write
 
 env:
-  NuGetDirectory: ${{ github.workspace}}/nuget
+  NuGetDirectory: ${{ github.workspace }}/nuget
 
 defaults:
   run:
@@ -15,64 +26,114 @@ defaults:
 
 jobs:
   build:
-
+    # Windows: the net10.0-windows target framework is only added when packing on Windows.
     runs-on: windows-latest
-
-    defaults:
-      run:
-        working-directory: src
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+      version: ${{ steps.tag.outputs.version }}
+      prerelease: ${{ steps.tag.outputs.prerelease }}
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
       with:
         fetch-depth: 0
         filter: tree:0
 
+    - name: Require a release tag on this commit
+      id: tag
+      run: |
+        [xml]$csproj = Get-Content src/Plugin.AdMob/Plugin.AdMob.csproj
+        $maui = ($csproj.Project.PropertyGroup | Where-Object { $_.MauiPackageVersion }).MauiPackageVersion
+        $tag = git describe --tags --exact-match --match "v$maui.*" 2>$null
+        if (-not $tag) {
+          Write-Output "::error::HEAD has no v$maui.<build> tag. Push a release tag (e.g. v$maui.0) instead of running this on an untagged commit."
+          exit 1
+        }
+        $version = $tag.Substring(1)
+        "tag=$tag" >> $env:GITHUB_OUTPUT
+        "version=$version" >> $env:GITHUB_OUTPUT
+        "prerelease=$($version.Contains('-'))" >> $env:GITHUB_OUTPUT
+        Write-Output "Releasing $version (MAUI $maui)"
+
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: 10.0.x
 
     - name: Restore workloads
+      working-directory: src
       run: dotnet workload restore
 
-    - name: Install android workload
-      run: dotnet workload install android
-
-    - name: Install ios workload
-      run: dotnet workload install ios
+    - name: Install android and ios workloads
+      run: dotnet workload install android ios
 
     - name: Restore dependencies
+      working-directory: src
       run: dotnet restore
 
-    - name: Build
-      run: dotnet build --no-restore
-
     - name: Create nuget package
+      working-directory: src
       run: dotnet pack --configuration Release --output ${{ env.NuGetDirectory }}
 
-    - uses: actions/upload-artifact@v4
+    - name: Verify the package
+      run: |
+        $expected = "Plugin.AdMob.${{ steps.tag.outputs.version }}.nupkg"
+        $nupkg = Get-ChildItem "${{ env.NuGetDirectory }}" -Filter *.nupkg | Where-Object { $_.Name -notlike '*.symbols.nupkg' }
+        if ($nupkg.Count -ne 1 -or $nupkg[0].Name -ne $expected) {
+          Write-Output "::error::Expected $expected, got: $($nupkg.Name -join ', ')"
+          exit 1
+        }
+        Add-Type -AssemblyName System.IO.Compression.FileSystem
+        $zip = [System.IO.Compression.ZipFile]::OpenRead($nupkg[0].FullName)
+        $tfms = $zip.Entries | Where-Object { $_.FullName -like 'lib/*/Plugin.AdMob.dll' } | ForEach-Object { $_.FullName.Split('/')[1] }
+        $zip.Dispose()
+        foreach ($platform in 'android', 'ios', 'maccatalyst', 'windows') {
+          if (-not ($tfms | Where-Object { $_ -like "net10.0-$platform*" })) {
+            Write-Output "::error::The package has no net10.0-$platform build. Found: $($tfms -join ', ')"
+            exit 1
+          }
+        }
+        Write-Output "$expected contains: $($tfms -join ', ')"
+
+    - uses: actions/upload-artifact@v7
       with:
         name: nuget
         if-no-files-found: error
         retention-days: 7
         path: ${{ env.NuGetDirectory }}/*.nupkg
-  
+
   deploy:
     runs-on: ubuntu-latest
     needs: [ build ]
+    permissions:
+      contents: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: nuget
           path: ${{ env.NuGetDirectory }}
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
 
       - name: Publish NuGet package
         run: |
           foreach($file in (Get-ChildItem "${{ env.NuGetDirectory }}" -Recurse -Include *.nupkg)) {
               dotnet nuget push $file --api-key "${{ secrets.NUGET_APIKEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
-          }      
-  
+          }
+
+      - name: Create the GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.build.outputs.tag }}
+          PRERELEASE: ${{ needs.build.outputs.prerelease }}
+        run: |
+          gh release view $env:TAG --repo $env:GITHUB_REPOSITORY *> $null
+          if ($LASTEXITCODE -eq 0) {
+            Write-Output "Release $env:TAG already exists; leaving it as is."
+            exit 0
+          }
+          $flags = if ($env:PRERELEASE -eq 'True') { @('--prerelease', '--latest=false') } else { @('--latest') }
+          gh release create $env:TAG --repo $env:GITHUB_REPOSITORY --verify-tag --title $env:TAG --generate-notes @flags (Get-ChildItem "${{ env.NuGetDirectory }}" -Filter *.nupkg).FullName

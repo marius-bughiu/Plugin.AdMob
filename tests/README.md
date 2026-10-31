@@ -31,8 +31,9 @@ dotnet build tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj -f n
   plugin and sample app across Android / iOS / MacCatalyst / Windows. Hard-fails on **NU1605**
   (package downgrade); surfaces **NU1608** (native-binding constraint drift — the issue #68 /
   #82 class) to the run summary.
-- **`device-tests.yml`** — runs the harness on an Android emulator (gating) and, best-effort,
-  an iOS simulator (advisory). Reusable by the nightly and the bump gate.
+- **`device-tests.yml`** — runs the harness on an Android emulator and an iOS simulator, on every
+  PR and push to `main` (docs-only changes skipped). Both lanes gate on consent and the banner.
+  Reusable by the nightly and the bump gate.
 - **`nightly.yml`** — 04:00 UTC. Resolves the latest published version and runs both the build
   smoke and the device tests **against the published package**.
 - **`bump-maui.yml`** — the MAUI auto-bump now *validates before it publishes*. It pushes the
@@ -41,6 +42,12 @@ dotnet build tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj -f n
   opens/updates the PR. So the head of an open bump PR is never replaced by an unvalidated
   commit, and its body always describes the commit actually on the branch. If someone pushes a
   manual commit onto `bump-maui-version`, the promotion is skipped rather than clobbering it.
+- **`release.yml`** — runs when a release tag (`v<MauiPackageVersion>.<build>`, optionally with a
+  prerelease suffix such as `v10.0.120.1-beta.1`) is pushed, or manually from such a tag. It fails
+  without the tag, checks the package version and that all four target frameworks are in the
+  package, publishes to nuget.org and creates the GitHub Release.
+- **`dependabot.yml`** — weekly NuGet and GitHub Actions updates. MAUI is left to
+  `bump-maui.yml`; the native bindings and AndroidX packages are grouped.
 
 ## The banner-vs-full-screen gating model (important)
 
@@ -89,20 +96,22 @@ adb logcat -s AdMobHarness:I   # watch RESULT / SUMMARY_* lines
 it a Debug build uses Fast Deployment, leaves the managed assemblies out of the APK, and the app
 aborts at startup with `No assemblies found in .../.__override__/...` before logging anything.
 
-### Known-broken: the iOS leg
+### The iOS leg
 
-The iOS simulator job currently cannot build on GitHub's macOS image. .NET for iOS 26.5.10301
-requires Xcode 26.6; the image's *selected* Xcode is 26.5, and while 26.6 is installed it ships
-without the macOS platform SDK, so `actool` fails (`SDK "…/MacOSX.sdk" cannot be located`). The
-job selects the newest Xcode and stays `continue-on-error`, so it never blocks — the run is still
-green. iOS *compilation* is covered by `build.yml`'s `net10.0-ios` leg, which passes.
+The iOS simulator job runs on the `xcode-27` image (preview). .NET for iOS on the 10.0.4xx SDK
+requires Xcode 27.1, which `macos-latest` doesn't have, so from July to October 2026 the job
+failed on every run while `continue-on-error` kept the workflow green. It now gates like Android:
+the app must start, consent must complete and the banner must load.
 
-## One manual step: make the gates required
+## Required checks
 
-Workflows run automatically, but marking them **required status checks** is a repository
-setting (Settings → Branches → branch protection for `main`): add **`build`** (and, if you want
-it blocking, the device-tests **`android`** job) as required.
+The `main protect` ruleset requires the four `build.yml` checks (`net10.0-android`,
+`net10.0-ios`, `net10.0-maccatalyst`, `net10.0-windows10.0.19041.0`). The device tests run on
+every PR but aren't required, so a fill hiccup in Google's test ads can't block a merge; read
+their result before merging.
 
-Note: PRs opened by `bump-maui.yml` use the default `GITHUB_TOKEN`, which by design does not
-trigger further workflow runs — that is why the bump validates inline before opening the PR. If
-you want the checks to also render on the PR itself, have the bump use a PAT instead.
+PRs opened by `bump-maui.yml` use the default `GITHUB_TOKEN`. Since 2026-06-11 their
+`pull_request` runs wait for a maintainer to click **Approve workflows to run**, and the request
+expires after 30 days. The bump validates inline before opening the PR and asks the repository
+owner for a review. To let the checks run on bump PRs without the click, give the workflow a
+GitHub App installation token instead of `GITHUB_TOKEN`.

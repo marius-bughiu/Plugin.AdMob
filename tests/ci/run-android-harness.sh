@@ -58,6 +58,13 @@ allline=$(adb logcat -d -s "${TAG}:I" | grep -F "SUMMARY_ALL" | tail -1 || true)
 echo "banner:  ${banner:-<none>}"
 echo "all:     ${allline:-<none>}"
 
+consent=$(adb logcat -d -s "${TAG}:I" | grep -F "format=consent" | tail -1 || true)
+if [ -n "$consent" ] && ! echo "$consent" | grep -q "status=PASS"; then
+  echo "::error::Automatic consent never completed, so no consent-gated ad can load."
+  dump_diagnostics
+  exit 1
+fi
+
 if [ -z "$banner" ]; then
   echo "::error::Harness did not report a banner result (app crashed or never finished loading)."
   dump_diagnostics

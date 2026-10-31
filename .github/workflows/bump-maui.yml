@@ -28,7 +28,7 @@ jobs:
       run:
         shell: bash
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Check NuGet for a newer MAUI release
         id: check
@@ -60,7 +60,7 @@ jobs:
       run:
         shell: bash
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # The candidate goes to a THROWAWAY branch, never straight to the reviewed branch. The
       # reviewed branch is only moved once the gate is green (see open-pr), so a failing bump
@@ -114,7 +114,7 @@ jobs:
       run:
         shell: bash
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: bump-maui-validate
           fetch-depth: 0   # need real history to tell bot commits from human ones
@@ -168,15 +168,16 @@ jobs:
             "" \
             "**Pre-merge validation on this exact commit:**" \
             "- Build gate (all target frameworks): $BUILD_RESULT" \
-            "- Device tests (Android emulator, banner hard-gate): $DEVICE_RESULT" \
+            "- Device tests (Android emulator and iOS simulator): $DEVICE_RESULT" \
+            "- Validation run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
             "" \
             "Release notes: https://github.com/dotnet/maui/releases")
           existing=$(gh pr list --head bump-maui-version --state open --json number -q '.[0].number' || true)
           if [ -n "$existing" ]; then
             echo "PR #$existing already open; branch push updated it."
-            gh pr edit "$existing" --title "Bump .NET MAUI to $LATEST" --body "$body"
+            gh pr edit "$existing" --title "Bump .NET MAUI to $LATEST" --body "$body" --add-reviewer "$GITHUB_REPOSITORY_OWNER"
           else
-            gh pr create --base main --head bump-maui-version --title "Bump .NET MAUI to $LATEST" --body "$body"
+            gh pr create --base main --head bump-maui-version --title "Bump .NET MAUI to $LATEST" --body "$body" --reviewer "$GITHUB_REPOSITORY_OWNER"
           fi
 
       - name: Clean up the validation branch
