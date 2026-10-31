@@ -143,9 +143,8 @@ jobs:
       # can be a different one, so select the version the installed iOS SDK pack asks for.
       - name: Select the Xcode the iOS workload requires
         run: |
-          root="${DOTNET_ROOT:-$(dirname "$(readlink -f "$(command -v dotnet)")")}"
-          props=$(ls -d "$root"/packs/Microsoft.iOS.Sdk.net10.0_*/*/targets/Microsoft.iOS.Sdk.Versions.props | sort -V | tail -1)
-          xcode=$(sed -n 's:.*<_RecommendedXcodeVersion>\(.*\)</_RecommendedXcodeVersion>.*:\1:p' "$props")
+          xcode=$(dotnet msbuild tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj \
+            -p:TargetFramework=net10.0-ios -getProperty:_RecommendedXcodeVersion)
           app=$(ls -d "/Applications/Xcode_$xcode.app" "/Applications/Xcode_$xcode".*.app 2>/dev/null | head -1 || true)
           if [ -z "$app" ]; then
             echo "::error::The iOS workload requires Xcode $xcode, which this image doesn't have."
