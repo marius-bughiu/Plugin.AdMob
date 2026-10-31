@@ -74,7 +74,6 @@ jobs:
             src/Plugin.AdMob/Plugin.AdMob.csproj
           sed -i -E \
             -e "s|(Include=\"Microsoft\.Maui\.Controls\" Version=\")[^\"]+|\1$LATEST|" \
-            -e "s|(Include=\"Microsoft\.Maui\.Controls\.Compatibility\" Version=\")[^\"]+|\1$LATEST|" \
             -e "s|(Include=\"Microsoft\.AspNetCore\.Components\.WebView\.Maui\" Version=\")[^\"]+|\1$LATEST|" \
             samples/Foo.Bar.SampleApp/Foo.Bar.SampleApp.csproj \
             samples/Foo.Bar.SampleApp.Hybrid/Foo.Bar.SampleApp.Hybrid.csproj

@@ -167,7 +167,7 @@ jobs:
           # would tear down the log reader and leave the app running.
           xcrun simctl launch --console-pty "$udid" com.plugin.admob.devicetests > sim.log 2>&1 &
           launch_pid=$!
-          for _ in $(seq 1 96); do
+          for _ in $(seq 1 120); do
             if grep -qF "SUMMARY_ALL" sim.log 2>/dev/null; then break; fi
             sleep 5
           done

@@ -23,7 +23,7 @@ internal partial class NativeAd : NativeAdLoaderDelegate
 
     //public string? Images => _ad?.Images;
 
-    public string? ImageUri => _ad?.Images?.First()?.ImageUrl?.ToString();
+    public string? ImageUri => _ad?.Images?.FirstOrDefault()?.ImageUrl?.ToString();
 
     public string? Price => _ad?.Price;
 

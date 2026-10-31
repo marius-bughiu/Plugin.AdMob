@@ -29,6 +29,9 @@ internal static class AdLoadHarness
     {
         HarnessLog.Line("START");
 
+        var (consent, consentDetail) = await HarnessConsent.WaitAsync(TimeSpan.FromSeconds(60));
+        HarnessLog.Line($"RESULT format=consent status={(consent ? "PASS" : "FAIL")} detail=\"{Sanitize(consentDetail)}\"");
+
         // Give the Mobile Ads SDK a moment to initialize before the first request.
         await Task.Delay(TimeSpan.FromSeconds(3));
 
@@ -46,7 +49,9 @@ internal static class AdLoadHarness
 
         var results = new List<bool>
         {
+            consent,
             banner,
+            await RunBannerDisconnectAsync(bannerHost),
             await RunInterstitialAsync(interstitial.CreateAd()),
             await RunRewardedAsync(rewarded.CreateAd()),
             await RunRewardedInterstitialAsync(rewardedInterstitial.CreateAd()),
@@ -181,6 +186,43 @@ internal static class AdLoadHarness
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Disconnects a banner while its load is still in flight. Once the handler is disconnected the
+    /// control must not raise events, and the late native callback must not crash the app (a crash
+    /// means no SUMMARY lines, which fails the run).
+    /// </summary>
+    private static async Task<bool> RunBannerDisconnectAsync(Layout host)
+    {
+        var useTestAdUnitIds = AdConfig.UseTestAdUnitIds;
+        var banner = new BannerAd { AdSize = AdSize.Banner, AdUnitId = "ca-app-pub-3940256099942544/0000000000" };
+        var disconnected = false;
+        var eventsAfterDisconnect = 0;
+
+        banner.OnAdLoaded += (_, _) => eventsAfterDisconnect += disconnected ? 1 : 0;
+        banner.OnAdFailedToLoad += (_, _) => eventsAfterDisconnect += disconnected ? 1 : 0;
+
+        await MainThread.InvokeOnMainThreadAsync(() =>
+        {
+            AdConfig.UseTestAdUnitIds = false;
+            host.Clear();
+            host.Add(banner);
+            AdConfig.UseTestAdUnitIds = useTestAdUnitIds;
+        });
+
+        await MainThread.InvokeOnMainThreadAsync(() =>
+        {
+            host.Clear();
+            banner.Handler?.DisconnectHandler();
+            disconnected = true;
+        });
+
+        await Task.Delay(TimeSpan.FromSeconds(10));
+
+        var passed = eventsAfterDisconnect == 0;
+        HarnessLog.Line($"RESULT format=banner-disconnect status={(passed ? "PASS" : "FAIL")} attempt=1 detail=\"events after disconnect: {eventsAfterDisconnect}\"");
+        return passed;
     }
 
     private static string LastOrRetry(int attempt) => attempt < Attempts ? "RETRY" : "FAIL";

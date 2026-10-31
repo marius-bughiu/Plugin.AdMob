@@ -23,7 +23,7 @@ internal partial class NativeAd
 
     //public string? Images => _ad?.Images;
 
-    public string? ImageUri => _ad?.Images?.First()?.Uri?.ToString();
+    public string? ImageUri => _ad?.Images?.FirstOrDefault()?.Uri?.ToString();
 
     public string? Price => _ad?.Price;
 

@@ -33,7 +33,7 @@ echo "Launching $PKG"
 adb shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1 >/dev/null
 
 # Wait for the harness to emit its final summary line (or time out).
-deadline=$((SECONDS + 480))
+deadline=$((SECONDS + 600))
 while [ "$SECONDS" -lt "$deadline" ]; do
   if adb logcat -d -s "${TAG}:I" | grep -qF "SUMMARY_ALL"; then break; fi
   sleep 5

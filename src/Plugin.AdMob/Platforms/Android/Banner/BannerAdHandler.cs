@@ -82,7 +82,6 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
     protected override AdView CreatePlatformView()
     {
         _adConsentService = IPlatformApplication.Current!.Services.GetRequiredService<IAdConsentService>();
-        _adConsentService.OnConsentInfoUpdated += OnConsentInfoUpdated;
 
         var adUnitId = GetAdUnitId();
 
@@ -118,6 +117,7 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
         {
             VirtualView.HeightRequest = 0;
             VirtualView.WidthRequest = 0;
+            _adConsentService.OnConsentInfoUpdated += OnConsentInfoUpdated;
         }
 
         AddActiveView(adView);
@@ -204,6 +204,11 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
 
     private void OnConsentInfoUpdated(object? sender, IConsentInformation? e)
     {
+        if (CanRequestAds() is false)
+        {
+            return;
+        }
+
         // Check if the handler is still connected before accessing PlatformView
         // In .NET MAUI 10+, PlatformView throws InvalidOperationException when disconnected
         try
@@ -211,6 +216,7 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
             var adView = PlatformView;
             if (adView is not null)
             {
+                _adConsentService!.OnConsentInfoUpdated -= OnConsentInfoUpdated;
                 LoadAd(adView);
             }
         }
