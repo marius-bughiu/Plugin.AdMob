@@ -45,6 +45,11 @@ internal partial class AdConsentService :
 
         var requestParameters = requestParametersBuilder.Build();
         ConsentInformation.RequestConsentInfoUpdate(activity, requestParameters, this, this);
+
+        if (CanRequestAds())
+        {
+            OnConsentInfoUpdated?.Invoke(this, GetConsentInformation());
+        }
     }
 
     public bool CanRequestAds()
@@ -88,6 +93,11 @@ internal partial class AdConsentService :
     {
         Debug.Write($"[Plugin.AdMob] Consent info update failed: {error.Message}");
         OnConsentInfoFailedToUpdate?.Invoke(this, new ConsentError(error.Message));
+
+        if (CanRequestAds())
+        {
+            OnConsentInfoUpdated?.Invoke(this, GetConsentInformation());
+        }
     }
 
     void IConsentFormOnConsentFormDismissedListener.OnConsentFormDismissed(FormError? error)

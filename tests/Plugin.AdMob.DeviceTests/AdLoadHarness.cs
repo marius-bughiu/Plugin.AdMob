@@ -32,8 +32,8 @@ internal static class AdLoadHarness
         var (consent, consentDetail) = await HarnessConsent.WaitAsync(TimeSpan.FromSeconds(60));
         HarnessLog.Line($"RESULT format=consent status={(consent ? "PASS" : "FAIL")} detail=\"{Sanitize(consentDetail)}\"");
 
-        var (loadBeforeConsent, loadBeforeConsentDetail) = EarlyLoads.LoadBeforeConsent();
-        HarnessLog.Line($"RESULT format=load-before-consent status={(loadBeforeConsent ? "PASS" : "FAIL")} detail=\"{Sanitize(loadBeforeConsentDetail)}\"");
+        var (loadWaitsForConsent, loadDetail) = await EarlyLoads.WaitForLoadAsync(HarnessConsent.ConsentAt, TimeSpan.FromSeconds(TimeoutSeconds));
+        HarnessLog.Line($"RESULT format=load-waits-for-consent status={(loadWaitsForConsent ? "PASS" : "FAIL")} detail=\"{Sanitize(loadDetail)}\"");
 
         var prepareBeforeConsent = await EarlyLoads.WaitForPreparedAsync(TimeSpan.FromSeconds(TimeoutSeconds));
         HarnessLog.Line($"RESULT format=prepare-before-consent status={(prepareBeforeConsent ? "PASS" : "FAIL")}");
@@ -56,7 +56,7 @@ internal static class AdLoadHarness
         var results = new List<bool>
         {
             consent,
-            loadBeforeConsent,
+            loadWaitsForConsent,
             prepareBeforeConsent,
             banner,
             await RunBannerDisconnectAsync(bannerHost),

@@ -36,7 +36,7 @@ public interface IInterstitialAdService
 | --- | --- |
 | `PrepareAd` | Preloads an interstitial ad using the provided `adUnitId`. If no `adUnitId` is provided, it will use configured default -  `AdConfig.DefaultInterstitialAdUnitId`. If consent doesn't allow ad requests yet, the ad loads as soon as it does. |
 | `ShowAd` | Displays the interstitial ad which was prepared when `PrepareAd` was called. If no ad was prepared, nothing will be shown. |
-| `CreateAd` | Creates an interstitial ad instance which you can use to preload and show later on. This enables you to preload multiple interstitial ads at the same time, using different ad unit IDs. If no `adUnitId` is provided, it will use configured default -  `AdConfig.DefaultInterstitialAdUnitId`. Calling `Load()` on it before consent allows ad requests raises `OnAdFailedToLoad` instead of requesting an ad. |
+| `CreateAd` | Creates an interstitial ad instance which you can use to preload and show later on. This enables you to preload multiple interstitial ads at the same time, using different ad unit IDs. If no `adUnitId` is provided, it will use configured default -  `AdConfig.DefaultInterstitialAdUnitId`. Calling `Load()` on it before consent allows ad requests waits and requests the ad once consent allows it. |
 
 ## Ad instance API (`IInterstitialAd`)
 

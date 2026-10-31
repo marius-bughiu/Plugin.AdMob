@@ -44,6 +44,8 @@ internal class RewardedAdService(IAdConsentService _adConsentService)
     : IRewardedAdService
 {
     private IRewardedAd? _rewardedAd;
+    private readonly ConsentGate _consentGate = new(_adConsentService);
+    private bool _hasPendingAd;
     private string? _pendingAdUnitId;
     private Action<RewardItem>? _pendingOnUserEarnedReward;
 
@@ -60,12 +62,13 @@ internal class RewardedAdService(IAdConsentService _adConsentService)
             throw new ArgumentNullException(nameof(adUnitId), "No ad unit ID was specified, and no default rewarded ad unit ID has been configured.");
         }
 
-        return new RewardedAd(adUnitId, CanRequestAds);
+        return new RewardedAd(adUnitId, _consentGate);
     }
 
     public void PrepareAd(string? adUnitId = null, Action<RewardItem>? onUserEarnedReward = null)
     {
         _adConsentService.OnConsentInfoUpdated -= OnConsentInfoUpdated;
+        _hasPendingAd = false;
 
         if (_rewardedAd is not null)
         {
@@ -75,6 +78,7 @@ internal class RewardedAdService(IAdConsentService _adConsentService)
 
         if (CanRequestAds() is false)
         {
+            _hasPendingAd = true;
             _pendingAdUnitId = adUnitId;
             _pendingOnUserEarnedReward = onUserEarnedReward;
             _adConsentService.OnConsentInfoUpdated += OnConsentInfoUpdated;
@@ -124,7 +128,7 @@ internal class RewardedAdService(IAdConsentService _adConsentService)
 
     private void OnConsentInfoUpdated(object? sender, IConsentInformation? e)
     {
-        if (CanRequestAds())
+        if (_hasPendingAd && CanRequestAds())
         {
             PrepareAd(_pendingAdUnitId, _pendingOnUserEarnedReward);
         }

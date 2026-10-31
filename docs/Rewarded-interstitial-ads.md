@@ -35,7 +35,7 @@ public interface IRewardedInterstitialAdService
 | --- | --- |
 | `PrepareAd` | Preloads a rewarded interstitial ad using the provided `adUnitId`. If no `adUnitId` is provided, it will use the configured default -  `AdConfig.DefaultRewardedInterstitialAdUnitId`. Use the `onUserEarnedReward` callback to get notified when the user earned his reward. If consent doesn't allow ad requests yet, the ad loads as soon as it does. |
 | `ShowAd` | Displays the rewarded interstitial ad which was prepared when `PrepareAd` was called. If no ad was prepared, nothing will be shown. |
-| `CreateAd` | Creates a rewarded interstitial ad instance which you can use to preload and show later on. This enables you to preload multiple rewarded interstitial ads at the same time, using different ad unit IDs. If no `adUnitId` is provided, it will use configured default -  `AdConfig.DefaultRewardedInterstitialAdUnitId`. Calling `Load()` on it before consent allows ad requests raises `OnAdFailedToLoad` instead of requesting an ad. |
+| `CreateAd` | Creates a rewarded interstitial ad instance which you can use to preload and show later on. This enables you to preload multiple rewarded interstitial ads at the same time, using different ad unit IDs. If no `adUnitId` is provided, it will use configured default -  `AdConfig.DefaultRewardedInterstitialAdUnitId`. Calling `Load()` on it before consent allows ad requests waits and requests the ad once consent allows it. |
 
 ## Ad instance API (`IRewardedInterstitialAd`)
 

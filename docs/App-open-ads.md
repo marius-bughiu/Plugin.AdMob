@@ -35,7 +35,7 @@ public interface IAppOpenAdService
 | --- | --- |
 | `PrepareAd` | Preloads an app open ad using the provided `adUnitId`. If no `adUnitId` is provided, it will use configured default -  `AdConfig.DefaultAppOpenAdUnitId`. If consent doesn't allow ad requests yet, the ad loads as soon as it does. |
 | `ShowAd` | Displays the app open ad which was prepared when `PrepareAd` was called. If no ad was prepared, nothing will be shown. |
-| `CreateAd` | Creates an app open ad instance which you can use to preload and show later on. This enables you to preload multiple app open ads at the same time, using different ad unit IDs. If no `adUnitId` is provided, it will use configured default -  `AdConfig.DefaultAppOpenAdUnitId`. Calling `Load()` on it before consent allows ad requests raises `OnAdFailedToLoad` instead of requesting an ad. |
+| `CreateAd` | Creates an app open ad instance which you can use to preload and show later on. This enables you to preload multiple app open ads at the same time, using different ad unit IDs. If no `adUnitId` is provided, it will use configured default -  `AdConfig.DefaultAppOpenAdUnitId`. Calling `Load()` on it before consent allows ad requests waits and requests the ad once consent allows it. |
 
 ## Ad instance API (`IAppOpenAd`)
 

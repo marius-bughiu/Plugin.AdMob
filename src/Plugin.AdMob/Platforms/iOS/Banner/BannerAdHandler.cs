@@ -79,6 +79,8 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
             return;
         }
 
+        MobileAdsInitialization.Start();
+
         // Reset IsLoaded before loading a new ad
         VirtualView.SetValue(BannerAd.IsLoadedProperty, false);
 

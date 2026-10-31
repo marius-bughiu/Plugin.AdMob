@@ -1,4 +1,6 @@
-﻿namespace Plugin.AdMob;
+﻿using Plugin.AdMob.Services;
+
+namespace Plugin.AdMob;
 
 /// <summary>
 /// Manages an interstitial ad instance.
@@ -83,11 +85,28 @@ internal partial class InterstitialAd : IInterstitialAd
     public event EventHandler? OnAdClicked;
     public event EventHandler? OnAdDismissed;
 
-    private readonly Func<bool> _canRequestAds;
+    private readonly ConsentGate _consentGate;
 
-    public InterstitialAd(string adUnitId, Func<bool> canRequestAds)
+    public InterstitialAd(string adUnitId, ConsentGate consentGate)
     {
         AdUnitId = adUnitId;
-        _canRequestAds = canRequestAds;
+        _consentGate = consentGate;
+    }
+
+    private bool TryBeginShow()
+    {
+        if (IsLoaded)
+        {
+            IsLoaded = false;
+            return true;
+        }
+
+        if (_loadedAt is not null)
+        {
+            _loadedAt = null;
+            OnAdFailedToShow?.Invoke(this, new AdError(AdError.AdExpiredMessage));
+        }
+
+        return false;
     }
 }

@@ -43,6 +43,8 @@ internal class AppOpenAdService(IAdConsentService _adConsentService)
     : IAppOpenAdService
 {
     private IAppOpenAd? _appOpenAd;
+    private readonly ConsentGate _consentGate = new(_adConsentService);
+    private bool _hasPendingAd;
     private string? _pendingAdUnitId;
     private bool _isShowingAd;
 
@@ -59,12 +61,13 @@ internal class AppOpenAdService(IAdConsentService _adConsentService)
             throw new ArgumentNullException(nameof(adUnitId), "No ad unit ID was specified, and no default app open ad unit ID has been configured.");
         }
 
-        return new AppOpenAd(adUnitId, CanRequestAds);
+        return new AppOpenAd(adUnitId, _consentGate);
     }
 
     public void PrepareAd(string? adUnitId = null)
     {
         _adConsentService.OnConsentInfoUpdated -= OnConsentInfoUpdated;
+        _hasPendingAd = false;
 
         if (_appOpenAd is not null)
         {
@@ -74,6 +77,7 @@ internal class AppOpenAdService(IAdConsentService _adConsentService)
 
         if (CanRequestAds() is false)
         {
+            _hasPendingAd = true;
             _pendingAdUnitId = adUnitId;
             _adConsentService.OnConsentInfoUpdated += OnConsentInfoUpdated;
             return;
@@ -126,7 +130,7 @@ internal class AppOpenAdService(IAdConsentService _adConsentService)
 
     private void OnConsentInfoUpdated(object? sender, IConsentInformation? e)
     {
-        if (CanRequestAds())
+        if (_hasPendingAd && CanRequestAds())
         {
             PrepareAd(_pendingAdUnitId);
         }

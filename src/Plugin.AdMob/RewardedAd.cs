@@ -1,3 +1,5 @@
+using Plugin.AdMob.Services;
+
 namespace Plugin.AdMob;
 
 /// <summary>
@@ -66,9 +68,9 @@ public interface IRewardedAd
     void Show() => throw new NotImplementedException();
 }
 
-internal partial class RewardedAd(string adUnitId, Func<bool> canRequestAds) : IRewardedAd
+internal partial class RewardedAd(string adUnitId, ConsentGate consentGate) : IRewardedAd
 {
-    private readonly Func<bool> _canRequestAds = canRequestAds;
+    private readonly ConsentGate _consentGate = consentGate;
 
     private static readonly TimeSpan Expiry = TimeSpan.FromHours(1);
 
@@ -90,4 +92,21 @@ internal partial class RewardedAd(string adUnitId, Func<bool> canRequestAds) : I
     public event EventHandler? OnAdClicked;
     public event EventHandler? OnAdDismissed;
     public event EventHandler<RewardItem>? OnUserEarnedReward;
+
+    private bool TryBeginShow()
+    {
+        if (IsLoaded)
+        {
+            IsLoaded = false;
+            return true;
+        }
+
+        if (_loadedAt is not null)
+        {
+            _loadedAt = null;
+            OnAdFailedToShow?.Invoke(this, new AdError(AdError.AdExpiredMessage));
+        }
+
+        return false;
+    }
 }

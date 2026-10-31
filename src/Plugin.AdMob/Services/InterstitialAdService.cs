@@ -43,6 +43,8 @@ internal class InterstitialAdService(IAdConsentService _adConsentService)
     : IInterstitialAdService
 {
     private IInterstitialAd? _interstitialAd;
+    private readonly ConsentGate _consentGate = new(_adConsentService);
+    private bool _hasPendingAd;
     private string? _pendingAdUnitId;
 
     public bool IsAdLoaded => _interstitialAd?.IsLoaded ?? false;
@@ -58,12 +60,13 @@ internal class InterstitialAdService(IAdConsentService _adConsentService)
             throw new ArgumentNullException(nameof(adUnitId), "No ad unit ID was specified, and no default interstitial ad unit ID has been configured.");
         }
 
-        return new InterstitialAd(adUnitId, CanRequestAds);
+        return new InterstitialAd(adUnitId, _consentGate);
     }
 
     public void PrepareAd(string? adUnitId = null)
     {
         _adConsentService.OnConsentInfoUpdated -= OnConsentInfoUpdated;
+        _hasPendingAd = false;
 
         if (_interstitialAd is not null)
         {
@@ -73,6 +76,7 @@ internal class InterstitialAdService(IAdConsentService _adConsentService)
 
         if (CanRequestAds() is false)
         {
+            _hasPendingAd = true;
             _pendingAdUnitId = adUnitId;
             _adConsentService.OnConsentInfoUpdated += OnConsentInfoUpdated;
             return;
@@ -117,7 +121,7 @@ internal class InterstitialAdService(IAdConsentService _adConsentService)
 
     private void OnConsentInfoUpdated(object? sender, IConsentInformation? e)
     {
-        if (CanRequestAds())
+        if (_hasPendingAd && CanRequestAds())
         {
             PrepareAd(_pendingAdUnitId);
         }

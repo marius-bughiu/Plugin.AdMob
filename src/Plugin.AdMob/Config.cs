@@ -12,7 +12,6 @@ public static class Config
 {
 #if ANDROID || IOS
     private static bool _initialized;
-    private static bool _mobileAdsStarted;
 #endif
     /// <summary>
     /// Registers the AdMob plugin's services and view handlers.
@@ -113,7 +112,7 @@ public static class Config
         {
             if (info?.CanRequestAds is true)
             {
-                StartMobileAds();
+                MobileAdsInitialization.Start();
             }
         };
 
@@ -130,30 +129,32 @@ public static class Config
             {
                 // Banner handlers manage native AdView instances, so they need
                 // explicit pause/resume hooks when the app moves through Android lifecycle.
-                android
+                var lifecycle = android
                     .OnResume(_ => BannerAdHandler.ResumeActiveBanners())
                     .OnPause(_ => BannerAdHandler.PauseActiveBanners())
-                    .OnStop(_ => BannerAdHandler.PauseActiveBanners())
-                    .OnStart(_ => OnStart());
+                    .OnStop(_ => BannerAdHandler.PauseActiveBanners());
+
+                if (automaticallyAskForConsent is true)
+                {
+                    lifecycle.OnStart(_ => OnStart());
+                }
             });
         });
 #elif IOS
-        builder.ConfigureLifecycleEvents(events =>
+        if (automaticallyAskForConsent is true)
         {
-            events.AddiOS(ios => ios
-                .OnActivated(_ => OnStart())
-                .SceneOnActivated(_ => OnStart()));
-        });
+            builder.ConfigureLifecycleEvents(events =>
+            {
+                events.AddiOS(ios => ios
+                    .OnActivated(_ => OnStart())
+                    .SceneOnActivated(_ => OnStart()));
+            });
+        }
 #endif
 
         void OnStart()
         {
-            if (AdConfig.DisableConsentCheck || adConsentService.CanRequestAds())
-            {
-                StartMobileAds();
-            }
-
-            if (automaticallyAskForConsent is false || _initialized)
+            if (_initialized)
             {
                 return;
             }
@@ -165,25 +166,6 @@ public static class Config
 
         return builder;
     }
-
-#if ANDROID || IOS
-    private static void StartMobileAds()
-    {
-        if (_mobileAdsStarted)
-        {
-            return;
-        }
-
-        _mobileAdsStarted = true;
-
-#if ANDROID
-        var context = Android.App.Application.Context;
-        Task.Run(() => Android.Gms.Ads.MobileAds.Initialize(context));
-#else
-        Google.MobileAds.MobileAds.SharedInstance.Start(completionHandler: null);
-#endif
-    }
-#endif
 
     /// <summary>
     /// Configures the consent debug settings to be used during testing.

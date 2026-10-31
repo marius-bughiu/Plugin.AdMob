@@ -9,6 +9,7 @@ public interface IAdConsentService
 {
     /// <summary>
     /// Raised when the consent information has been updated. This does not guarantee that consent has been obtained.
+    /// Also raised as soon as a consent request starts, or after it fails, when consent stored from an earlier session already allows ad requests.
     /// </summary>
     event EventHandler<IConsentInformation?>? OnConsentInfoUpdated;
 

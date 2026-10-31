@@ -51,13 +51,11 @@ internal partial class NativeAd : NativeAdLoaderDelegate
 
     public void SetVideoMuted(bool muted) => _ad?.MediaContent?.VideoController?.SetMute(muted);
 
-    public void Load()
+    public void Load() => _consentGate.WhenAllowed(LoadAd);
+
+    private void LoadAd()
     {
-        if (!_canRequestAds())
-        {
-            OnAdFailedToLoad?.Invoke(this, new AdError(AdError.ConsentRequiredMessage));
-            return;
-        }
+        MobileAdsInitialization.Start();
 
         MobileAds.SharedInstance.RequestConfiguration.ApplyGlobalAdConfiguration();
 

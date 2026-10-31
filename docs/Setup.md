@@ -6,7 +6,7 @@ In your `MauiProgram.cs` call the following method on your app builder:
 builder.UseAdMob()
 ```
 
-The plugin starts the Google Mobile Ads SDK for you, on both platforms: at launch when stored consent already allows ad requests (or when you disabled the consent check), otherwise as soon as a consent update allows them. Google asks apps not to start the SDK before consent is gathered, so you don't need to call `MobileAds.SharedInstance.Start(...)` (iOS) or `MobileAds.Initialize(...)` (Android) yourself. If you do (for example to wait for mediation adapters), call it only once `IAdConsentService.CanRequestAds()` is true.
+The plugin starts the Google Mobile Ads SDK for you, on both platforms, as soon as consent allows ad requests: consent stored from an earlier session counts as soon as the session's consent request starts. If you disabled the consent check, it starts the SDK right before your first ad request. Google asks apps not to start the SDK before consent is gathered, so you don't need to call `MobileAds.SharedInstance.Start(...)` (iOS) or `MobileAds.Initialize(...)` (Android) yourself. If you do (for example to wait for mediation adapters), call it only once `IAdConsentService.CanRequestAds()` is true.
 
 ## Platform support
 
