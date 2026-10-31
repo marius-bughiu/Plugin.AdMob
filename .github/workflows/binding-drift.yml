@@ -1,0 +1,65 @@
+name: Binding drift
+
+# Weekly check for newer versions of the packages the plugin pins (the Google Mobile Ads and UMP
+# bindings for Android and iOS, MinVer). Keeps one issue open while any is behind and closes it
+# once they're all current. MAUI is bump-maui.yml's job.
+
+on:
+  schedule:
+    - cron: '0 5 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Compare pinned packages with nuget.org
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY' > drift.md
+          import json, re, urllib.request
+
+          def key(version):
+              return [int(part) for part in version.split('.')]
+
+          csproj = open('src/Plugin.AdMob/Plugin.AdMob.csproj', encoding='utf-8-sig').read()
+          rows = []
+          for name, pinned in re.findall(r'<PackageReference Include="([^"]+)" Version="([^"$]+)"', csproj):
+              if name.startswith('Microsoft.Maui'):
+                  continue
+              url = f'https://api.nuget.org/v3-flatcontainer/{name.lower()}/index.json'
+              versions = json.load(urllib.request.urlopen(url))['versions']
+              latest = max((v for v in versions if '-' not in v), key=key)
+              if key(latest) > key(pinned):
+                  rows.append(f'| {name} | {pinned} | {latest} |')
+
+          if rows:
+              print('Newer versions of packages pinned in `src/Plugin.AdMob/Plugin.AdMob.csproj` are on nuget.org:')
+              print()
+              print('| Package | Pinned | Latest |')
+              print('|---|---|---|')
+              print('\n'.join(rows))
+          PY
+
+          title="Native binding updates available"
+          existing=$(gh issue list --state open --search "\"$title\" in:title" --json number -q '.[0].number')
+          if [ -s drift.md ]; then
+            printf '\nFound by %s/%s/actions/runs/%s\n' "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID" >> drift.md
+            cat drift.md
+            if [ -n "$existing" ]; then
+              gh issue edit "$existing" --body-file drift.md
+            else
+              gh issue create --title "$title" --body-file drift.md
+            fi
+          elif [ -n "$existing" ]; then
+            gh issue close "$existing" --comment "All pinned packages are current."
+          else
+            echo "All pinned packages are current."
+          fi

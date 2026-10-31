@@ -1,9 +1,10 @@
 name: Device tests
 
 # Runs the on-device ad-load harness (tests/Plugin.AdMob.DeviceTests) on an Android emulator
-# and, best-effort, an iOS simulator. Each format is loaded with Google's test ad units and we
-# assert OnAdLoaded fires. Reusable (workflow_call) so both the nightly job (published package)
-# and the MAUI auto-bump gate (source) can invoke it.
+# and an iOS simulator. The harness runs the plugin's default consent flow, then loads each
+# format with Google's test ad units and asserts OnAdLoaded fires. Runs on PRs and main pushes
+# (source), and is reusable (workflow_call) for the nightly job (published package) and the
+# MAUI auto-bump gate (source).
 #
 # GATING MODEL — banner is the hard gate. Measured on the hosted runner (headless, software GPU,
 # google_apis): banner and all four full-screen formats load; native/native-video do not, because
@@ -11,6 +12,11 @@ name: Device tests
 # Set require_all_formats: true only against a google_apis_playstore AVD on a self-hosted runner.
 
 on:
+  pull_request:
+    paths-ignore: [ 'docs/**', '**/*.md' ]
+  push:
+    branches: [ main ]
+    paths-ignore: [ 'docs/**', '**/*.md' ]
   workflow_call:
     inputs:
       ref:
@@ -61,7 +67,7 @@ jobs:
     name: android emulator
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ inputs.ref || github.ref }}
 
@@ -71,7 +77,7 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
 
@@ -116,30 +122,37 @@ jobs:
           script: bash tests/ci/run-android-harness.sh
 
   ios:
-    name: ios simulator (advisory)
-    runs-on: macos-latest
-    continue-on-error: true   # iOS full-screen fill is flaky headless; never block a gate on it.
+    name: ios simulator
+    # .NET for iOS on the 10.0.4xx SDK requires Xcode 27.1, which only the xcode-27 (preview)
+    # image has; macos-latest stops at Xcode 26.6, so the lane failed on every run from July to
+    # October 2026.
+    runs-on: xcode-27
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ inputs.ref || github.ref }}
 
-      # .NET for iOS hard-pins a required Xcode and the image's *selected* Xcode can lag it —
-      # the 2026-07-25 nightly failed with "This version of .NET for iOS (26.5.10301) requires
-      # Xcode 26.6. The current version of Xcode is 26.5." Images usually carry several Xcodes,
-      # so select the newest; the listing makes the mismatch obvious if one is still missing.
-      - name: Select the newest available Xcode
-        run: |
-          ls -d /Applications/Xcode*.app || true
-          sudo xcode-select -s "$(ls -d /Applications/Xcode*.app | sort -V | tail -1)"
-          xcodebuild -version
-
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
 
       - name: Install MAUI iOS workload
         run: dotnet workload install maui-ios
+
+      # .NET for iOS requires one exact Xcode version, and the image's default (or newest) Xcode
+      # can be a different one, so select the version the installed iOS SDK pack asks for.
+      - name: Select the Xcode the iOS workload requires
+        run: |
+          xcode=$(dotnet msbuild tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj \
+            -p:TargetFramework=net10.0-ios -getProperty:_RecommendedXcodeVersion)
+          app=$(ls -d "/Applications/Xcode_$xcode.app" "/Applications/Xcode_$xcode".*.app 2>/dev/null | head -1 || true)
+          if [ -z "$app" ]; then
+            echo "::error::The iOS workload requires Xcode $xcode, which this image doesn't have."
+            ls -d /Applications/Xcode*.app
+            exit 1
+          fi
+          sudo xcode-select -s "$app"
+          xcodebuild -version
 
       - name: Build for the simulator
         run: |
@@ -155,10 +168,20 @@ jobs:
       - name: Boot simulator, launch, scrape console
         run: |
           set -euo pipefail
-          device=$(xcrun simctl list devices available | grep -Eo 'iPhone 1[0-9][^(]*' | head -1 | xargs)
-          echo "Using simulator: $device"
-          xcrun simctl create harness-sim "$device" >/dev/null || true
-          udid=$(xcrun simctl list devices | grep harness-sim | grep -Eo '[0-9A-Fa-f-]{36}' | head -1)
+          # Use an iPhone that already exists on the newest iOS runtime; a device type picked by
+          # name may not be compatible with that runtime.
+          udid=$(xcrun simctl list devices available --json | python3 -c '
+          import json, sys
+          devices = json.load(sys.stdin)["devices"]
+          runtimes = sorted((r for r in devices if ".iOS-" in r), key=lambda r: [int(x) for x in r.rsplit("iOS-", 1)[1].split("-")])
+          for runtime in reversed(runtimes):
+              for device in devices[runtime]:
+                  if device["name"].startswith("iPhone"):
+                      print(device["udid"], file=sys.stdout)
+                      print("Using simulator: " + device["name"] + " (" + runtime + ")", file=sys.stderr)
+                      sys.exit()
+          ')
+          if [ -z "$udid" ]; then echo "::error::No iPhone simulator available"; xcrun simctl list devices available; exit 1; fi
           # `boot` returns as soon as the boot is *initiated*; bootstatus -b boots if needed and
           # blocks until the device is actually usable. install/launch both gate on device state.
           xcrun simctl bootstatus "$udid" -b
@@ -173,12 +196,18 @@ jobs:
           done
           kill "$launch_pid" 2>/dev/null || true
           echo "===== harness log ====="; grep "AdMobHarness:" sim.log || true; echo "======================="
-          # Distinguish "app never started" (a real, actionable failure) from "banner did not
-          # fill" (expected headless no-fill). The job stays continue-on-error, so this cannot
-          # block a caller — it just makes the advisory lane's red/green mean something.
           if ! grep -qF "AdMobHarness:" sim.log; then
             echo "::error::iOS harness produced no output — the app never started."
             sed -n '1,40p' sim.log || true
             exit 1
           fi
-          grep -F "SUMMARY_BANNER" sim.log | tail -1 || echo "(no banner summary — iOS advisory)"
+          if ! grep -F "format=consent" sim.log | grep -q "status=PASS"; then
+            echo "::error::Automatic consent never completed, so no consent-gated ad can load."
+            exit 1
+          fi
+          # Google's test ads intermittently answer "Invalid request" or time out on the iOS 27
+          # simulators, so fill on iOS is reported, not gated.
+          if ! grep -F "SUMMARY_BANNER" sim.log | tail -1 | grep -q "status=PASS"; then
+            echo "::warning::Banner ad didn't load on the iOS simulator (fill is advisory on iOS)."
+          fi
+          echo "Device-test gate passed (app started, consent completed)."

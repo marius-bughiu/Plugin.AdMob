@@ -1,0 +1,11 @@
+# NuGet isn't tracked here: Dependabot's dependency submission can't restore MAUI projects without
+# the MAUI workloads. binding-drift.yml watches the native bindings instead, and bump-maui.yml owns MAUI.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: [ '*' ]
