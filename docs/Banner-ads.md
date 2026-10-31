@@ -51,6 +51,6 @@ You can also create banners with a custom size by specifying `AdSize="Custom"` i
 | OnAdFailedToLoad | Raised when an ad request failed. |
 | OnAdImpression | Raised when an impression is recorded for an ad. |
 | OnAdClicked | Raised when a click is recorded for an ad. |
-| OnAdSwiped | Raised when a swipe gesture on an ad is recorded as a click. Supported only by Android. |
+| OnAdSwiped | Raised when a swipe gesture on an ad is recorded as a click. Not raised for banners: the Google Mobile Ads Next-Gen SDK used on Android has no swipe event for banners, and iOS never had one. |
 | OnAdOpened | Raised when an ad opens an overlay that covers the screen. |
 | OnAdClosed | Raised when the user is about to return to the application after clicking on an ad. |
