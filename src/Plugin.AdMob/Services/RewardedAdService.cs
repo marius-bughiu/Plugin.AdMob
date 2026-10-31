@@ -105,9 +105,11 @@ internal class RewardedAdService(IAdConsentService _adConsentService)
         {
             return AdMobTestAdUnits.Rewarded;
         }
-#endif
 
         return adUnitId ?? AdConfig.DefaultRewardedAdUnitId;
+#else
+        return adUnitId ?? string.Empty;
+#endif
     }
 
     private bool CanRequestAds()

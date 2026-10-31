@@ -15,6 +15,8 @@ public interface IAdError
 
 internal class AdError : IAdError
 {
+    internal const string UnsupportedPlatformMessage = "Ads are only supported on Android and iOS.";
+
     internal const string ConsentRequiredMessage = "Consent doesn't allow ad requests yet. Wait until IAdConsentService.CanRequestAds() is true, or set AdConfig.DisableConsentCheck if you gather consent yourself.";
 
     public AdError(string message)

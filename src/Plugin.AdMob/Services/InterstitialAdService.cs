@@ -98,9 +98,11 @@ internal class InterstitialAdService(IAdConsentService _adConsentService)
         {
             return AdMobTestAdUnits.Interstitial;
         }
-#endif
 
         return adUnitId ?? AdConfig.DefaultInterstitialAdUnitId;
+#else
+        return adUnitId ?? string.Empty;
+#endif
     }
 
     private bool CanRequestAds()

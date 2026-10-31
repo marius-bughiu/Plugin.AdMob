@@ -107,9 +107,11 @@ internal class AppOpenAdService(IAdConsentService _adConsentService)
         {
             return AdMobTestAdUnits.OpenApp;
         }
-#endif
 
         return adUnitId ?? AdConfig.DefaultAppOpenAdUnitId;
+#else
+        return adUnitId ?? string.Empty;
+#endif
     }
 
     private bool CanRequestAds()

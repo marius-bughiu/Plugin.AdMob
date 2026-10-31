@@ -49,9 +49,11 @@ internal class NativeAdService(IAdConsentService _adConsentService) : INativeAdS
         {
             return videoOptions is null ? AdMobTestAdUnits.Native : AdMobTestAdUnits.NativeVideo;
         }
-#endif
 
         return adUnitId ?? AdConfig.DefaultNativeAdUnitId;
+#else
+        return adUnitId ?? string.Empty;
+#endif
     }
 
     private bool CanRequestAds()
