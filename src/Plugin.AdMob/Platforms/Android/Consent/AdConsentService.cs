@@ -12,12 +12,15 @@ internal partial class AdConsentService :
 {
     Xamarin.Google.UserMesssagingPlatform.IConsentInformation? _consentInformation;
 
+    private Xamarin.Google.UserMesssagingPlatform.IConsentInformation ConsentInformation =>
+        _consentInformation ??= UserMessagingPlatform.GetConsentInformation(Android.App.Application.Context);
+
     public void LoadAndShowConsentFormIfRequired()
     {
         var activity = ActivityStateManager.Default.GetCurrentActivity()!;
-        _consentInformation = UserMessagingPlatform.GetConsentInformation(activity);
 
-        var requestParametersBuilder = new ConsentRequestParameters.Builder();
+        var requestParametersBuilder = new ConsentRequestParameters.Builder()
+            .SetTagForUnderAgeOfConsent(Configuration.AdConfig.TagForUnderAgeOfConsent is TagForUnderAgeOfConsent.True);
 
         var ds = Configuration.ConsentDebugSettings.Current;
         if (ds is not null)
@@ -41,22 +44,17 @@ internal partial class AdConsentService :
         }
 
         var requestParameters = requestParametersBuilder.Build();
-        _consentInformation.RequestConsentInfoUpdate(activity, requestParameters, this, this);
+        ConsentInformation.RequestConsentInfoUpdate(activity, requestParameters, this, this);
     }
 
     public bool CanRequestAds()
     {
-        return _consentInformation?.CanRequestAds() ?? false;
+        return ConsentInformation.CanRequestAds();
     }
 
     public bool IsPrivacyOptionsRequired()
     {
-        if (_consentInformation is null)
-        {
-            return false;
-        }
-
-        return _consentInformation.PrivacyOptionsRequirementStatus == ConsentInformationPrivacyOptionsRequirementStatus.Required;
+        return ConsentInformation.PrivacyOptionsRequirementStatus == ConsentInformationPrivacyOptionsRequirementStatus.Required;
     }
 
     public void ShowPrivacyOptionsForm()
@@ -67,15 +65,15 @@ internal partial class AdConsentService :
 
     public void Reset()
     {
-        _consentInformation?.Reset();
+        ConsentInformation.Reset();
         OnConsentInfoUpdated?.Invoke(this, GetConsentInformation());
     }
 
     public void OnConsentInfoUpdateSuccess()
     {
-        Debug.Write($"[Plugin.AdMob] Consent info update was successful. Status: {_consentInformation!.ConsentStatus}");
+        Debug.Write($"[Plugin.AdMob] Consent info update was successful. Status: {ConsentInformation.ConsentStatus}");
 
-        if (_consentInformation.ConsentStatus is ConsentInformationConsentStatus.Required)
+        if (ConsentInformation.ConsentStatus is ConsentInformationConsentStatus.Required)
         {
             var activity = ActivityStateManager.Default.GetCurrentActivity()!;
             UserMessagingPlatform.LoadAndShowConsentFormIfRequired(activity, this);
@@ -105,13 +103,5 @@ internal partial class AdConsentService :
         OnConsentInfoUpdated?.Invoke(this, GetConsentInformation());
     }
 
-    private ConsentInformation? GetConsentInformation()
-    {
-        if (_consentInformation is null)
-        {
-            return null;
-        }
-
-        return new((ConsentStatus)_consentInformation.ConsentStatus, _consentInformation.CanRequestAds());
-    }
+    private ConsentInformation GetConsentInformation() => new((ConsentStatus)ConsentInformation.ConsentStatus, ConsentInformation.CanRequestAds());
 }

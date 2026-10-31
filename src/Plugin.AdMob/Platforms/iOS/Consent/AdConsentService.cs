@@ -18,7 +18,10 @@ internal partial class AdConsentService
             return;
         }
 
-        RequestParameters requestParameters = new();
+        RequestParameters requestParameters = new()
+        {
+            TagForUnderAgeOfConsent = AdConfig.TagForUnderAgeOfConsent is TagForUnderAgeOfConsent.True
+        };
 
         var ds = ConsentDebugSettings.Current;
         if (ds is not null)
