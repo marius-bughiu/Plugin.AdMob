@@ -11,6 +11,12 @@ internal partial class RewardedAd
 
     public void Load()
     {
+        if (!_canRequestAds())
+        {
+            OnAdFailedToLoad?.Invoke(this, new AdError(AdError.ConsentRequiredMessage));
+            return;
+        }
+
         var configBuilder = new RequestConfiguration.Builder();
         configBuilder.ApplyGlobalAdConfiguration();
         MobileAds.RequestConfiguration = configBuilder.Build();

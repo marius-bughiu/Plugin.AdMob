@@ -83,8 +83,11 @@ internal partial class AppOpenAd : IAppOpenAd
     public event EventHandler? OnAdClicked;
     public event EventHandler? OnAdDismissed;
 
-    public AppOpenAd(string adUnitId)
+    private readonly Func<bool> _canRequestAds;
+
+    public AppOpenAd(string adUnitId, Func<bool> canRequestAds)
     {
         AdUnitId = adUnitId;
+        _canRequestAds = canRequestAds;
     }
 }

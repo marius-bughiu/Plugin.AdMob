@@ -26,7 +26,7 @@ public interface INativeAdService
     INativeAd CreateAd(string? adUnitId, VideoOptions? videoOptions) => CreateAd(adUnitId);
 }
 
-internal class NativeAdService : INativeAdService
+internal class NativeAdService(IAdConsentService _adConsentService) : INativeAdService
 {
     public INativeAd CreateAd(string? adUnitId = null) => CreateAd(adUnitId, videoOptions: null);
 
@@ -39,7 +39,7 @@ internal class NativeAdService : INativeAdService
             throw new ArgumentNullException(nameof(adUnitId), "No ad unit ID was specified, and no default native ad unit ID has been configured.");
         }
 
-        return new NativeAd(adUnitId, videoOptions);
+        return new NativeAd(adUnitId, CanRequestAds, videoOptions);
     }
 
     private static string? GetAdUnitId(string? adUnitId, VideoOptions? videoOptions)
@@ -52,5 +52,15 @@ internal class NativeAdService : INativeAdService
 #endif
 
         return adUnitId ?? AdConfig.DefaultNativeAdUnitId;
+    }
+
+    private bool CanRequestAds()
+    {
+        if (AdConfig.DisableConsentCheck)
+        {
+            return true;
+        }
+
+        return _adConsentService.CanRequestAds();
     }
 }

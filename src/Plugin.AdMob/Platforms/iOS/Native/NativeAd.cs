@@ -53,6 +53,12 @@ internal partial class NativeAd : NativeAdLoaderDelegate
 
     public void Load()
     {
+        if (!_canRequestAds())
+        {
+            OnAdFailedToLoad?.Invoke(this, new AdError(AdError.ConsentRequiredMessage));
+            return;
+        }
+
         MobileAds.SharedInstance.RequestConfiguration.ApplyGlobalAdConfiguration();
 
         var options = new List<AdLoaderOptions>();

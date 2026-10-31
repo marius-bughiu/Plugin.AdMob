@@ -83,8 +83,11 @@ internal partial class InterstitialAd : IInterstitialAd
     public event EventHandler? OnAdClicked;
     public event EventHandler? OnAdDismissed;
 
-    public InterstitialAd(string adUnitId)
+    private readonly Func<bool> _canRequestAds;
+
+    public InterstitialAd(string adUnitId, Func<bool> canRequestAds)
     {
         AdUnitId = adUnitId;
+        _canRequestAds = canRequestAds;
     }
 }

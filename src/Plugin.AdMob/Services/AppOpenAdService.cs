@@ -59,7 +59,7 @@ internal class AppOpenAdService(IAdConsentService _adConsentService)
             throw new ArgumentNullException(nameof(adUnitId), "No ad unit ID was specified, and no default app open ad unit ID has been configured.");
         }
 
-        return new AppOpenAd(adUnitId);
+        return new AppOpenAd(adUnitId, CanRequestAds);
     }
 
     public void PrepareAd(string? adUnitId = null)

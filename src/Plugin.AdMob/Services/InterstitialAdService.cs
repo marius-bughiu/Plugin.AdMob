@@ -58,7 +58,7 @@ internal class InterstitialAdService(IAdConsentService _adConsentService)
             throw new ArgumentNullException(nameof(adUnitId), "No ad unit ID was specified, and no default interstitial ad unit ID has been configured.");
         }
 
-        return new InterstitialAd(adUnitId);
+        return new InterstitialAd(adUnitId, CanRequestAds);
     }
 
     public void PrepareAd(string? adUnitId = null)

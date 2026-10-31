@@ -66,8 +66,10 @@ public interface IRewardedAd
     void Show() => throw new NotImplementedException();
 }
 
-internal partial class RewardedAd(string adUnitId) : IRewardedAd
+internal partial class RewardedAd(string adUnitId, Func<bool> canRequestAds) : IRewardedAd
 {
+    private readonly Func<bool> _canRequestAds = canRequestAds;
+
     private static readonly TimeSpan Expiry = TimeSpan.FromHours(1);
 
     private DateTime? _loadedAt;

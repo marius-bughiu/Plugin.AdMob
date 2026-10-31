@@ -60,7 +60,7 @@ internal class RewardedAdService(IAdConsentService _adConsentService)
             throw new ArgumentNullException(nameof(adUnitId), "No ad unit ID was specified, and no default rewarded ad unit ID has been configured.");
         }
 
-        return new RewardedAd(adUnitId);
+        return new RewardedAd(adUnitId, CanRequestAds);
     }
 
     public void PrepareAd(string? adUnitId = null, Action<RewardItem>? onUserEarnedReward = null)

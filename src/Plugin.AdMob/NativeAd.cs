@@ -189,8 +189,10 @@ public interface INativeAd
     void Load() => throw new NotImplementedException();
 }
 
-internal partial class NativeAd(string adUnitId, VideoOptions? videoOptions = null) : INativeAd
+internal partial class NativeAd(string adUnitId, Func<bool> canRequestAds, VideoOptions? videoOptions = null) : INativeAd
 {
+    private readonly Func<bool> _canRequestAds = canRequestAds;
+
     public string AdUnitId { get; } = adUnitId;
 
     public VideoOptions? VideoOptions { get; } = videoOptions;

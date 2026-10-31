@@ -10,6 +10,12 @@ internal partial class InterstitialAd
 
     public void Load()
     {
+        if (!_canRequestAds())
+        {
+            OnAdFailedToLoad?.Invoke(this, new AdError(AdError.ConsentRequiredMessage));
+            return;
+        }
+
         MobileAds.SharedInstance.RequestConfiguration.ApplyGlobalAdConfiguration();
         var request = Request.GetDefaultRequest();
 
