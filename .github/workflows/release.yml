@@ -79,7 +79,12 @@ jobs:
 
     - name: Verify the package
       run: |
-        $expected = "Plugin.AdMob.${{ steps.tag.outputs.version }}.nupkg"
+        # NuGet drops a zero fourth part from the file name: 10.0.120.0 is packed as Plugin.AdMob.10.0.120.nupkg.
+        $version = "${{ steps.tag.outputs.version }}"
+        $number, $suffix = $version.Split('-', 2)
+        $parts = $number.Split('.')
+        if ($parts.Count -eq 4 -and $parts[3] -eq '0') { $number = ($parts[0..2] -join '.') }
+        $expected = "Plugin.AdMob.$number$(if ($suffix) { "-$suffix" }).nupkg"
         $nupkg = Get-ChildItem "${{ env.NuGetDirectory }}" -Filter *.nupkg | Where-Object { $_.Name -notlike '*.symbols.nupkg' }
         if ($nupkg.Count -ne 1 -or $nupkg[0].Name -ne $expected) {
           Write-Output "::error::Expected $expected, got: $($nupkg.Name -join ', ')"

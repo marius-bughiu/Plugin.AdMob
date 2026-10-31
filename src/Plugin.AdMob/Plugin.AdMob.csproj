@@ -89,12 +89,14 @@
 			<Output TaskParameter="ExitCode" PropertyName="_ReleaseTagExitCode" />
 		</Exec>
 
-		<!-- HEAD carries a release tag: v10.0.30.<build> -> 10.0.30.<build> -->
+		<!-- HEAD carries a release tag: v10.0.30.<build>[-suffix] -> 10.0.30.<build>[-suffix] -->
 		<PropertyGroup Condition="'$(_ReleaseTagExitCode)' == '0'">
 			<Version>$(_ReleaseTag.Substring(1))</Version>
 			<PackageVersion>$(Version)</PackageVersion>
-			<AssemblyVersion>$(Version)</AssemblyVersion>
-			<FileVersion>$(Version)</FileVersion>
+			<_ReleaseNumericVersion>$(Version)</_ReleaseNumericVersion>
+			<_ReleaseNumericVersion Condition="$(Version.Contains('-'))">$(Version.Substring(0, $(Version.IndexOf('-'))))</_ReleaseNumericVersion>
+			<AssemblyVersion>$(_ReleaseNumericVersion)</AssemblyVersion>
+			<FileVersion>$(_ReleaseNumericVersion)</FileVersion>
 			<InformationalVersion>$(Version)</InformationalVersion>
 		</PropertyGroup>
 
