@@ -149,5 +149,6 @@ jobs:
             Write-Output "Release $env:TAG already exists; leaving it as is."
             exit 0
           }
-          $flags = if ($env:PRERELEASE -eq 'True') { @('--prerelease', '--latest=false') } else { @('--latest') }
+          $flags = @('--latest')
+          if ($env:PRERELEASE -eq 'True') { $flags = @('--prerelease', '--latest=false') }
           gh release create $env:TAG --repo $env:GITHUB_REPOSITORY --verify-tag --title $env:TAG --generate-notes @flags (Get-ChildItem "${{ env.NuGetDirectory }}" -Filter *.nupkg).FullName
