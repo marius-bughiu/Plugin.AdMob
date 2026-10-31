@@ -132,20 +132,28 @@ jobs:
         with:
           ref: ${{ inputs.ref || github.ref }}
 
-      # .NET for iOS hard-pins a required Xcode and the image's *selected* Xcode can lag it, so
-      # select the newest; the listing makes a mismatch obvious if one is still missing.
-      - name: Select the newest available Xcode
-        run: |
-          ls -d /Applications/Xcode*.app || true
-          sudo xcode-select -s "$(ls -d /Applications/Xcode*.app | sort -V | tail -1)"
-          xcodebuild -version
-
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
 
       - name: Install MAUI iOS workload
         run: dotnet workload install maui-ios
+
+      # .NET for iOS requires one exact Xcode version, and the image's default (or newest) Xcode
+      # can be a different one, so select the version the installed iOS SDK pack asks for.
+      - name: Select the Xcode the iOS workload requires
+        run: |
+          root="${DOTNET_ROOT:-$(dirname "$(readlink -f "$(command -v dotnet)")")}"
+          props=$(ls -d "$root"/packs/Microsoft.iOS.Sdk.net10.0_*/*/targets/Microsoft.iOS.Sdk.Versions.props | sort -V | tail -1)
+          xcode=$(sed -n 's:.*<_RecommendedXcodeVersion>\(.*\)</_RecommendedXcodeVersion>.*:\1:p' "$props")
+          app=$(ls -d "/Applications/Xcode_$xcode.app" "/Applications/Xcode_$xcode".*.app 2>/dev/null | head -1 || true)
+          if [ -z "$app" ]; then
+            echo "::error::The iOS workload requires Xcode $xcode, which this image doesn't have."
+            ls -d /Applications/Xcode*.app
+            exit 1
+          fi
+          sudo xcode-select -s "$app"
+          xcodebuild -version
 
       - name: Build for the simulator
         run: |
