@@ -6,6 +6,8 @@ In your `MauiProgram.cs` call the following method on your app builder:
 builder.UseAdMob()
 ```
 
+The plugin starts the Google Mobile Ads SDK for you, on both platforms: at launch when stored consent already allows ad requests (or when you disabled the consent check), otherwise as soon as a consent update allows them. Google asks apps not to start the SDK before consent is gathered, so you don't need to call `MobileAds.SharedInstance.Start(...)` (iOS) or `MobileAds.Initialize(...)` (Android) yourself. If you do (for example to wait for mediation adapters), call it only once `IAdConsentService.CanRequestAds()` is true.
+
 ## Platform support
 
 - **Android / iOS**: fully supported.
@@ -60,23 +62,7 @@ For a fully working example, check out the [samples folder](https://github.com/m
 > [!NOTE]
 > Google also recommends adding [App Transport Security exceptions](https://developers.google.com/admob/ios/app-transport-security) to your `Info.plist`, as production ad creatives may serve media over non-HTTPS connections.
 
-3. Go to your `Platforms/iOS/AppDelegate.cs` and make a call to `Google.MobileAds.MobileAds.SharedInstance.Start(completionHandler: null)`. Your `AppDelegate` should look similar to this:
-```
-[Register("AppDelegate")]
-public class AppDelegate : MauiUIApplicationDelegate
-{
-    protected override MauiApp CreateMauiApp()
-    {
-        var app = MauiProgram.CreateMauiApp();
-
-        Google.MobileAds.MobileAds.SharedInstance.Start(completionHandler: null);
-
-        return app;
-    }
-}
-```
-
-4. Enable Swift library linking by adding the following to your app's `.csproj`. This is only needed starting from version 2.0.0 of the plugin.
+3. Enable Swift library linking by adding the following to your app's `.csproj`. This is only needed starting from version 2.0.0 of the plugin.
 
 ```
 <Target Name="LinkWithSwift" DependsOnTargets="_ParseBundlerArguments;_DetectSdkLocations" BeforeTargets="_LinkNativeExecutable">
@@ -95,7 +81,7 @@ public class AppDelegate : MauiUIApplicationDelegate
 </Target>
 ```
 
-5. Set the minimum supported iOS version to **15.0** — the Google Mobile Ads SDK requires it. Without it, `MobileAds.SharedInstance.Start(...)` can fail with a `NullReferenceException` on physical devices (see issue #56), and the `Jc.UMP.iOS` build targets fail unless `SupportedOSPlatformVersion` is set explicitly. In your app's `.csproj`:
+4. Set the minimum supported iOS version to **15.0** — the Google Mobile Ads SDK requires it. Without it, starting the SDK can fail with a `NullReferenceException` on physical devices (see issue #56), and the `Jc.UMP.iOS` build targets fail unless `SupportedOSPlatformVersion` is set explicitly. In your app's `.csproj`:
 
 ```
 <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-ios'">

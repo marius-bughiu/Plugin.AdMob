@@ -17,6 +17,6 @@ This section is based on common issues seen in real projects, and on closed issu
 ## Quick checklist
 
 - **Android**: ensure `com.google.android.gms.ads.APPLICATION_ID` is set in `Platforms/Android/AndroidManifest.xml` and you have `INTERNET` + `ACCESS_NETWORK_STATE` permissions.
-- **iOS**: ensure `GADApplicationIdentifier` is set in `Platforms/iOS/Info.plist` and that you initialize the SDK in your `AppDelegate` as described in [Setup](Setup.md).
+- **iOS**: ensure `GADApplicationIdentifier` is set in `Platforms/iOS/Info.plist` as described in [Setup](Setup.md). The plugin starts the SDK once consent allows ad requests.
 - **Consent**: if consent is required, ads will not be requested until consent is obtained (unless you intentionally disabled consent checks).
 - **New apps**: newly created / re-activated AdMob apps can take time before real ads have inventory.
