@@ -159,6 +159,8 @@ nativeAd.OnAdLoaded += (_, _) =>
 nativeAd.Load();
 ```
 
+`Load()` only requests an ad once consent allows it (`IAdConsentService.CanRequestAds()`, unless you disabled the consent check). Before that it raises `OnAdFailedToLoad`, so load from an `OnConsentInfoUpdated` handler when consent may not be gathered yet.
+
 To obtain the service:
 
 ```

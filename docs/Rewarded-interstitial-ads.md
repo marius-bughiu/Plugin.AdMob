@@ -25,7 +25,7 @@ public interface IRewardedInterstitialAdService
 
 | Property | Description |
 | --- | --- |
-| `IsAdLoaded` | True when an ad is ready to be presented to the user. |
+| `IsAdLoaded` | True when an ad is ready to be presented to the user. Turns false once the ad is shown or expires (1 hour after loading). |
 
 | Event | Description |
 | --- | --- |
@@ -33,9 +33,9 @@ public interface IRewardedInterstitialAdService
 
 | Method| Description |
 | --- | --- |
-| `PrepareAd` | Preloads a rewarded interstitial ad using the provided `adUnitId`. If no `adUnitId` is provided, it will use the configured default -  `AdConfig.DefaultRewardedInterstitialAdUnitId`. Use the `onUserEarnedReward` callback to get notified when the user earned his reward. |
+| `PrepareAd` | Preloads a rewarded interstitial ad using the provided `adUnitId`. If no `adUnitId` is provided, it will use the configured default -  `AdConfig.DefaultRewardedInterstitialAdUnitId`. Use the `onUserEarnedReward` callback to get notified when the user earned his reward. If consent doesn't allow ad requests yet, the ad loads as soon as it does. |
 | `ShowAd` | Displays the rewarded interstitial ad which was prepared when `PrepareAd` was called. If no ad was prepared, nothing will be shown. |
-| `CreateAd` | Creates a rewarded interstitial ad instance which you can use to preload and show later on. This enables you to preload multiple rewarded interstitial ads at the same time, using different ad unit IDs. If no `adUnitId` is provided, it will use configured default -  `AdConfig.DefaultRewardedInterstitialAdUnitId`. |
+| `CreateAd` | Creates a rewarded interstitial ad instance which you can use to preload and show later on. This enables you to preload multiple rewarded interstitial ads at the same time, using different ad unit IDs. If no `adUnitId` is provided, it will use configured default -  `AdConfig.DefaultRewardedInterstitialAdUnitId`. Calling `Load()` on it before consent allows ad requests raises `OnAdFailedToLoad` instead of requesting an ad. |
 
 ## Ad instance API (`IRewardedInterstitialAd`)
 
