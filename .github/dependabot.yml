@@ -1,28 +1,7 @@
+# NuGet isn't tracked here: Dependabot's dependency submission can't restore MAUI projects without
+# the MAUI workloads. binding-drift.yml watches the native bindings instead, and bump-maui.yml owns MAUI.
 version: 2
 updates:
-  - package-ecosystem: nuget
-    directories:
-      - /src/Plugin.AdMob
-      - /samples/Foo.Bar.SampleApp
-      - /samples/Foo.Bar.SampleApp.Hybrid
-      - /tests/Plugin.AdMob.DeviceTests
-      - /tests/Plugin.AdMob.PackageConsumer
-    schedule:
-      interval: weekly
-    ignore:
-      # bump-maui.yml owns MAUI (validated before its PR opens).
-      - dependency-name: Microsoft.Maui.*
-      - dependency-name: Microsoft.AspNetCore.Components.WebView.Maui
-      - dependency-name: Jc.GMA.iOS
-        update-types: [ version-update:semver-major ]
-      - dependency-name: Jc.UMP.iOS
-        update-types: [ version-update:semver-major ]
-    groups:
-      native-bindings:
-        patterns: [ Xamarin.GooglePlayServices.*, Xamarin.Google.*, Jc.* ]
-      androidx:
-        patterns: [ Xamarin.AndroidX.* ]
-
   - package-ecosystem: github-actions
     directory: /
     schedule:

@@ -45,9 +45,12 @@ dotnet build tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj -f n
 - **`release.yml`** — runs when a release tag (`v<MauiPackageVersion>.<build>`, optionally with a
   prerelease suffix such as `v10.0.120.1-beta.1`) is pushed, or manually from such a tag. It fails
   without the tag, checks the package version and that all four target frameworks are in the
-  package, publishes to nuget.org and creates the GitHub Release.
-- **`dependabot.yml`** — weekly NuGet and GitHub Actions updates. MAUI is left to
-  `bump-maui.yml`; the native bindings and AndroidX packages are grouped.
+  package, publishes to nuget.org through trusted publishing (no API key secret) and creates the
+  GitHub Release.
+- **`binding-drift.yml`** — weekly. Keeps a "Native binding updates available" issue open while a
+  package pinned in the plugin's csproj (the Google ad SDK bindings, MinVer) is behind nuget.org.
+- **`dependabot.yml`** — weekly GitHub Actions updates. NuGet isn't tracked there, because its
+  dependency submission can't restore MAUI projects without the workloads.
 
 ## The banner-vs-full-screen gating model (important)
 
