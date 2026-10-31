@@ -23,6 +23,8 @@ internal partial class RewardedInterstitialAd
             return;
         }
 
+        IsLoaded = false;
+
         _ad!.Present(null, () => OnUserEarnedReward?.Invoke(this, new RewardItem(_ad.Reward.Amount.Int32Value, _ad.Reward.Type)));
     }
 

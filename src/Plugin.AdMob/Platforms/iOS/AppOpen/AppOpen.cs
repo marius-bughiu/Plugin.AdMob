@@ -23,6 +23,8 @@ internal partial class AppOpenAd
             return;
         }
 
+        IsLoaded = false;
+
         _ad!.Present(null);
     }
 

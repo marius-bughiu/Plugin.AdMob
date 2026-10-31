@@ -23,6 +23,8 @@ internal partial class InterstitialAd
             return;
         }
 
+        IsLoaded = false;
+
         _ad!.Present(null);
     }
 

@@ -45,7 +45,7 @@ internal class RewardedAdService(IAdConsentService _adConsentService)
 {
     private IRewardedAd? _rewardedAd;
 
-    public bool IsAdLoaded { get; private set; }
+    public bool IsAdLoaded => _rewardedAd?.IsLoaded ?? false;
 
     public event EventHandler? OnAdLoaded;
 
@@ -65,8 +65,8 @@ internal class RewardedAdService(IAdConsentService _adConsentService)
     {
         if (_rewardedAd is not null)
         {
-            IsAdLoaded = false;
             _rewardedAd.OnAdLoaded -= OnAdLoadedInternal;
+            _rewardedAd = null;
         }
 
         if (CanRequestAds() is false)
@@ -88,7 +88,6 @@ internal class RewardedAdService(IAdConsentService _adConsentService)
 
     public void ShowAd()
     {
-        IsAdLoaded = false;
         _rewardedAd?.Show();
     }
     
@@ -116,7 +115,6 @@ internal class RewardedAdService(IAdConsentService _adConsentService)
 
     private void OnAdLoadedInternal(object? sender, EventArgs e)
     {
-        IsAdLoaded = true;
         OnAdLoaded?.Invoke(sender, e);
     }
 }

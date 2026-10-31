@@ -63,9 +63,17 @@ public interface IInterstitialAd
 
 internal partial class InterstitialAd : IInterstitialAd
 {
+    private static readonly TimeSpan Expiry = TimeSpan.FromHours(1);
+
+    private DateTime? _loadedAt;
+
     public string AdUnitId { get; }
 
-    public bool IsLoaded { get; private set; }
+    public bool IsLoaded
+    {
+        get => _loadedAt is { } loadedAt && DateTime.UtcNow - loadedAt < Expiry;
+        private set => _loadedAt = value ? DateTime.UtcNow : null;
+    }
 
     public event EventHandler? OnAdLoaded;
     public event EventHandler<IAdError>? OnAdFailedToLoad;

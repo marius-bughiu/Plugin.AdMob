@@ -41,6 +41,8 @@ internal partial class RewardedInterstitialAd
             return;
         }
 
+        IsLoaded = false;
+
         var listener = new FullScreenContentCallback();
 
         listener.AdShowed += (s, _) => OnAdShowed?.Invoke(s, EventArgs.Empty);
