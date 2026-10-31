@@ -56,25 +56,40 @@ public static class Config
         MaxAdContentRating maxAdContentRating = MaxAdContentRating.None)
     {
 #if ANDROID
-        AdConfig.DefaultBannerAdUnitId = androidDefaultBannerAdUnitId;
-        AdConfig.DefaultInterstitialAdUnitId = androidDefaultInterstitialAdUnitId;
-        AdConfig.DefaultRewardedAdUnitId = androidDefaultRewardedAdUnitId;
-        AdConfig.DefaultRewardedInterstitialAdUnitId = androidDefaultRewardedInterstitialAdUnitId;
-        AdConfig.DefaultAppOpenAdUnitId = androidDefaultAppOpenAdUnitId;
-        AdConfig.DefaultNativeAdUnitId = androidDefaultNativeAdUnitId;
+        AdConfig.DefaultBannerAdUnitId = androidDefaultBannerAdUnitId ?? AdConfig.DefaultBannerAdUnitId;
+        AdConfig.DefaultInterstitialAdUnitId = androidDefaultInterstitialAdUnitId ?? AdConfig.DefaultInterstitialAdUnitId;
+        AdConfig.DefaultRewardedAdUnitId = androidDefaultRewardedAdUnitId ?? AdConfig.DefaultRewardedAdUnitId;
+        AdConfig.DefaultRewardedInterstitialAdUnitId = androidDefaultRewardedInterstitialAdUnitId ?? AdConfig.DefaultRewardedInterstitialAdUnitId;
+        AdConfig.DefaultAppOpenAdUnitId = androidDefaultAppOpenAdUnitId ?? AdConfig.DefaultAppOpenAdUnitId;
+        AdConfig.DefaultNativeAdUnitId = androidDefaultNativeAdUnitId ?? AdConfig.DefaultNativeAdUnitId;
 #elif IOS
-        AdConfig.DefaultBannerAdUnitId = iosDefaultBannerAdUnitId;
-        AdConfig.DefaultInterstitialAdUnitId = iosDefaultInterstitialAdUnitId;
-        AdConfig.DefaultRewardedAdUnitId = iosDefaultRewardedAdUnitId;
-        AdConfig.DefaultRewardedInterstitialAdUnitId = iosDefaultRewardedInterstitialAdUnitId;
-        AdConfig.DefaultAppOpenAdUnitId = iosDefaultAppOpenAdUnitId;
-        AdConfig.DefaultNativeAdUnitId = iosDefaultNativeAdUnitId;
+        AdConfig.DefaultBannerAdUnitId = iosDefaultBannerAdUnitId ?? AdConfig.DefaultBannerAdUnitId;
+        AdConfig.DefaultInterstitialAdUnitId = iosDefaultInterstitialAdUnitId ?? AdConfig.DefaultInterstitialAdUnitId;
+        AdConfig.DefaultRewardedAdUnitId = iosDefaultRewardedAdUnitId ?? AdConfig.DefaultRewardedAdUnitId;
+        AdConfig.DefaultRewardedInterstitialAdUnitId = iosDefaultRewardedInterstitialAdUnitId ?? AdConfig.DefaultRewardedInterstitialAdUnitId;
+        AdConfig.DefaultAppOpenAdUnitId = iosDefaultAppOpenAdUnitId ?? AdConfig.DefaultAppOpenAdUnitId;
+        AdConfig.DefaultNativeAdUnitId = iosDefaultNativeAdUnitId ?? AdConfig.DefaultNativeAdUnitId;
 #endif
 
-        AdConfig.DisableConsentCheck = disableConsentCheck;
-        AdConfig.TagForChildDirectedTreatment = tagForChildDirectedTreatment;
-        AdConfig.TagForUnderAgeOfConsent = tagForUnderAgeOfConsent;
-        AdConfig.MaxAdContentRating = maxAdContentRating;
+        if (disableConsentCheck)
+        {
+            AdConfig.DisableConsentCheck = true;
+        }
+
+        if (tagForChildDirectedTreatment is not TagForChildDirectedTreatment.None)
+        {
+            AdConfig.TagForChildDirectedTreatment = tagForChildDirectedTreatment;
+        }
+
+        if (tagForUnderAgeOfConsent is not TagForUnderAgeOfConsent.None)
+        {
+            AdConfig.TagForUnderAgeOfConsent = tagForUnderAgeOfConsent;
+        }
+
+        if (maxAdContentRating is not MaxAdContentRating.None)
+        {
+            AdConfig.MaxAdContentRating = maxAdContentRating;
+        }
 
         builder.ConfigureMauiHandlers(handlers =>
         {
@@ -93,6 +108,12 @@ public static class Config
         builder.Services.AddSingleton<IAdConsentService>(adConsentService);
 
 #if ANDROID || IOS
+        if (automaticallyAskForConsent is true)
+        {
+            adConsentService.OnConsentInfoFailedToUpdate += (_, _) => _initialized = false;
+            adConsentService.OnConsentFormError += (_, _) => _initialized = false;
+        }
+
 #if ANDROID
         builder.ConfigureLifecycleEvents(events =>
         {
@@ -116,7 +137,9 @@ public static class Config
         {
             builder.ConfigureLifecycleEvents(events =>
             {
-                events.AddiOS(ios => ios.OnActivated(_ => OnStart()));
+                events.AddiOS(ios => ios
+                    .OnActivated(_ => OnStart())
+                    .SceneOnActivated(_ => OnStart()));
             });
         }
 #endif

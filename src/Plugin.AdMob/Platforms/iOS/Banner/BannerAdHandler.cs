@@ -10,6 +10,7 @@ namespace Plugin.AdMob.Handlers;
 internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
 {
     private IAdConsentService? _adConsentService;
+    private EventHandler<BannerViewErrorEventArgs>? _onReceiveAdFailed;
 
     public static IPropertyMapper<BannerAd, BannerAdHandler> PropertyMapper
         = new PropertyMapper<BannerAd, BannerAdHandler>(ViewMapper);
@@ -22,6 +23,13 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
             _adConsentService.OnConsentInfoUpdated -= OnConsentInfoUpdated;
         }
 
+        platformView.AdReceived -= VirtualView.RaiseOnAdLoaded;
+        platformView.ReceiveAdFailed -= _onReceiveAdFailed;
+        platformView.ImpressionRecorded -= VirtualView.RaiseOnAdImpression;
+        platformView.ClickRecorded -= VirtualView.RaiseOnAdClicked;
+        platformView.WillPresentScreen -= VirtualView.RaiseOnAdOpened;
+        platformView.ScreenDismissed -= VirtualView.RaiseOnAdClosed;
+
         platformView.Dispose();
         base.DisconnectHandler(platformView);
     }
@@ -29,7 +37,6 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
     protected override BannerView CreatePlatformView()
     {
         _adConsentService = IPlatformApplication.Current!.Services.GetRequiredService<IAdConsentService>();
-        _adConsentService.OnConsentInfoUpdated += OnConsentInfoUpdated;
 
         var adSize = GetAdSize();
         var adView = new BannerView()
@@ -40,8 +47,10 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
 
         MobileAds.SharedInstance.RequestConfiguration.ApplyGlobalAdConfiguration();
 
+        _onReceiveAdFailed = (s, e) => VirtualView.RaiseOnAdFailedToLoad(this, new AdError(e.Error.DebugDescription));
+
         adView.AdReceived += VirtualView.RaiseOnAdLoaded;
-        adView.ReceiveAdFailed += (s, e) => VirtualView.RaiseOnAdFailedToLoad(this, new AdError(e.Error.DebugDescription));
+        adView.ReceiveAdFailed += _onReceiveAdFailed;
         adView.ImpressionRecorded += VirtualView.RaiseOnAdImpression;
         adView.ClickRecorded += VirtualView.RaiseOnAdClicked;
         adView.WillPresentScreen += VirtualView.RaiseOnAdOpened;
@@ -55,6 +64,7 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
         {
             VirtualView.HeightRequest = 0;
             VirtualView.WidthRequest = 0;
+            _adConsentService.OnConsentInfoUpdated += OnConsentInfoUpdated;
         }
 
         return adView;
@@ -122,6 +132,11 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
 
     private void OnConsentInfoUpdated(object? sender, IConsentInformation? e)
     {
+        if (CanRequestAds() is false)
+        {
+            return;
+        }
+
         // Check if the handler is still connected before accessing PlatformView
         // In .NET MAUI 10+, PlatformView throws InvalidOperationException when disconnected
         try
@@ -129,6 +144,7 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
             var adView = PlatformView;
             if (adView is not null)
             {
+                _adConsentService!.OnConsentInfoUpdated -= OnConsentInfoUpdated;
                 LoadAd(adView);
             }
         }

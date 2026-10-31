@@ -18,12 +18,6 @@ internal partial class AdConsentService
             return;
         }
 
-        if (ConsentStatus is Google.UserMessagingPlatform.ConsentStatus.NotRequired ||
-            ConsentStatus is Google.UserMessagingPlatform.ConsentStatus.Obtained)
-        {
-            return;
-        }
-
         RequestParameters requestParameters = new();
 
         var ds = ConsentDebugSettings.Current;
@@ -54,8 +48,7 @@ internal partial class AdConsentService
 
             if (ConsentStatus is Google.UserMessagingPlatform.ConsentStatus.Required)
             {
-                var viewController = Platform.GetCurrentUIViewController();
-                ConsentForm.LoadAndPresentIfRequiredFromViewController(viewController, OnConsentFormDismissedInternal);
+                ConsentForm.LoadAndPresentIfRequiredFromViewController(null, OnConsentFormDismissedInternal);
                 return;
             }
 
@@ -75,8 +68,7 @@ internal partial class AdConsentService
 
     public void ShowPrivacyOptionsForm()
     {
-        var viewController = Platform.GetCurrentUIViewController();
-        ConsentForm.PresentPrivacyOptionsFormFromViewController(viewController, OnConsentFormDismissedInternal);
+        ConsentForm.PresentPrivacyOptionsFormFromViewController(null, OnConsentFormDismissedInternal);
     }
 
     public void Reset()
@@ -98,5 +90,13 @@ internal partial class AdConsentService
         OnConsentInfoUpdated?.Invoke(this, GetConsentInformation());
     }
 
-    private ConsentInformation GetConsentInformation() => new((ConsentStatus)ConsentInformation.ConsentStatus, ConsentInformation.CanRequestAds);
+    private ConsentInformation GetConsentInformation() => new(GetConsentStatus(), ConsentInformation.CanRequestAds);
+
+    private ConsentStatus GetConsentStatus() => ConsentStatus switch
+    {
+        Google.UserMessagingPlatform.ConsentStatus.Required => Plugin.AdMob.ConsentStatus.Required,
+        Google.UserMessagingPlatform.ConsentStatus.NotRequired => Plugin.AdMob.ConsentStatus.NotRequired,
+        Google.UserMessagingPlatform.ConsentStatus.Obtained => Plugin.AdMob.ConsentStatus.Obtained,
+        _ => Plugin.AdMob.ConsentStatus.Unknown,
+    };
 }

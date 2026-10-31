@@ -11,7 +11,7 @@ time-driven risk that source-only CI can't catch.
 | Project | What it is | Used by |
 |---|---|---|
 | [`Plugin.AdMob.PackageConsumer`](Plugin.AdMob.PackageConsumer/) | A MAUI **library** that references the **published** NuGet across all 4 target frameworks. Pure restore + build smoke. | `nightly.yml` |
-| [`Plugin.AdMob.DeviceTests`](Plugin.AdMob.DeviceTests/) | A MAUI **app** that loads every ad format with Google's test units and asserts `OnAdLoaded` fires, logging results under the `AdMobHarness` tag. | `device-tests.yml` |
+| [`Plugin.AdMob.DeviceTests`](Plugin.AdMob.DeviceTests/) | A MAUI **app** that runs the plugin's default consent flow, then loads every ad format with Google's test units and asserts `OnAdLoaded` fires, logging results under the `AdMobHarness` tag. | `device-tests.yml` |
 
 Both switch between referencing the **source** and the **published package** via MSBuild
 properties, so the same code validates a branch change *and* the shipped artifact:
@@ -57,6 +57,13 @@ So the full-screen formats *do* load headless. The one real gap is **native**, w
 app-install creatives whose click actions need `market://` resolution — that requires a
 **Play Store** system image (`google_apis_playstore`), not merely a GPU. Loads are also
 occasionally flaky (`Internal error` on a first attempt), which is why each format gets a retry.
+
+The harness uses the plugin's defaults (`UseAdMob()`: automatic consent, consent check on), with
+the `Other` debug geography so UMP resolves without showing a form. The first result line,
+`format=consent`, passes once UMP reports `CanRequestAds`. If the automatic consent hook never
+fires (as happened on iOS scene-based apps before 10.0.120.0), the banner can't load either, so the
+banner gate also covers consent. The iOS harness is scene-based (`SceneDelegate` plus
+`UIApplicationSceneManifest`), because apps built with the iOS 27 SDK don't launch without scenes.
 
 So the harness emits two summary lines and CI gates accordingly:
 
