@@ -1,7 +1,7 @@
 # Integration tests & CI gates
 
 Two tiers of automated checks, both aimed at the same failure class: the plugin wraps
-third-party native bindings (`Xamarin.GooglePlayServices.Ads.Lite`, `Jc.GMA.iOS`,
+third-party native bindings (`Xamarin.Google.Android.Libraries.Ads.Mobile.Sdk`, `Jc.GMA.iOS`,
 `Jc.UMP.iOS`, `Xamarin.AndroidX.*.Ktx`) that drift independently of this repo, and the
 plugin version tracks MAUI — so "the world changed under a shipped release" is a real,
 time-driven risk that source-only CI can't catch.

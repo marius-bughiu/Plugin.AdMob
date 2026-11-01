@@ -16,15 +16,13 @@ The plugin starts the Google Mobile Ads SDK for you, on both platforms, as soon 
 ## Android setup
 
 You need to update your app's manifest (`Platforms/Android/AndroidManifest.xml`) to include:
-- the `AdActivity` activity
-- the `ACCESS_NETWORK_STATE` and `INTERNET` permissions (if they are not present already)
 - the `APPLICATION_ID` (make sure this is added inside the `<application>` element)
+- the `ACCESS_NETWORK_STATE` and `INTERNET` permissions (if they are not present already)
 
 ```
 <?xml version="1.0" encoding="utf-8"?>
 <manifest ...>
   <application ...>
-    <activity android:name="com.google.android.gms.ads.AdActivity" android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize" android:theme="@android:style/Theme.Translucent" />
     <meta-data
     	android:name="com.google.android.gms.ads.APPLICATION_ID"
     	android:value="ca-app-pub-3940256099942544~3347511713" />
@@ -34,7 +32,9 @@ You need to update your app's manifest (`Platforms/Android/AndroidManifest.xml`)
 </manifest>
 ```
 
-Set the minimum supported Android version to **24** in your app's `.csproj` — the Google Mobile Ads Next-Gen SDK depends on `androidx.webkit`, which requires API 24, and lower values cause manifest merger errors (see [Troubleshooting-Android](Troubleshooting-Android.md#androidmanifest-namespace-warnings-on-net-10--api-35)):
+The Google Mobile Ads SDK declares the activity it shows full-screen ads in, so your manifest doesn't need one. If your manifest has a `com.google.android.gms.ads.AdActivity` entry from an earlier setup, remove it: the Next-Gen SDK doesn't have that class.
+
+Set the minimum supported Android version to **24** in your app's `.csproj` (23 is enough on Plugin.AdMob 10.0.120.2 and earlier) — the Google Mobile Ads Next-Gen SDK depends on `androidx.webkit`, which requires API 24, and lower values cause manifest merger errors (see [Troubleshooting-Android](Troubleshooting-Android.md#androidmanifest-namespace-warnings-on-net-10--api-35)):
 
 ```
 <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-android'">
