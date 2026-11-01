@@ -16,7 +16,7 @@ Your app targets Windows, but the package is intended for mobile platforms. Depe
 Conditionally reference the package only for Android/iOS target frameworks in your app `.csproj`:
 
 ```
-<ItemGroup Condition="'$(TargetFramework)' == 'net10.0-android' Or '$(TargetFramework)' == 'net10.0-ios'">
+<ItemGroup Condition="'$(TargetFramework)' == 'net11.0-android' Or '$(TargetFramework)' == 'net11.0-ios'">
 	<PackageReference Include="Plugin.AdMob" Version="x.y.z" />
 </ItemGroup>
 ```

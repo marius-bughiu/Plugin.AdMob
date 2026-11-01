@@ -60,7 +60,7 @@
 Make sure your app explicitly sets a minimum Android platform version compatible with the Google Mobile Ads Next-Gen SDK. Set `SupportedOSPlatformVersion` to 24 (the SDK depends on `androidx.webkit`, which requires API 24 — a lower value fails the build with `uses-sdk:minSdkVersion 23 cannot be smaller than version 24 declared in library`):
 
 ```
-<PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-android'">
+<PropertyGroup Condition="'$(TargetFramework)' == 'net11.0-android'">
 	<SupportedOSPlatformVersion>24.0</SupportedOSPlatformVersion>
 </PropertyGroup>
 ```
@@ -88,7 +88,7 @@ The Google Mobile Ads SDK's dependencies (Google Play Services through `Xamarin.
 Reference the `Ktx` packages directly in your app project at versions aligned with the resolved base packages. The sample apps carry this set:
 
 ```
-<ItemGroup Condition="'$(TargetFramework)' == 'net10.0-android'">
+<ItemGroup Condition="'$(TargetFramework)' == 'net11.0-android'">
 	<PackageReference Include="Xamarin.AndroidX.Fragment.Ktx" Version="1.9.1" />
 	<PackageReference Include="Xamarin.AndroidX.Collection.Ktx" Version="1.6.0.1" />
 	<PackageReference Include="Xamarin.AndroidX.Activity.Ktx" Version="1.13.0.1" />

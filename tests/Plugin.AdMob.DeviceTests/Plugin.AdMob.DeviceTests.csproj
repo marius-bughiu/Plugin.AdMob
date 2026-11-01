@@ -21,7 +21,7 @@
 	-->
 
 	<PropertyGroup>
-		<TargetFrameworks>net10.0-android;net10.0-ios</TargetFrameworks>
+		<TargetFrameworks>net11.0-android;net11.0-ios</TargetFrameworks>
 		<OutputType>Exe</OutputType>
 		<RootNamespace>Plugin.AdMob.DeviceTests</RootNamespace>
 		<UseMaui>true</UseMaui>
@@ -34,19 +34,19 @@
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
 		<ApplicationVersion>1</ApplicationVersion>
 
-		<!-- Bounded to major 10: every TFM here is net10.0-*, so an unbounded `*` could float
+		<!-- Bounded to major 11: every TFM here is net11.0-*, so an unbounded `*` could float
 		     onto a future major the project cannot build. CI pins both explicitly. -->
-		<AdMobPackageVersion Condition="'$(AdMobPackageVersion)' == ''">10.*</AdMobPackageVersion>
-		<MauiVersion Condition="'$(MauiVersion)' == ''">10.*</MauiVersion>
+		<AdMobPackageVersion Condition="'$(AdMobPackageVersion)' == ''">11.*-*</AdMobPackageVersion>
+		<MauiVersion Condition="'$(MauiVersion)' == ''">11.*-*</MauiVersion>
 	</PropertyGroup>
 
 	<!-- The Google Mobile Ads Next-Gen SDK requires API 24. -->
-	<PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-android'">
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net11.0-android'">
 		<SupportedOSPlatformVersion>24.0</SupportedOSPlatformVersion>
 	</PropertyGroup>
 
 	<!-- Jc.UMP.iOS buildTransitive targets fail unless SupportedOSPlatformVersion is set explicitly -->
-	<PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-ios'">
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net11.0-ios'">
 		<SupportedOSPlatformVersion>15.0</SupportedOSPlatformVersion>
 	</PropertyGroup>
 
@@ -69,7 +69,7 @@
 		<PackageReference Include="Plugin.AdMob" Version="$(AdMobPackageVersion)" />
 	</ItemGroup>
 
-	<Target Name="LinkWithSwift" DependsOnTargets="_ParseBundlerArguments;_DetectSdkLocations" BeforeTargets="_LinkNativeExecutable" Condition="'$(TargetFramework)' == 'net10.0-ios'">
+	<Target Name="LinkWithSwift" DependsOnTargets="_ParseBundlerArguments;_DetectSdkLocations" BeforeTargets="_LinkNativeExecutable" Condition="'$(TargetFramework)' == 'net11.0-ios'">
 		<PropertyGroup>
 			<_SwiftPlatform Condition="$(RuntimeIdentifier.StartsWith('iossimulator-'))">iphonesimulator</_SwiftPlatform>
 			<_SwiftPlatform Condition="$(RuntimeIdentifier.StartsWith('ios-'))">iphoneos</_SwiftPlatform>

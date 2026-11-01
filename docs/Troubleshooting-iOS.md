@@ -39,7 +39,7 @@ The app's minimum iOS version is below what the Google Mobile Ads SDK supports (
 Set the minimum supported iOS version to 15.0 in your app's `.csproj`:
 
 ```
-<PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-ios'">
+<PropertyGroup Condition="'$(TargetFramework)' == 'net11.0-ios'">
 	<SupportedOSPlatformVersion>15.0</SupportedOSPlatformVersion>
 </PropertyGroup>
 ```
