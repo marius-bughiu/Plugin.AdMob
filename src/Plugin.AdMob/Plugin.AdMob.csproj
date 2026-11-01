@@ -42,7 +42,7 @@
 	
 	<PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-ios'">
 		<TargetPlatformVersion>26.0</TargetPlatformVersion>
-		<SupportedOSPlatformVersion>12.2</SupportedOSPlatformVersion>
+		<SupportedOSPlatformVersion>15.0</SupportedOSPlatformVersion>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-android'">
@@ -77,8 +77,8 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net10.0-ios'">
-		<PackageReference Include="Jc.GMA.iOS" Version="12.10.0" />
-		<PackageReference Include="Jc.UMP.iOS" Version="2.7.5" />
+		<PackageReference Include="Jc.GMA.iOS" Version="13.1.0" />
+		<PackageReference Include="Jc.UMP.iOS" Version="3.1.0" />
 	</ItemGroup>
 
 	<Target Name="ApplyMauiTrackedVersion" AfterTargets="MinVer" Condition="'$(MinVerSkip)' != 'true'">
