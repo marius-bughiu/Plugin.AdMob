@@ -17,6 +17,8 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
     private Google.MobileAds.AdSize? _requestedAdSize;
     private Google.MobileAds.AdSize? _pendingAdSize;
     private NSTimer? _resizeTimer;
+    private int _latestLoad;
+    private bool _disconnected;
 
     public static IPropertyMapper<BannerAd, BannerAdHandler> PropertyMapper
         = new PropertyMapper<BannerAd, BannerAdHandler>(ViewMapper);
@@ -39,6 +41,7 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
 
     protected override void DisconnectHandler(BannerView platformView)
     {
+        _disconnected = true;
         _resizeTimer?.Invalidate();
 
         if (_adConsentService is not null)
@@ -108,10 +111,19 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
         var adSize = GetAdSize(adView);
         adView.AdSize = adSize;
         _requestedAdSize = adSize;
+        var load = ++_latestLoad;
 
-        var request = Request.GetDefaultRequest();
+        AdMobInitializer.RunWhenInitialized(() =>
+        {
+            if (_disconnected || load != _latestLoad)
+            {
+                return;
+            }
 
-        adView.LoadRequest(request);
+            var request = Request.GetDefaultRequest();
+
+            adView.LoadRequest(request);
+        });
 
         VirtualView.WidthRequest = adSize.Size.Width;
         VirtualView.HeightRequest = adSize.Size.Height;

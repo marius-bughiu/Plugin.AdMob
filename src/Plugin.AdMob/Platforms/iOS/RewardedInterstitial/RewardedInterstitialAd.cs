@@ -14,10 +14,13 @@ internal partial class RewardedInterstitialAd
     {
         MobileAdsInitialization.Start();
 
-        MobileAds.SharedInstance.RequestConfiguration.ApplyGlobalAdConfiguration();
-        var request = Request.GetDefaultRequest();
+        AdMobInitializer.RunWhenInitialized(() =>
+        {
+            MobileAds.SharedInstance.RequestConfiguration.ApplyGlobalAdConfiguration();
+            var request = Request.GetDefaultRequest();
 
-        Google.MobileAds.RewardedInterstitialAd.Load(AdUnitId, request, AdLoaded);
+            Google.MobileAds.RewardedInterstitialAd.Load(AdUnitId, request, AdLoaded);
+        });
     }
 
     public void Show()
