@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net10.0-android;net10.0-ios;net10.0-maccatalyst</TargetFrameworks>
-		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net10.0-windows10.0.19041.0</TargetFrameworks>
+		<TargetFrameworks>net11.0-android;net11.0-ios;net11.0-maccatalyst</TargetFrameworks>
+		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net11.0-windows10.0.19041.0</TargetFrameworks>
 		<UseMaui>true</UseMaui>
 		<SingleProject>true</SingleProject>
 		<ImplicitUsings>enable</ImplicitUsings>
@@ -28,7 +28,7 @@
 			Release builds ($(MauiPackageVersion)-beta.<height>). Debug builds are versioned
 			$(MauiPackageVersion)-dev.<timestamp>.
 		-->
-		<MauiPackageVersion>10.0.120</MauiPackageVersion>
+		<MauiPackageVersion>11.0.0-rc.2.26505.5</MauiPackageVersion>
 		<MinVerTagPrefix>v</MinVerTagPrefix>
 		<MinVerDefaultPreReleaseIdentifiers>beta</MinVerDefaultPreReleaseIdentifiers>
 		<MinVerSkip Condition="'$(Configuration)' == 'Debug'">true</MinVerSkip>
@@ -40,13 +40,13 @@
 		<None Include="..\..\README.md" Pack="true" PackagePath="" />
 	</ItemGroup>
 	
-	<PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-ios'">
-		<TargetPlatformVersion>26.0</TargetPlatformVersion>
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net11.0-ios'">
+		<TargetPlatformVersion>27.0</TargetPlatformVersion>
 		<SupportedOSPlatformVersion>15.0</SupportedOSPlatformVersion>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-android'">
-		<TargetPlatformVersion>36.0</TargetPlatformVersion>
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net11.0-android'">
+		<TargetPlatformVersion>37.0</TargetPlatformVersion>
 		<!-- The Google Mobile Ads Next-Gen SDK depends on androidx.webkit, which requires API 24. -->
 		<SupportedOSPlatformVersion>24.0</SupportedOSPlatformVersion>
 	</PropertyGroup>
@@ -73,7 +73,7 @@
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiPackageVersion)" />
 	</ItemGroup>
 
-	<ItemGroup Condition="'$(TargetFramework)' == 'net10.0-android'">
+	<ItemGroup Condition="'$(TargetFramework)' == 'net11.0-android'">
 		<!--
 			Google Mobile Ads Next-Gen SDK (com.google.android.libraries.ads.mobile.sdk:ads-mobile-sdk),
 			which replaces the legacy play-services-ads SDK. The binding also brings in the User Messaging
@@ -84,7 +84,7 @@
 		<PackageReference Include="Xamarin.AndroidX.Fragment.Ktx" Version="1.9.1" />
 	</ItemGroup>
 
-	<ItemGroup Condition="'$(TargetFramework)' == 'net10.0-ios'">
+	<ItemGroup Condition="'$(TargetFramework)' == 'net11.0-ios'">
 		<PackageReference Include="Jc.GMA.iOS" Version="12.10.0" />
 		<PackageReference Include="Jc.UMP.iOS" Version="2.7.5" />
 	</ItemGroup>
@@ -112,8 +112,10 @@
 		<PropertyGroup Condition="'$(_ReleaseTagExitCode)' != '0' And '$(MinVerPreRelease)' != ''">
 			<Version>$(MauiPackageVersion)-$(MinVerPreRelease)</Version>
 			<PackageVersion>$(Version)</PackageVersion>
-			<AssemblyVersion>$(MauiPackageVersion).0</AssemblyVersion>
-			<FileVersion>$(MauiPackageVersion).0</FileVersion>
+			<_MauiNumericVersion>$(MauiPackageVersion)</_MauiNumericVersion>
+			<_MauiNumericVersion Condition="$(MauiPackageVersion.Contains('-'))">$(MauiPackageVersion.Substring(0, $(MauiPackageVersion.IndexOf('-'))))</_MauiNumericVersion>
+			<AssemblyVersion>$(_MauiNumericVersion).0</AssemblyVersion>
+			<FileVersion>$(_MauiNumericVersion).0</FileVersion>
 			<InformationalVersion>$(Version)</InformationalVersion>
 		</PropertyGroup>
 	</Target>
