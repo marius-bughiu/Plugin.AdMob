@@ -15,6 +15,7 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
     private IAdConsentService? _adConsentService;
     private EventHandler<BannerViewErrorEventArgs>? _onReceiveAdFailed;
     private Google.MobileAds.AdSize? _requestedAdSize;
+    private Google.MobileAds.AdSize? _pendingAdSize;
     private NSTimer? _resizeTimer;
 
     public static IPropertyMapper<BannerAd, BannerAdHandler> PropertyMapper
@@ -25,17 +26,15 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
     {
         base.PlatformArrange(rect);
 
-        if (AdaptiveSizeChanged())
+        var adSize = GetResizedAdSize();
+
+        if (adSize is { } resizedAdSize && resizedAdSize.Size != _pendingAdSize?.Size)
         {
             _resizeTimer?.Invalidate();
-            _resizeTimer = NSTimer.CreateScheduledTimer(ResizeDelay, _ =>
-            {
-                if (AdaptiveSizeChanged())
-                {
-                    LoadAd(PlatformView);
-                }
-            });
+            _resizeTimer = NSTimer.CreateScheduledTimer(ResizeDelay, _ => ReloadIfResized());
         }
+
+        _pendingAdSize = adSize;
     }
 
     protected override void DisconnectHandler(BannerView platformView)
@@ -92,7 +91,7 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
         return adView;
     }
 
-    private void LoadAd(BannerView adView)
+    private void LoadAd(BannerView adView, bool resize = false)
     {
         if (CanRequestAds() is false)
         {
@@ -103,8 +102,11 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
 
         MobileAdsInitialization.Start();
 
-        // Reset IsLoaded before loading a new ad
-        VirtualView.SetValue(BannerAd.IsLoadedProperty, false);
+        if (!resize)
+        {
+            // Reset IsLoaded before loading a new ad
+            VirtualView.SetValue(BannerAd.IsLoadedProperty, false);
+        }
 
         var adSize = GetAdSize(adView);
         adView.AdSize = adSize;
@@ -118,11 +120,27 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
         VirtualView.HeightRequest = adSize.Size.Height;
     }
 
-    private bool AdaptiveSizeChanged()
-        => _requestedAdSize is { } requestedAdSize
-            && VirtualView.AdSize is null or AdSize.SmartBanner
-            && CanRequestAds() is true
-            && GetAdSize(PlatformView).Size != requestedAdSize.Size;
+    private void ReloadIfResized()
+    {
+        _pendingAdSize = null;
+
+        if (GetResizedAdSize() is not null)
+        {
+            LoadAd(PlatformView, resize: true);
+        }
+    }
+
+    private Google.MobileAds.AdSize? GetResizedAdSize()
+    {
+        if (_requestedAdSize is not { } requestedAdSize || VirtualView.AdSize is not (null or AdSize.SmartBanner) || CanRequestAds() is not true)
+        {
+            return null;
+        }
+
+        var adSize = GetAdSize(PlatformView);
+
+        return adSize.Size == requestedAdSize.Size ? null : adSize;
+    }
 
     private Google.MobileAds.AdSize GetAdSize(BannerView adView)
     {

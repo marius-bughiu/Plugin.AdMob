@@ -1,3 +1,4 @@
+using Android.OS;
 using Android.Runtime;
 using Android.Views;
 using Google.Android.Libraries.Ads.Mobile.Sdk;
@@ -17,9 +18,13 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
 {
     private const long ResizeDelayMilliseconds = 500;
 
+    private readonly Handler _resizeHandler = new(Looper.MainLooper!);
+    private readonly Action _reloadIfResized;
     private IAdConsentService? _adConsentService;
     private SdkAdSize? _requestedAdSize;
-    private readonly Action _reloadIfResized;
+    private SdkAdSize? _pendingAdSize;
+    private IBannerAd? _displayedAd;
+    private int _latestLoad;
 
     // Loading an ad is deferred until the SDK finishes initializing, so the handler can be disconnected
     // (and the AdView destroyed) while a load is still queued. The queued work checks this before running.
@@ -37,17 +42,21 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
     {
         base.PlatformArrange(rect);
 
-        if (AdaptiveSizeChanged())
+        var adSize = GetResizedAdSize();
+
+        if (adSize is not null && !adSize.Equals(_pendingAdSize))
         {
-            PlatformView.RemoveCallbacks(_reloadIfResized);
-            PlatformView.PostDelayed(_reloadIfResized, ResizeDelayMilliseconds);
+            _resizeHandler.RemoveCallbacks(_reloadIfResized);
+            _resizeHandler.PostDelayed(_reloadIfResized, ResizeDelayMilliseconds);
         }
+
+        _pendingAdSize = adSize;
     }
 
     protected override void DisconnectHandler(AdView platformView)
     {
         _disconnected = true;
-        platformView.RemoveCallbacks(_reloadIfResized);
+        _resizeHandler.RemoveCallbacks(_reloadIfResized);
 
         if (_adConsentService is not null)
         {
@@ -97,7 +106,7 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
         return adView;
     }
 
-    private void LoadAd(AdView adView)
+    private void LoadAd(AdView adView, bool resize = false)
     {
         if (CanRequestAds() is false)
         {
@@ -108,18 +117,22 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
 
         var adUnitId = GetAdUnitId()!;
         var adSize = GetAdSize();
+        var load = ++_latestLoad;
         _requestedAdSize = adSize;
 
         MobileAdsInitialization.Start();
 
-        // Reset IsLoaded before loading a new ad
-        VirtualView.SetValue(BannerAd.IsLoadedProperty, false);
+        if (!resize)
+        {
+            // Reset IsLoaded before loading a new ad
+            VirtualView.SetValue(BannerAd.IsLoadedProperty, false);
+        }
 
         AdMobInitializer.RunWhenInitialized(() =>
         {
             // The handler can be disconnected while the SDK is still initializing, in which case the
             // AdView captured above has already been destroyed and disposed.
-            if (_disconnected)
+            if (_disconnected || load != _latestLoad)
             {
                 return;
             }
@@ -147,19 +160,29 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
                     refreshCallback.AdRefreshed += (s2, e) => SafeRaise(() => VirtualView.RaiseOnAdLoaded(s2, e));
                     refreshCallback.AdFailedToRefresh += (s2, e) => SafeRaise(() => VirtualView.RaiseOnAdFailedToLoad(s2, new AdError(e.Message)));
                     bannerAd.BannerAdRefreshCallback = refreshCallback;
+
+                    ReplaceDisplayedAd(bannerAd);
                 }
 
-                SafeRaise(() => VirtualView.RaiseOnAdLoaded(s, EventArgs.Empty));
+                if (load == _latestLoad)
+                {
+                    SafeRaise(() => VirtualView.RaiseOnAdLoaded(s, EventArgs.Empty));
+                }
             };
-            callback.Failed += (s, e) => SafeRaise(() => VirtualView.RaiseOnAdFailedToLoad(s, new AdError(e.Message)));
+            callback.Failed += (s, e) =>
+            {
+                if (load == _latestLoad)
+                {
+                    SafeRaise(() => VirtualView.RaiseOnAdFailedToLoad(s, new AdError(e.Message)));
+                }
+            };
 
             try
             {
-                // The AdView doesn't destroy an ad it replaces, and destroying one reports its cancelled refresh as a failure.
-                if (adView.UnregisterBannerAd() is { } previousAd)
+                // LoadAd cancels the displayed ad's refresh, which its refresh callback would report as a failure.
+                if (_displayedAd is not null)
                 {
-                    previousAd.BannerAdRefreshCallback = null;
-                    previousAd.Destroy();
+                    _displayedAd.BannerAdRefreshCallback = null;
                 }
 
                 adView.LoadAd(adRequest, callback);
@@ -174,19 +197,38 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
         VirtualView.WidthRequest = adSize.Width;
     }
 
+    private void ReplaceDisplayedAd(IBannerAd bannerAd)
+    {
+        if (_displayedAd is not null)
+        {
+            _displayedAd.BannerAdRefreshCallback = null;
+            _displayedAd.Destroy();
+        }
+
+        _displayedAd = bannerAd;
+    }
+
     private void ReloadIfResized()
     {
-        if (!_disconnected && AdaptiveSizeChanged())
+        _pendingAdSize = null;
+
+        if (!_disconnected && GetResizedAdSize() is not null)
         {
-            LoadAd(PlatformView);
+            LoadAd(PlatformView, resize: true);
         }
     }
 
-    private bool AdaptiveSizeChanged()
-        => _requestedAdSize is not null
-            && VirtualView.AdSize is null or AdSize.SmartBanner
-            && CanRequestAds() is true
-            && !GetAdSize().Equals(_requestedAdSize);
+    private SdkAdSize? GetResizedAdSize()
+    {
+        if (_requestedAdSize is null || VirtualView.AdSize is not (null or AdSize.SmartBanner) || CanRequestAds() is not true)
+        {
+            return null;
+        }
+
+        var adSize = GetAdSize();
+
+        return adSize.Equals(_requestedAdSize) ? null : adSize;
+    }
 
     private string? GetAdUnitId()
     {

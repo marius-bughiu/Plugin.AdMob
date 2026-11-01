@@ -19,7 +19,7 @@ and then place the banner in your page.
 
 | AdSize | Width | Height |
 |---|---|---|
-| SmartBanner | Safe area width | 32/50/90 |
+| SmartBanner | Safe area width | 50–90, picked by the SDK |
 | Banner | 320 | 50 |
 | LargeBanner | 320 | 100 |
 | MediumRectangle | 300 | 250 |
@@ -29,7 +29,7 @@ and then place the banner in your page.
 
 ### Adaptive banners
 
-`SmartBanner`, the default size, is an anchored adaptive banner: it spans the width of the window's safe area, and the Google Mobile Ads SDK picks the height for that width and the current orientation. When that width changes, for example after the device rotates or the app window is resized, the banner loads a new ad sized for the new width. `IsLoaded` is `false` while the new ad loads, and `OnAdLoaded` is raised again once it arrives.
+`SmartBanner`, the default size, is an anchored adaptive banner: it spans the width of the window's safe area, and the Google Mobile Ads SDK picks the height for that width and the current orientation. When that width changes, for example after the device rotates or the app window is resized, the banner loads a new ad sized for the new width. The current ad stays on screen and `IsLoaded` stays `true` until the new ad arrives, and then `OnAdLoaded` is raised again. If the new ad fails to load, `OnAdFailedToLoad` is raised and `IsLoaded` becomes `false`, as for any failed request.
 
 ### Custom size ad
 
