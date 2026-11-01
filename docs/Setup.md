@@ -50,7 +50,7 @@ For a fully working example, check out the [samples folder](https://github.com/m
 
 1. Modify your `Platforms/iOS/Info.plist` by adding your `GADApplicationIdentifier` and `SKAdNetworkItems` as described here: [Get started with AdMob on iOS](https://developers.google.com/admob/ios/quick-start)
 
-2. Add `GADIsAdManagerApp` to your `Platforms/iOS/Info.plist`. If you publish an IDFA message in AdMob and request App Tracking Transparency (ATT) permission, also add `NSUserTrackingUsageDescription` with a clear description of why your app requests tracking:
+2. Add `GADIsAdManagerApp` to your `Platforms/iOS/Info.plist`. If your app requests App Tracking Transparency (ATT) permission, including through an AdMob IDFA message, also add `NSUserTrackingUsageDescription` with a clear description of why your app requests tracking:
 
 ```
 <key>GADIsAdManagerApp</key>

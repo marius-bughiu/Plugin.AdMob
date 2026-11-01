@@ -10,14 +10,14 @@ Google's User Messaging Platform (UMP) and Apple's App Tracking Transparency (AT
 - UMP gathers privacy choices required by regulations such as GDPR and controls whether ads can be requested.
 - ATT is the iOS system permission for tracking and access to the IDFA.
 
-If your app requests tracking permission, create and publish an **IDFA message** for the same app in AdMob's *Privacy & messaging* section. Also publish any GDPR or other regional messages your app needs. When both GDPR and IDFA messages are enabled, UMP decides which messages are required and their order based on the user's location and choices. See Google's [IDFA message guide](https://developers.google.com/admob/ios/privacy/idfa) and [message availability](https://support.google.com/admob/answer/10114014).
+If your app requests tracking permission, create and publish an **IDFA message** for the same app in AdMob's *Privacy & messaging* section. Also publish any GDPR or other regional messages your app needs. When both GDPR and IDFA messages are enabled, UMP decides which messages are required based on the user's location and choices. Right before the ATT prompt it shows one of them: the European regulations message to users who still have to make their European regulations choices (in the EEA, or everywhere if that message targets all locations), and the IDFA explainer to everyone else. See Google's [IDFA message guide](https://developers.google.com/admob/ios/privacy/idfa) and [Which message your users will see](https://support.google.com/admob/answer/10114020#which-message-your-users-will-see).
 
 With automatic consent handling enabled, use this flow:
 
 1. Configure and publish the required messages in AdMob.
 2. Add `NSUserTrackingUsageDescription` to `Platforms/iOS/Info.plist` as described in [Setup](Setup.md#ios-setup).
 3. Call `UseAdMob()` and let the plugin start the UMP flow.
-4. UMP presents the IDFA explainer, followed by the native ATT prompt when the authorization status is not yet determined.
+4. While the ATT authorization status is not determined, UMP shows that message (the IDFA explainer, or the European regulations message) and then the native ATT prompt.
 
 Don't also call `ATTrackingManager.RequestTrackingAuthorization` yourself when using an AdMob IDFA message. A separate or earlier request can reverse the intended message order or make a later consent form look like a second request to track.
 
@@ -29,17 +29,17 @@ Don't ask the user to allow tracking again in the same flow, gate app functional
 
 ### Testing the complete flow
 
-ATT is a system permission and its prompt normally appears only once per installation. `IAdConsentService.Reset()` and `ConsentDebugSettings.Reset` reset UMP state for testing, but they don't reset the iOS ATT decision. Uninstall and reinstall the app to test the ATT prompt again.
+ATT is a system permission and its prompt normally appears only once per installation. `IAdConsentService.Reset()` and `ConsentDebugSettings.Reset` reset UMP state for testing, but they don't reset the iOS ATT decision. Uninstall and reinstall the app to test the ATT prompt again. The prompt only appears while **Allow Apps to Request to Track** is on in *Settings > Privacy & Security > Tracking*.
 
 Before shipping, test a clean **Release** installation, not only a Debug build:
 
-- Confirm the IDFA explainer appears before the native ATT prompt.
+- Outside the EEA, confirm the IDFA explainer appears before the native ATT prompt.
 - Test both **Allow** and **Ask App Not to Track**.
 - Confirm ads can still load after ATT denial, without showing another tracking request.
-- Force EEA geography on a test device to verify the combined GDPR and IDFA flow.
+- With EEA geography forced on a test device (see [Forcing a geography](#forcing-a-geography)), confirm that a fresh install shows the European regulations message, followed by the native ATT prompt.
 - Confirm that the messages are published for the `GADApplicationIdentifier` used by the build.
 
-Use test ad unit IDs and consent debug settings only on registered test devices. Remove reset and forced-geography options from production builds.
+While testing, use test ad unit IDs (`AdConfig.UseTestAdUnitIds`) or register your device as a test device (`AdConfig.AddTestDevice`). Consent debug settings only take effect on test devices, as described in [Forcing a geography](#forcing-a-geography). Remove test ad unit IDs, `Reset` and forced geography from production builds.
 
 ## Opting out
 
