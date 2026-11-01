@@ -66,6 +66,7 @@ jobs:
   android:
     name: android emulator
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
         with:
@@ -128,6 +129,7 @@ jobs:
     # image has; macos-latest stops at Xcode 26.6, so the lane failed on every run from July to
     # October 2026.
     runs-on: xcode-27
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v7
         with:
