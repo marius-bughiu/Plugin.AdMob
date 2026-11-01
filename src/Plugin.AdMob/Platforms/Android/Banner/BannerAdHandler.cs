@@ -23,7 +23,6 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
     private IAdConsentService? _adConsentService;
     private SdkAdSize? _requestedAdSize;
     private SdkAdSize? _pendingAdSize;
-    private IBannerAd? _displayedAd;
     private int _latestLoad;
 
     // Loading an ad is deferred until the SDK finishes initializing, so the handler can be disconnected
@@ -106,7 +105,7 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
         return adView;
     }
 
-    private void LoadAd(AdView adView, bool resize = false)
+    private void LoadAd(AdView adView)
     {
         if (CanRequestAds() is false)
         {
@@ -122,11 +121,8 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
 
         MobileAdsInitialization.Start();
 
-        if (!resize)
-        {
-            // Reset IsLoaded before loading a new ad
-            VirtualView.SetValue(BannerAd.IsLoadedProperty, false);
-        }
+        // Reset IsLoaded before loading a new ad
+        VirtualView.SetValue(BannerAd.IsLoadedProperty, false);
 
         AdMobInitializer.RunWhenInitialized(() =>
         {
@@ -146,6 +142,11 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
             var callback = new AdLoadCallback();
             callback.Loaded += (s, ad) =>
             {
+                if (load != _latestLoad)
+                {
+                    return;
+                }
+
                 var bannerAd = ad.JavaCast<IBannerAd>();
                 if (bannerAd is not null)
                 {
@@ -160,29 +161,28 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
                     refreshCallback.AdRefreshed += (s2, e) => SafeRaise(() => VirtualView.RaiseOnAdLoaded(s2, e));
                     refreshCallback.AdFailedToRefresh += (s2, e) => SafeRaise(() => VirtualView.RaiseOnAdFailedToLoad(s2, new AdError(e.Message)));
                     bannerAd.BannerAdRefreshCallback = refreshCallback;
-
-                    ReplaceDisplayedAd(bannerAd);
                 }
 
-                if (load == _latestLoad)
-                {
-                    SafeRaise(() => VirtualView.RaiseOnAdLoaded(s, EventArgs.Empty));
-                }
+                SafeRaise(() => VirtualView.RaiseOnAdLoaded(s, EventArgs.Empty));
             };
             callback.Failed += (s, e) =>
             {
-                if (load == _latestLoad)
+                if (load != _latestLoad)
                 {
-                    SafeRaise(() => VirtualView.RaiseOnAdFailedToLoad(s, new AdError(e.Message)));
+                    return;
                 }
+
+                SafeRaise(() => VirtualView.RaiseOnAdFailedToLoad(s, new AdError(e.Message)));
             };
 
             try
             {
-                // LoadAd cancels the displayed ad's refresh, which its refresh callback would report as a failure.
-                if (_displayedAd is not null)
+                // The AdView doesn't destroy an ad it replaces, and unregistering one reports its cancelled refresh as a failure.
+                if (adView.BannerAd is { } displayedAd)
                 {
-                    _displayedAd.BannerAdRefreshCallback = null;
+                    displayedAd.BannerAdRefreshCallback = null;
+                    adView.UnregisterBannerAd();
+                    displayedAd.Destroy();
                 }
 
                 adView.LoadAd(adRequest, callback);
@@ -197,24 +197,13 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
         VirtualView.WidthRequest = adSize.Width;
     }
 
-    private void ReplaceDisplayedAd(IBannerAd bannerAd)
-    {
-        if (_displayedAd is not null)
-        {
-            _displayedAd.BannerAdRefreshCallback = null;
-            _displayedAd.Destroy();
-        }
-
-        _displayedAd = bannerAd;
-    }
-
     private void ReloadIfResized()
     {
         _pendingAdSize = null;
 
         if (!_disconnected && GetResizedAdSize() is not null)
         {
-            LoadAd(PlatformView, resize: true);
+            LoadAd(PlatformView);
         }
     }
 

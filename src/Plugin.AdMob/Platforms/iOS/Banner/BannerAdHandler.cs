@@ -91,7 +91,7 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
         return adView;
     }
 
-    private void LoadAd(BannerView adView, bool resize = false)
+    private void LoadAd(BannerView adView)
     {
         if (CanRequestAds() is false)
         {
@@ -102,11 +102,8 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
 
         MobileAdsInitialization.Start();
 
-        if (!resize)
-        {
-            // Reset IsLoaded before loading a new ad
-            VirtualView.SetValue(BannerAd.IsLoadedProperty, false);
-        }
+        // Reset IsLoaded before loading a new ad
+        VirtualView.SetValue(BannerAd.IsLoadedProperty, false);
 
         var adSize = GetAdSize(adView);
         adView.AdSize = adSize;
@@ -126,7 +123,7 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
 
         if (GetResizedAdSize() is not null)
         {
-            LoadAd(PlatformView, resize: true);
+            LoadAd(PlatformView);
         }
     }
 
