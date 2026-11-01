@@ -50,7 +50,7 @@ For a fully working example, check out the [samples folder](https://github.com/m
 
 1. Modify your `Platforms/iOS/Info.plist` by adding your `GADApplicationIdentifier` and `SKAdNetworkItems` as described here: [Get started with AdMob on iOS](https://developers.google.com/admob/ios/quick-start)
 
-2. Add `GADIsAdManagerApp` and `NSUserTrackingUsageDescription` (see [ATT](https://developer.apple.com/documentation/apptrackingtransparency)) to your `Platforms/iOS/Info.plist`:
+2. Add `GADIsAdManagerApp` to your `Platforms/iOS/Info.plist`. If you publish an IDFA message in AdMob and request App Tracking Transparency (ATT) permission, also add `NSUserTrackingUsageDescription` with a clear description of why your app requests tracking:
 
 ```
 <key>GADIsAdManagerApp</key>
@@ -58,6 +58,8 @@ For a fully working example, check out the [samples folder](https://github.com/m
 <key>NSUserTrackingUsageDescription</key>
 <string>This identifier will be used to deliver personalized ads to you.</string>
 ```
+
+See [Consent](Consent.md#ios-ump-idfa-and-att) for the recommended UMP and ATT message flow. When using an AdMob IDFA message, let UMP present the explainer and native ATT prompt; don't request ATT separately in app code.
 
 > [!NOTE]
 > Google also recommends adding [App Transport Security exceptions](https://developers.google.com/admob/ios/app-transport-security) to your `Info.plist`, as production ad creatives may serve media over non-HTTPS connections.
