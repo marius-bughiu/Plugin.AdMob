@@ -23,7 +23,7 @@ dotnet add package Plugin.AdMob
 - **MAUI-first API** — drop a `BannerAd` or `NativeAdView` into your XAML, and use dependency-injected services (`IInterstitialAdService`, `IRewardedAdService`, `IAppOpenAdService`, ...) for full-screen ads.
 - **Test ads out of the box** — set `AdConfig.UseTestAdUnitIds = true` and develop safely against Google's test ad units.
 - **Cross-platform friendly** — your app still compiles and runs on Windows and Mac Catalyst; ads are simply not shown there.
-- **Actively maintained** — built for .NET 10 and the latest .NET MAUI, on top of up-to-date Google Mobile Ads SDK bindings.
+- **Actively maintained** — built for .NET 11 and the latest .NET MAUI, on top of up-to-date Google Mobile Ads SDK bindings.
 
 ## Quick start
 

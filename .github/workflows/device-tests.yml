@@ -101,7 +101,7 @@ jobs:
           # IDE / `dotnet build -t:Run` to push them separately. Installing such an APK with
           # plain `adb install` yields an app that aborts at startup with
           # "No assemblies found in .../.__override__/x86_64" before a single line is logged.
-          dotnet build tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj -c Debug -p:TargetFrameworks=net11.0-android -p:EmbedAssembliesIntoApk=true $props
+          dotnet build tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj -c Debug -p:TargetFrameworks=net11.0-android -p:EmbedAssembliesIntoApk=true -p:UseMonoRuntime=false $props
           apk=$(find "$PWD/tests/Plugin.AdMob.DeviceTests/bin" -name '*-Signed.apk' | head -1)
           if [ -z "$apk" ]; then apk=$(find "$PWD/tests/Plugin.AdMob.DeviceTests/bin" -name '*.apk' | head -1); fi
           if [ -z "$apk" ]; then echo "::error::No APK produced"; exit 1; fi

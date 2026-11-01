@@ -37,7 +37,7 @@ The Google Mobile Ads SDK declares the activity it shows full-screen ads in, so 
 Set the minimum supported Android version to **24** in your app's `.csproj` (23 is enough on Plugin.AdMob 10.0.120.2 and earlier) — the Google Mobile Ads Next-Gen SDK depends on `androidx.webkit`, which requires API 24, and lower values cause manifest merger errors (see [Troubleshooting-Android](Troubleshooting-Android.md#androidmanifest-namespace-warnings-on-net-10--api-35)):
 
 ```
-<PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-android'">
+<PropertyGroup Condition="'$(TargetFramework)' == 'net11.0-android'">
 	<SupportedOSPlatformVersion>24.0</SupportedOSPlatformVersion>
 </PropertyGroup>
 ```
@@ -84,7 +84,7 @@ For a fully working example, check out the [samples folder](https://github.com/m
 4. Set the minimum supported iOS version to **15.0** — the Google Mobile Ads SDK requires it. Without it, starting the SDK can fail with a `NullReferenceException` on physical devices (see issue #56), and the `Jc.UMP.iOS` build targets fail unless `SupportedOSPlatformVersion` is set explicitly. In your app's `.csproj`:
 
 ```
-<PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-ios'">
+<PropertyGroup Condition="'$(TargetFramework)' == 'net11.0-ios'">
 	<SupportedOSPlatformVersion>15.0</SupportedOSPlatformVersion>
 </PropertyGroup>
 ```
