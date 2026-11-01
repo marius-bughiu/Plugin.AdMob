@@ -1,5 +1,5 @@
 using Android.Runtime;
-using Android.Util;
+using Android.Views;
 using Google.Android.Libraries.Ads.Mobile.Sdk;
 using Google.Android.Libraries.Ads.Mobile.Sdk.Banner;
 using Google.Android.Libraries.Ads.Mobile.Sdk.Common;
@@ -15,7 +15,11 @@ namespace Plugin.AdMob.Handlers;
 
 internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
 {
+    private const long ResizeDelayMilliseconds = 500;
+
     private IAdConsentService? _adConsentService;
+    private SdkAdSize? _requestedAdSize;
+    private readonly Action _reloadIfResized;
 
     // Loading an ad is deferred until the SDK finishes initializing, so the handler can be disconnected
     // (and the AdView destroyed) while a load is still queued. The queued work checks this before running.
@@ -24,11 +28,26 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
     public static IPropertyMapper<BannerAd, BannerAdHandler> PropertyMapper =
         new PropertyMapper<BannerAd, BannerAdHandler>(ViewMapper);
 
-    public BannerAdHandler() : base(PropertyMapper) { }
+    public BannerAdHandler() : base(PropertyMapper)
+    {
+        _reloadIfResized = ReloadIfResized;
+    }
+
+    public override void PlatformArrange(Rect rect)
+    {
+        base.PlatformArrange(rect);
+
+        if (AdaptiveSizeChanged())
+        {
+            PlatformView.RemoveCallbacks(_reloadIfResized);
+            PlatformView.PostDelayed(_reloadIfResized, ResizeDelayMilliseconds);
+        }
+    }
 
     protected override void DisconnectHandler(AdView platformView)
     {
         _disconnected = true;
+        platformView.RemoveCallbacks(_reloadIfResized);
 
         if (_adConsentService is not null)
         {
@@ -89,6 +108,7 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
 
         var adUnitId = GetAdUnitId()!;
         var adSize = GetAdSize();
+        _requestedAdSize = adSize;
 
         MobileAdsInitialization.Start();
 
@@ -135,6 +155,13 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
 
             try
             {
+                // The AdView doesn't destroy an ad it replaces, and destroying one reports its cancelled refresh as a failure.
+                if (adView.UnregisterBannerAd() is { } previousAd)
+                {
+                    previousAd.BannerAdRefreshCallback = null;
+                    previousAd.Destroy();
+                }
+
                 adView.LoadAd(adRequest, callback);
             }
             catch (ObjectDisposedException)
@@ -146,6 +173,20 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
         VirtualView.HeightRequest = adSize.Height;
         VirtualView.WidthRequest = adSize.Width;
     }
+
+    private void ReloadIfResized()
+    {
+        if (!_disconnected && AdaptiveSizeChanged())
+        {
+            LoadAd(PlatformView);
+        }
+    }
+
+    private bool AdaptiveSizeChanged()
+        => _requestedAdSize is not null
+            && VirtualView.AdSize is null or AdSize.SmartBanner
+            && CanRequestAds() is true
+            && !GetAdSize().Equals(_requestedAdSize);
 
     private string? GetAdUnitId()
     {
@@ -169,22 +210,20 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
             case AdSize.Custom: return new SdkAdSize(VirtualView.CustomAdWidth, VirtualView.CustomAdHeight);
 
             case AdSize.SmartBanner:
-            default: return SdkAdSize.GetCurrentOrientationAnchoredAdaptiveBannerAdSize(Context, GetScreenWidth());
+            default: return SdkAdSize.GetCurrentOrientationAnchoredAdaptiveBannerAdSize(Context, GetAdaptiveWidth());
         }
     }
 
-    private int GetScreenWidth()
+    private int GetAdaptiveWidth()
     {
-        DisplayMetrics displayMetrics;
+        var displayMetrics = Context.Resources!.DisplayMetrics!;
 
         if (OperatingSystem.IsAndroidVersionAtLeast(30))
         {
-            displayMetrics = new DisplayMetrics();
-            Context.Display!.GetMetrics(displayMetrics);
-        }
-        else
-        {
-            displayMetrics = Context.Resources!.DisplayMetrics!;
+            var windowMetrics = Context.GetSystemService(Android.Content.Context.WindowService).JavaCast<IWindowManager>()!.CurrentWindowMetrics;
+            var insets = windowMetrics.WindowInsets.GetInsets(WindowInsets.Type.SystemBars() | WindowInsets.Type.DisplayCutout());
+
+            return (int)((windowMetrics.Bounds.Width() - insets.Left - insets.Right) / displayMetrics.Density);
         }
 
         return (int)(displayMetrics.WidthPixels / displayMetrics.Density);

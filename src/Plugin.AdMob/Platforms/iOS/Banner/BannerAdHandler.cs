@@ -1,4 +1,5 @@
-﻿using Google.MobileAds;
+﻿using Foundation;
+using Google.MobileAds;
 using Microsoft.Maui.Handlers;
 using Plugin.AdMob.Configuration;
 using Plugin.AdMob.Platforms.iOS;
@@ -9,15 +10,38 @@ namespace Plugin.AdMob.Handlers;
 
 internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
 {
+    private static readonly TimeSpan ResizeDelay = TimeSpan.FromMilliseconds(500);
+
     private IAdConsentService? _adConsentService;
     private EventHandler<BannerViewErrorEventArgs>? _onReceiveAdFailed;
+    private Google.MobileAds.AdSize? _requestedAdSize;
+    private NSTimer? _resizeTimer;
 
     public static IPropertyMapper<BannerAd, BannerAdHandler> PropertyMapper
         = new PropertyMapper<BannerAd, BannerAdHandler>(ViewMapper);
     public BannerAdHandler() : base(PropertyMapper) { }
 
+    public override void PlatformArrange(Rect rect)
+    {
+        base.PlatformArrange(rect);
+
+        if (AdaptiveSizeChanged())
+        {
+            _resizeTimer?.Invalidate();
+            _resizeTimer = NSTimer.CreateScheduledTimer(ResizeDelay, _ =>
+            {
+                if (AdaptiveSizeChanged())
+                {
+                    LoadAd(PlatformView);
+                }
+            });
+        }
+    }
+
     protected override void DisconnectHandler(BannerView platformView)
     {
+        _resizeTimer?.Invalidate();
+
         if (_adConsentService is not null)
         {
             _adConsentService.OnConsentInfoUpdated -= OnConsentInfoUpdated;
@@ -38,10 +62,8 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
     {
         _adConsentService = IPlatformApplication.Current!.Services.GetRequiredService<IAdConsentService>();
 
-        var adSize = GetAdSize();
         var adView = new BannerView()
         {
-            AdSize = adSize,
             AdUnitId = GetAdUnitId()
         };
 
@@ -84,16 +106,25 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
         // Reset IsLoaded before loading a new ad
         VirtualView.SetValue(BannerAd.IsLoadedProperty, false);
 
+        var adSize = GetAdSize(adView);
+        adView.AdSize = adSize;
+        _requestedAdSize = adSize;
+
         var request = Request.GetDefaultRequest();
 
         adView.LoadRequest(request);
 
-        var adSize = GetAdSize();
         VirtualView.WidthRequest = adSize.Size.Width;
         VirtualView.HeightRequest = adSize.Size.Height;
     }
 
-    private Google.MobileAds.AdSize GetAdSize()
+    private bool AdaptiveSizeChanged()
+        => _requestedAdSize is { } requestedAdSize
+            && VirtualView.AdSize is null or AdSize.SmartBanner
+            && CanRequestAds() is true
+            && GetAdSize(PlatformView).Size != requestedAdSize.Size;
+
+    private Google.MobileAds.AdSize GetAdSize(BannerView adView)
     {
         switch (VirtualView.AdSize)
         {
@@ -105,8 +136,17 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
             case AdSize.Custom: return GetSize(VirtualView.CustomAdWidth, VirtualView.CustomAdHeight);
 
             case AdSize.SmartBanner:
-            default: return AdSizeCons.GetCurrentOrientationAnchoredAdaptiveBannerAdSize((float)UIScreen.MainScreen.Bounds.Width);
+            default: return AdSizeCons.GetCurrentOrientationAnchoredAdaptiveBannerAdSize(GetAdaptiveWidth(adView));
         }
+    }
+
+    private nfloat GetAdaptiveWidth(BannerView adView)
+    {
+        var window = adView.Window ?? VirtualView.Window?.Handler?.PlatformView as UIWindow;
+
+        return window is null
+            ? UIScreen.MainScreen.Bounds.Width
+            : window.SafeAreaInsets.InsetRect(window.Bounds).Width;
     }
 
     private Google.MobileAds.AdSize GetSize(int width, int height)
