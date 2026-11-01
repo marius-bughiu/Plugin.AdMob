@@ -57,11 +57,11 @@
 
 ### Fix / mitigation
 
-Make sure your app explicitly sets a minimum Android platform version compatible with Google Play Services. For .NET 10, set `SupportedOSPlatformVersion` to 23:
+Make sure your app explicitly sets a minimum Android platform version compatible with the Google Mobile Ads Next-Gen SDK. Set `SupportedOSPlatformVersion` to 24 (the SDK depends on `androidx.webkit`, which requires API 24 — a lower value fails the build with `uses-sdk:minSdkVersion 23 cannot be smaller than version 24 declared in library`):
 
 ```
 <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-android'">
-	<SupportedOSPlatformVersion>23.0</SupportedOSPlatformVersion>
+	<SupportedOSPlatformVersion>24.0</SupportedOSPlatformVersion>
 </PropertyGroup>
 ```
 

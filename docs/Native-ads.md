@@ -143,6 +143,12 @@ public interface INativeAd
 > [!NOTE]
 > `OnVideoStart` is supported only by Android. On iOS the first `OnVideoPlay` marks the beginning of playback.
 
+> [!NOTE]
+> `VideoClickToExpandEnabled` reports the loaded ad's actual state on iOS, but on Android it reports what was
+> requested through `VideoOptions.ClickToExpandRequested` — it is `false` when the ad was created without video
+> options. The Google Mobile Ads Next-Gen SDK no longer exposes the effective state on its video controller.
+> Requesting the behavior still works on both platforms.
+
 ### Advanced usage
 
 For more advanced scenarios, you can prepare as many `INativeAd` instances as needed and display them using the `NativeAdView`:

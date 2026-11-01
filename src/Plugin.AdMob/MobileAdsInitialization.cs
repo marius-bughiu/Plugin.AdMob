@@ -19,12 +19,7 @@ internal static class MobileAdsInitialization
         }
 
 #if ANDROID
-        var configBuilder = new Android.Gms.Ads.RequestConfiguration.Builder();
-        configBuilder.ApplyGlobalAdConfiguration();
-        Android.Gms.Ads.MobileAds.RequestConfiguration = configBuilder.Build();
-
-        var context = Android.App.Application.Context;
-        Task.Run(() => Android.Gms.Ads.MobileAds.Initialize(context));
+        AdMobInitializer.EnsureInitialized();
 #else
         Google.MobileAds.MobileAds.SharedInstance.RequestConfiguration.ApplyGlobalAdConfiguration();
         Google.MobileAds.MobileAds.SharedInstance.Start(completionHandler: null);

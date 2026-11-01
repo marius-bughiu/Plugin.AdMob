@@ -26,7 +26,7 @@ public class BannerAd : ContentView
     public event EventHandler? OnAdClicked;
 
     /// <summary>
-    /// Raised when a swipe gesture on an ad is recorded as a click. Supported only by Android.
+    /// Raised when a swipe gesture on an ad is recorded as a click. Banners no longer report swipes on either platform: the Google Mobile Ads Next-Gen SDK used on Android has no swipe event for banners.
     /// </summary>
     public event EventHandler? OnAdSwiped;
 
