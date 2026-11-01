@@ -4,10 +4,11 @@ set -euo pipefail
 # Installs the pre-built device-test APK on the booted emulator, launches it, and scrapes the
 # harness's result lines from logcat.
 #
-# Banner is the hard gate. On the hosted runner's google_apis image the full-screen formats load
-# too, but native/native-video do not (they need a Play Store image for market:// click
-# resolution), so the full set (SUMMARY_ALL) is only enforced when REQUIRE_ALL=true — i.e. against
-# a google_apis_playstore AVD on a self-hosted runner.
+# Consent, the banner and the ads requested before consent are the hard gates. On the hosted
+# runner's google_apis image the full-screen formats load too, but native/native-video do not
+# (they need a Play Store image for market:// click resolution), so the full set (SUMMARY_ALL) is
+# only enforced when REQUIRE_ALL=true — i.e. against a google_apis_playstore AVD on a self-hosted
+# runner.
 
 PKG="com.plugin.admob.devicetests"
 TAG="AdMobHarness"
@@ -77,6 +78,15 @@ if ! echo "$banner" | grep -q "status=PASS"; then
   exit 1
 fi
 
+for check in load-waits-for-consent prepare-before-consent; do
+  line=$(adb logcat -d -s "${TAG}:I" | grep -F "format=$check " | tail -1 || true)
+  if ! echo "$line" | grep -q "status=PASS"; then
+    echo "::error::An ad requested before consent didn't load once consent allowed it ($check)."
+    dump_diagnostics
+    exit 1
+  fi
+done
+
 if [ "$REQUIRE_ALL" = "true" ]; then
   if ! echo "$allline" | grep -q "status=PASS"; then
     echo "::error::Not every ad format loaded (require_all_formats=true)."
@@ -84,4 +94,4 @@ if [ "$REQUIRE_ALL" = "true" ]; then
   fi
 fi
 
-echo "Device-test gate passed (banner loaded; require_all_formats=$REQUIRE_ALL)."
+echo "Device-test gate passed (banner and ads requested before consent loaded; require_all_formats=$REQUIRE_ALL)."

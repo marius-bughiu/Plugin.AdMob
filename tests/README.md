@@ -32,7 +32,9 @@ dotnet build tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj -f n
   (package downgrade); surfaces **NU1608** (native-binding constraint drift — the issue #68 /
   #82 class) to the run summary.
 - **`device-tests.yml`** — runs the harness on an Android emulator and an iOS simulator, on every
-  PR and push to `main` (docs-only changes skipped). Both lanes gate on consent and the banner.
+  PR and push to `main` (docs-only changes skipped). Both lanes gate on consent. Android also
+  gates on the banner and on the ads requested before consent (`load-waits-for-consent`,
+  `prepare-before-consent`); iOS reports their fill and fails only if one loads before consent.
   Reusable by the nightly and the bump gate.
 - **`nightly.yml`** — 04:00 UTC. Resolves the latest published version and runs both the build
   smoke and the device tests **against the published package**.
@@ -77,7 +79,7 @@ banner gate also covers consent. The iOS harness is scene-based (`SceneDelegate`
 
 So the harness emits two summary lines and CI gates accordingly:
 
-- `SUMMARY_BANNER` → **hard gate** on any runner.
+- `SUMMARY_BANNER` → **hard gate** on Android; reported on iOS.
 - `SUMMARY_ALL` → every format; only hard-gated when `require_all_formats: true`.
 
 To get **full-format** coverage, run `device-tests.yml` (or the harness directly) against a
@@ -103,8 +105,10 @@ aborts at startup with `No assemblies found in .../.__override__/...` before log
 
 The iOS simulator job runs on the `xcode-27` image (preview). .NET for iOS on the 10.0.4xx SDK
 requires Xcode 27.1, which `macos-latest` doesn't have, so from July to October 2026 the job
-failed on every run while `continue-on-error` kept the workflow green. It now gates like Android:
-the app must start, consent must complete and the banner must load.
+failed on every run while `continue-on-error` kept the workflow green. It now gates on the app
+starting, consent completing and no ad loading before consent. Fill is reported, not gated, because
+Google's test ads sometimes time out on the iOS simulators, and GMA 12 reports some timeouts as
+`Invalid request`.
 
 ## Required checks
 
