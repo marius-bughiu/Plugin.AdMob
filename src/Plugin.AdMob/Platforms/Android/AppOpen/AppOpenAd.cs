@@ -8,8 +8,12 @@ internal partial class AppOpenAd
 {
     private Android.Gms.Ads.AppOpen.AppOpenAd? _ad;
 
-    public void Load()
+    public void Load() => _consentGate.WhenAllowed(LoadAd);
+
+    private void LoadAd()
     {
+        MobileAdsInitialization.Start();
+
         var configBuilder = new RequestConfiguration.Builder();
         configBuilder.ApplyGlobalAdConfiguration();
         MobileAds.RequestConfiguration = configBuilder.Build();
@@ -26,7 +30,7 @@ internal partial class AppOpenAd
 
     public void Show()
     {
-        if (!IsLoaded)
+        if (!TryBeginShow())
         {
             return;
         }

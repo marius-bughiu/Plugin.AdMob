@@ -18,7 +18,10 @@ internal partial class AdConsentService
             return;
         }
 
-        RequestParameters requestParameters = new();
+        RequestParameters requestParameters = new()
+        {
+            TagForUnderAgeOfConsent = AdConfig.TagForUnderAgeOfConsent is TagForUnderAgeOfConsent.True
+        };
 
         var ds = ConsentDebugSettings.Current;
         if (ds is not null)
@@ -41,6 +44,12 @@ internal partial class AdConsentService
             {
                 Debug.Write($"[Plugin.AdMob] Consent info update failed: {error.DebugDescription}");
                 OnConsentInfoFailedToUpdate?.Invoke(this, new ConsentError(error.DebugDescription));
+
+                if (CanRequestAds())
+                {
+                    OnConsentInfoUpdated?.Invoke(this, GetConsentInformation());
+                }
+
                 return;
             }
 
@@ -54,6 +63,11 @@ internal partial class AdConsentService
 
             OnConsentInfoUpdated?.Invoke(this, GetConsentInformation());
         });
+
+        if (CanRequestAds())
+        {
+            OnConsentInfoUpdated?.Invoke(this, GetConsentInformation());
+        }
     }
 
     public bool CanRequestAds()

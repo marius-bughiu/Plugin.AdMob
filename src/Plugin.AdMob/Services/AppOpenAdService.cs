@@ -8,7 +8,7 @@ namespace Plugin.AdMob.Services;
 public interface IAppOpenAdService
 {
     /// <summary>
-    /// True when an ad is ready to be presented to the user.
+    /// True when an ad is ready to be presented to the user. Turns false once the ad is shown or expires.
     /// </summary>
     public bool IsAdLoaded { get; }
 
@@ -20,7 +20,7 @@ public interface IAppOpenAdService
     IAppOpenAd CreateAd(string? adUnitId = null);
 
     /// <summary>
-    /// Preloads an ad given the specified ad unit ID. If no ad unit ID is specified, <see cref="AdConfig.DefaultAppOpenAdUnitId" /> will be used.
+    /// Preloads an ad given the specified ad unit ID. If no ad unit ID is specified, <see cref="AdConfig.DefaultAppOpenAdUnitId" /> will be used. If consent doesn't allow ad requests yet, the ad is loaded as soon as it does.
     /// </summary>
     /// <param name="adUnitId">The ad unit ID.</param>
     void PrepareAd(string? adUnitId = null);
@@ -43,8 +43,12 @@ internal class AppOpenAdService(IAdConsentService _adConsentService)
     : IAppOpenAdService
 {
     private IAppOpenAd? _appOpenAd;
+    private readonly ConsentGate _consentGate = new(_adConsentService);
+    private bool _hasPendingAd;
+    private string? _pendingAdUnitId;
+    private bool _isShowingAd;
 
-    public bool IsAdLoaded { get; private set; }
+    public bool IsAdLoaded => _appOpenAd?.IsLoaded ?? false;
 
     public event EventHandler? OnAdLoaded;
 
@@ -57,19 +61,25 @@ internal class AppOpenAdService(IAdConsentService _adConsentService)
             throw new ArgumentNullException(nameof(adUnitId), "No ad unit ID was specified, and no default app open ad unit ID has been configured.");
         }
 
-        return new AppOpenAd(adUnitId);
+        return new AppOpenAd(adUnitId, _consentGate);
     }
 
     public void PrepareAd(string? adUnitId = null)
     {
+        _adConsentService.OnConsentInfoUpdated -= OnConsentInfoUpdated;
+        _hasPendingAd = false;
+
         if (_appOpenAd is not null)
         {
-            IsAdLoaded = false;
             _appOpenAd.OnAdLoaded -= OnAdLoadedInternal;
+            _appOpenAd = null;
         }
 
         if (CanRequestAds() is false)
         {
+            _hasPendingAd = true;
+            _pendingAdUnitId = adUnitId;
+            _adConsentService.OnConsentInfoUpdated += OnConsentInfoUpdated;
             return;
         }
 
@@ -83,8 +93,15 @@ internal class AppOpenAdService(IAdConsentService _adConsentService)
 
     public void ShowAd()
     {
-        IsAdLoaded = false;
-        _appOpenAd?.Show();
+        if (_isShowingAd || _appOpenAd is not { IsLoaded: true } appOpenAd)
+        {
+            return;
+        }
+
+        _isShowingAd = true;
+        appOpenAd.OnAdDismissed += (_, _) => _isShowingAd = false;
+        appOpenAd.OnAdFailedToShow += (_, _) => _isShowingAd = false;
+        appOpenAd.Show();
     }
 
     private static string? GetAdUnitId(string? adUnitId)
@@ -94,9 +111,11 @@ internal class AppOpenAdService(IAdConsentService _adConsentService)
         {
             return AdMobTestAdUnits.OpenApp;
         }
-#endif
 
         return adUnitId ?? AdConfig.DefaultAppOpenAdUnitId;
+#else
+        return adUnitId ?? string.Empty;
+#endif
     }
 
     private bool CanRequestAds()
@@ -109,9 +128,16 @@ internal class AppOpenAdService(IAdConsentService _adConsentService)
         return _adConsentService.CanRequestAds();
     }
 
+    private void OnConsentInfoUpdated(object? sender, IConsentInformation? e)
+    {
+        if (_hasPendingAd && CanRequestAds())
+        {
+            PrepareAd(_pendingAdUnitId);
+        }
+    }
+
     private void OnAdLoadedInternal(object? sender, EventArgs e)
     {
-        IsAdLoaded = true;
         OnAdLoaded?.Invoke(sender, e);
     }
 }

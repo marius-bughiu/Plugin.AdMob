@@ -15,6 +15,10 @@ public interface IAdError
 
 internal class AdError : IAdError
 {
+    internal const string UnsupportedPlatformMessage = "Ads are only supported on Android and iOS.";
+
+    internal const string AdExpiredMessage = "The ad expired before it was shown. Load a new one.";
+
     public AdError(string message)
     {
         Message = message;

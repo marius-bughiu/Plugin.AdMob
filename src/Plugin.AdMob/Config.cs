@@ -108,6 +108,14 @@ public static class Config
         builder.Services.AddSingleton<IAdConsentService>(adConsentService);
 
 #if ANDROID || IOS
+        adConsentService.OnConsentInfoUpdated += (_, info) =>
+        {
+            if (info?.CanRequestAds is true)
+            {
+                MobileAdsInitialization.Start();
+            }
+        };
+
         if (automaticallyAskForConsent is true)
         {
             adConsentService.OnConsentInfoFailedToUpdate += (_, _) => _initialized = false;

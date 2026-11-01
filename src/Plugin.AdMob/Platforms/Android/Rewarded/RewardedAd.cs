@@ -9,8 +9,12 @@ internal partial class RewardedAd
     private Android.Gms.Ads.Rewarded.RewardedAd? _ad;
     private RewardedAdCallbacks? _callbacks;
 
-    public void Load()
+    public void Load() => _consentGate.WhenAllowed(LoadAd);
+
+    private void LoadAd()
     {
+        MobileAdsInitialization.Start();
+
         var configBuilder = new RequestConfiguration.Builder();
         configBuilder.ApplyGlobalAdConfiguration();
         MobileAds.RequestConfiguration = configBuilder.Build();
@@ -23,13 +27,12 @@ internal partial class RewardedAd
         _callbacks.WhenAdFailedToLoad += (s, e) => OnAdFailedToLoad?.Invoke(s, new AdError(e.Message));
         _callbacks.WhenUserEarnedReward += (s, e) => OnUserEarnedReward?.Invoke(s, new RewardItem(e.Amount, e.Type));
 
-        var activity = ActivityStateManager.Default.GetCurrentActivity()!;
-        Android.Gms.Ads.Rewarded.RewardedAd.Load(activity, AdUnitId, adRequest, _callbacks);
+        Android.Gms.Ads.Rewarded.RewardedAd.Load(Android.App.Application.Context, AdUnitId, adRequest, _callbacks);
     }
 
     public void Show()
     {
-        if (!IsLoaded || _ad is null)
+        if (_ad is null || !TryBeginShow())
         {
             return;
         }

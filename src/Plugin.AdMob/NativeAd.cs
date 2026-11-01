@@ -1,4 +1,5 @@
 ﻿using Plugin.AdMob.Configuration;
+using Plugin.AdMob.Services;
 
 namespace Plugin.AdMob;
 
@@ -189,8 +190,10 @@ public interface INativeAd
     void Load() => throw new NotImplementedException();
 }
 
-internal partial class NativeAd(string adUnitId, VideoOptions? videoOptions = null) : INativeAd
+internal partial class NativeAd(string adUnitId, ConsentGate consentGate, VideoOptions? videoOptions = null) : INativeAd
 {
+    private readonly ConsentGate _consentGate = consentGate;
+
     public string AdUnitId { get; } = adUnitId;
 
     public VideoOptions? VideoOptions { get; } = videoOptions;

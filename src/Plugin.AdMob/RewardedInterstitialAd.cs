@@ -1,3 +1,5 @@
+using Plugin.AdMob.Services;
+
 namespace Plugin.AdMob;
 
 /// <summary>
@@ -66,11 +68,21 @@ public interface IRewardedInterstitialAd
     void Show() => throw new NotImplementedException();
 }
 
-internal partial class RewardedInterstitialAd(string adUnitId) : IRewardedInterstitialAd
+internal partial class RewardedInterstitialAd(string adUnitId, ConsentGate consentGate) : IRewardedInterstitialAd
 {
+    private readonly ConsentGate _consentGate = consentGate;
+
+    private static readonly TimeSpan Expiry = TimeSpan.FromHours(1);
+
+    private DateTime? _loadedAt;
+
     public string AdUnitId { get; } = adUnitId;
 
-    public bool IsLoaded { get; private set; }
+    public bool IsLoaded
+    {
+        get => _loadedAt is { } loadedAt && DateTime.UtcNow - loadedAt < Expiry;
+        private set => _loadedAt = value ? DateTime.UtcNow : null;
+    }
     
     public event EventHandler? OnAdLoaded;
     public event EventHandler<IAdError>? OnAdFailedToLoad;
@@ -80,4 +92,21 @@ internal partial class RewardedInterstitialAd(string adUnitId) : IRewardedInters
     public event EventHandler? OnAdClicked;
     public event EventHandler? OnAdDismissed;
     public event EventHandler<RewardItem>? OnUserEarnedReward;
+
+    private bool TryBeginShow()
+    {
+        if (IsLoaded)
+        {
+            IsLoaded = false;
+            return true;
+        }
+
+        if (_loadedAt is not null)
+        {
+            _loadedAt = null;
+            OnAdFailedToShow?.Invoke(this, new AdError(AdError.AdExpiredMessage));
+        }
+
+        return false;
+    }
 }

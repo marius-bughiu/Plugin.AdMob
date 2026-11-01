@@ -25,7 +25,7 @@ public interface IRewardedAdService
 
 | Property | Description |
 | --- | --- |
-| `IsAdLoaded` | True when an ad is ready to be presented to the user. |
+| `IsAdLoaded` | True when an ad is ready to be presented to the user. Turns false once the ad is shown or expires (1 hour after loading). |
 
 | Event | Description |
 | --- | --- |
@@ -33,9 +33,9 @@ public interface IRewardedAdService
 
 | Method| Description |
 | --- | --- |
-| `PrepareAd` | Preloads a rewarded ad using the provided `adUnitId`. If no `adUnitId` is provided, it will use the configured default -  `AdConfig.DefaultRewardedAdUnitId`. Use the `onUserEarnedReward` callback to get notified when the user earned his reward. |
+| `PrepareAd` | Preloads a rewarded ad using the provided `adUnitId`. If no `adUnitId` is provided, it will use the configured default -  `AdConfig.DefaultRewardedAdUnitId`. Use the `onUserEarnedReward` callback to get notified when the user earned his reward. If consent doesn't allow ad requests yet, the ad loads as soon as it does. |
 | `ShowAd` | Displays the rewarded ad which was prepared when `PrepareAd` was called. If no ad was prepared, nothing will be shown. |
-| `CreateAd` | Creates a rewarded ad instance which you can use to preload and show later on. This enables you to preload multiple rewarded ads at the same time, using different ad unit IDs. If no `adUnitId` is provided, it will use configured default -  `AdConfig.DefaultRewardedAdUnitId`. |
+| `CreateAd` | Creates a rewarded ad instance which you can use to preload and show later on. This enables you to preload multiple rewarded ads at the same time, using different ad unit IDs. If no `adUnitId` is provided, it will use configured default -  `AdConfig.DefaultRewardedAdUnitId`. Calling `Load()` on it before consent allows ad requests waits and requests the ad once consent allows it. |
 
 ## Ad instance API (`IRewardedAd`)
 

@@ -8,8 +8,12 @@ internal partial class RewardedAd
 {
     private Google.MobileAds.RewardedAd? _ad;
 
-    public void Load()
+    public void Load() => _consentGate.WhenAllowed(LoadAd);
+
+    private void LoadAd()
     {
+        MobileAdsInitialization.Start();
+
         MobileAds.SharedInstance.RequestConfiguration.ApplyGlobalAdConfiguration();
         var request = Request.GetDefaultRequest();
 
@@ -18,7 +22,7 @@ internal partial class RewardedAd
 
     public void Show()
     {
-        if (!IsLoaded)
+        if (!TryBeginShow())
         {
             return;
         }

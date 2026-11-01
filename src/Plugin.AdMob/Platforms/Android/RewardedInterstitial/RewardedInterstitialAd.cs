@@ -9,8 +9,12 @@ internal partial class RewardedInterstitialAd
     private Android.Gms.Ads.RewardedInterstitial.RewardedInterstitialAd? _ad;
     private RewardedInterstitialAdCallbacks? _callbacks;
 
-    public void Load()
+    public void Load() => _consentGate.WhenAllowed(LoadAd);
+
+    private void LoadAd()
     {
+        MobileAdsInitialization.Start();
+
         var configBuilder = new RequestConfiguration.Builder();
         configBuilder.ApplyGlobalAdConfiguration();
         MobileAds.RequestConfiguration = configBuilder.Build();
@@ -36,7 +40,7 @@ internal partial class RewardedInterstitialAd
 
     public void Show()
     {
-        if (!IsLoaded)
+        if (!TryBeginShow())
         {
             return;
         }

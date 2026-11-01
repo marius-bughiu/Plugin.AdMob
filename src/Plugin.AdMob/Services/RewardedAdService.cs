@@ -8,7 +8,7 @@ namespace Plugin.AdMob.Services;
 public interface IRewardedAdService
 {
     /// <summary>
-    /// True when an ad is ready to be presented to the user.
+    /// True when an ad is ready to be presented to the user. Turns false once the ad is shown or expires.
     /// </summary>
     public bool IsAdLoaded { get; }
 
@@ -20,7 +20,7 @@ public interface IRewardedAdService
     IRewardedAd CreateAd(string? adUnitId = null);
 
     /// <summary>
-    /// Preloads an ad given the specified ad unit ID. If no ad unit ID is specified, <see cref="AdConfig.DefaultRewardedAdUnitId" /> will be used.
+    /// Preloads an ad given the specified ad unit ID. If no ad unit ID is specified, <see cref="AdConfig.DefaultRewardedAdUnitId" /> will be used. If consent doesn't allow ad requests yet, the ad is loaded as soon as it does.
     /// </summary>
     /// <param name="adUnitId">The ad unit ID.</param>
     /// <param name="onUserEarnedReward">A callback which is invoked when the user has earned a reward.</param>
@@ -44,8 +44,12 @@ internal class RewardedAdService(IAdConsentService _adConsentService)
     : IRewardedAdService
 {
     private IRewardedAd? _rewardedAd;
+    private readonly ConsentGate _consentGate = new(_adConsentService);
+    private bool _hasPendingAd;
+    private string? _pendingAdUnitId;
+    private Action<RewardItem>? _pendingOnUserEarnedReward;
 
-    public bool IsAdLoaded { get; private set; }
+    public bool IsAdLoaded => _rewardedAd?.IsLoaded ?? false;
 
     public event EventHandler? OnAdLoaded;
 
@@ -58,19 +62,26 @@ internal class RewardedAdService(IAdConsentService _adConsentService)
             throw new ArgumentNullException(nameof(adUnitId), "No ad unit ID was specified, and no default rewarded ad unit ID has been configured.");
         }
 
-        return new RewardedAd(adUnitId);
+        return new RewardedAd(adUnitId, _consentGate);
     }
 
     public void PrepareAd(string? adUnitId = null, Action<RewardItem>? onUserEarnedReward = null)
     {
+        _adConsentService.OnConsentInfoUpdated -= OnConsentInfoUpdated;
+        _hasPendingAd = false;
+
         if (_rewardedAd is not null)
         {
-            IsAdLoaded = false;
             _rewardedAd.OnAdLoaded -= OnAdLoadedInternal;
+            _rewardedAd = null;
         }
 
         if (CanRequestAds() is false)
         {
+            _hasPendingAd = true;
+            _pendingAdUnitId = adUnitId;
+            _pendingOnUserEarnedReward = onUserEarnedReward;
+            _adConsentService.OnConsentInfoUpdated += OnConsentInfoUpdated;
             return;
         }
 
@@ -88,7 +99,6 @@ internal class RewardedAdService(IAdConsentService _adConsentService)
 
     public void ShowAd()
     {
-        IsAdLoaded = false;
         _rewardedAd?.Show();
     }
     
@@ -99,9 +109,11 @@ internal class RewardedAdService(IAdConsentService _adConsentService)
         {
             return AdMobTestAdUnits.Rewarded;
         }
-#endif
 
         return adUnitId ?? AdConfig.DefaultRewardedAdUnitId;
+#else
+        return adUnitId ?? string.Empty;
+#endif
     }
 
     private bool CanRequestAds()
@@ -114,9 +126,16 @@ internal class RewardedAdService(IAdConsentService _adConsentService)
         return _adConsentService.CanRequestAds();
     }
 
+    private void OnConsentInfoUpdated(object? sender, IConsentInformation? e)
+    {
+        if (_hasPendingAd && CanRequestAds())
+        {
+            PrepareAd(_pendingAdUnitId, _pendingOnUserEarnedReward);
+        }
+    }
+
     private void OnAdLoadedInternal(object? sender, EventArgs e)
     {
-        IsAdLoaded = true;
         OnAdLoaded?.Invoke(sender, e);
     }
 }

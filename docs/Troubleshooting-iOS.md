@@ -14,11 +14,7 @@
   - `SKAdNetworkItems`
   - `GADIsAdManagerApp`
   - `NSUserTrackingUsageDescription` (if you request tracking permission)
-- **Initialize the SDK** in your `Platforms/iOS/AppDelegate.cs`:
-
-```
-Google.MobileAds.MobileAds.SharedInstance.Start(completionHandler: null);
-```
+- **Don't start the SDK before consent.** The plugin starts it once consent allows ad requests. If your `AppDelegate` still calls `Google.MobileAds.MobileAds.SharedInstance.Start(...)` in `CreateMauiApp()` (older versions of the setup guide asked for it), remove the call.
 
 - If you see `GADInvalidInitializationException` mentioning initialization: ensure `GADIsAdManagerApp` exists and is set to `true` (see closed issue #21).
 
@@ -27,11 +23,11 @@ Google.MobileAds.MobileAds.SharedInstance.Start(completionHandler: null);
 - [`#21`](https://github.com/marius-bughiu/Plugin.AdMob/issues/21) (iOS crash with `GADInvalidInitializationException`)
 - [`#58`](https://github.com/marius-bughiu/Plugin.AdMob/issues/58) (TestFlight crash; typically points to iOS configuration differences between debug and distribution)
 
-## NullReferenceException from `MobileAds.SharedInstance.Start(...)` on a physical device
+## NullReferenceException when the Mobile Ads SDK starts on a physical device
 
 ### Symptoms
 
-- `An error occurred: 'Object reference not set to an instance of an object.'` thrown from `AppDelegate.CreateMauiApp()` at the `Google.MobileAds.MobileAds.SharedInstance.Start(...)` call.
+- `An error occurred: 'Object reference not set to an instance of an object.'` thrown when the SDK starts, for example from a `Google.MobileAds.MobileAds.SharedInstance.Start(...)` call in `AppDelegate.CreateMauiApp()`.
 - Typically reproduces on a physical device; the simulator may appear fine.
 
 ### Root cause

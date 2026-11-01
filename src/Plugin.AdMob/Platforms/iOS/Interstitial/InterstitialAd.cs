@@ -8,8 +8,12 @@ internal partial class InterstitialAd
 {
     private Google.MobileAds.InterstitialAd? _ad;
 
-    public void Load()
+    public void Load() => _consentGate.WhenAllowed(LoadAd);
+
+    private void LoadAd()
     {
+        MobileAdsInitialization.Start();
+
         MobileAds.SharedInstance.RequestConfiguration.ApplyGlobalAdConfiguration();
         var request = Request.GetDefaultRequest();
 
@@ -18,7 +22,7 @@ internal partial class InterstitialAd
 
     public void Show()
     {
-        if (!IsLoaded)
+        if (!TryBeginShow())
         {
             return;
         }
