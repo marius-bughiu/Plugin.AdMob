@@ -6,7 +6,7 @@
 		This is a MAUI class library (not an app) that references the PUBLISHED
 		Plugin.AdMob NuGet package across every target framework the package ships.
 		Its only job is to prove that the shipped .nupkg and its transitive native
-		binding graph (Xamarin.GooglePlayServices.Ads.Lite, Jc.GMA.iOS, Jc.UMP.iOS,
+		binding graph (Xamarin.Google.Android.Libraries.Ads.Mobile.Sdk, Jc.GMA.iOS, Jc.UMP.iOS,
 		Xamarin.AndroidX.*.Ktx, ...) still restore and compile for a consumer.
 
 		It deliberately does NOT ProjectReference src/Plugin.AdMob — testing the
@@ -41,7 +41,7 @@
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-android'">
-		<SupportedOSPlatformVersion>23.0</SupportedOSPlatformVersion>
+		<SupportedOSPlatformVersion>24.0</SupportedOSPlatformVersion>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">

@@ -32,7 +32,7 @@
 
   Note: updating your app's `Microsoft.Maui.Controls` version does **not** fix this — the duplicate variants come from the Ads SDK's dependency graph, not MAUI's.
 
-- **If you use Firebase and hit duplicate Google measurement classes** (see issues #29 and #55, e.g. `Type com.google.android.gms.internal.measurement.zzbm is defined multiple times`): the Google "measurement" classes ship in both `Xamarin.GooglePlayServices.Measurement.*` (pulled in by this plugin via `Xamarin.GooglePlayServices.Ads.Lite`) and `Xamarin.Firebase.Analytics` (pulled in by Plugin.Firebase). The build only works when the whole family resolves to the same Google release train. Align them by referencing `Xamarin.Firebase.Analytics` directly in your app at the version matching the resolved `Xamarin.GooglePlayServices.Measurement.Base` (check `obj/project.assets.json`). Verified with Plugin.Firebase 4.2.1 and Xamarin.GooglePlayServices.Ads.Lite 124.0.0.6:
+- **If you use Firebase and hit duplicate Google measurement classes** (see issues #29 and #55, e.g. `Type com.google.android.gms.internal.measurement.zzbm is defined multiple times`): the Google "measurement" classes ship in both `Xamarin.GooglePlayServices.Measurement.*` (pulled in by this plugin via `Xamarin.GooglePlayServices.Ads.Lite` on 10.0.120.2 and earlier; the Next-Gen SDK used from 10.0.120.3-beta.1 doesn't depend on them) and `Xamarin.Firebase.Analytics` (pulled in by Plugin.Firebase). The build only works when the whole family resolves to the same Google release train. Align them by referencing `Xamarin.Firebase.Analytics` directly in your app at the version matching the resolved `Xamarin.GooglePlayServices.Measurement.Base` (check `obj/project.assets.json`). Verified with Plugin.Firebase 4.2.1 and Xamarin.GooglePlayServices.Ads.Lite 124.0.0.6:
 
 ```
 <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-android'">
@@ -81,15 +81,15 @@ warning NU1608: Detected package version outside of dependency constraint: Xamar
 
 ### Root cause
 
-Google Play Services (pulled in via `Xamarin.GooglePlayServices.Ads.Lite`) depends on older `Xamarin.AndroidX.*.Ktx` packages, whose declared upper bounds don't admit the newer AndroidX base packages that .NET MAUI resolves. The pairs are compatible in practice — NU1608 is a warning, not an error — but the noise is legitimate to want gone.
+The Google Mobile Ads SDK's dependencies (Google Play Services through `Xamarin.GooglePlayServices.Ads.Lite` on 10.0.120.2 and earlier, the Next-Gen SDK from 10.0.120.3-beta.1) declare upper bounds on AndroidX packages that don't admit the newer versions .NET MAUI resolves. The pairs are compatible in practice — NU1608 is a warning, not an error — but the noise is legitimate to want gone.
 
 ### Fix / mitigation
 
-Reference the `Ktx` packages directly in your app project at versions aligned with the resolved base packages. Verified to produce zero NU1608 warnings with Plugin.AdMob 10.0.80-beta.7 and .NET MAUI 10.0.80 (the sample apps carry the same set):
+Reference the `Ktx` packages directly in your app project at versions aligned with the resolved base packages. The sample apps carry this set:
 
 ```
 <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-android'">
-	<PackageReference Include="Xamarin.AndroidX.Fragment.Ktx" Version="1.8.9.4" />
+	<PackageReference Include="Xamarin.AndroidX.Fragment.Ktx" Version="1.9.1" />
 	<PackageReference Include="Xamarin.AndroidX.Collection.Ktx" Version="1.6.0.1" />
 	<PackageReference Include="Xamarin.AndroidX.Activity.Ktx" Version="1.13.0.1" />
 	<PackageReference Include="Xamarin.AndroidX.Lifecycle.ViewModel.Ktx" Version="2.11.0.1" />
@@ -99,6 +99,8 @@ Reference the `Ktx` packages directly in your app project at versions aligned wi
 	<PackageReference Include="Xamarin.AndroidX.Lifecycle.Process" Version="2.11.0.1" />
 </ItemGroup>
 ```
+
+From 10.0.120.3-beta.1 the plugin itself requires `Xamarin.AndroidX.Fragment.Ktx` 1.9.1, so an older version is a package downgrade (NU1605). With this set, one warning remains, and it's harmless: `Xamarin.AndroidX.AppCompat` 1.7.1.1 accepts `Xamarin.AndroidX.AppCompat.AppCompatResources` only below 1.7.2, while the SDK's dependencies bring 1.8.0. On 10.0.120.2 and earlier, use `Xamarin.AndroidX.Fragment.Ktx` 1.8.9.4 instead; that set was verified to produce zero NU1608 warnings with Plugin.AdMob 10.0.80-beta.7 and .NET MAUI 10.0.80.
 
 If new NU1608 warnings appear after a MAUI or plugin update, adjust the pinned versions to match the newly resolved base packages (check the warnings themselves or `obj/project.assets.json`).
 
