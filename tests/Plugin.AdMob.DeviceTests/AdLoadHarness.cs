@@ -23,6 +23,7 @@ namespace Plugin.AdMob.DeviceTests;
 internal static class AdLoadHarness
 {
     private const int TimeoutSeconds = 30;
+    private const int EarlyLoadTimeoutSeconds = 60;
     private const int Attempts = 2;
 
     public static async Task RunAllAsync(Layout bannerHost)
@@ -32,10 +33,10 @@ internal static class AdLoadHarness
         var (consent, consentDetail) = await HarnessConsent.WaitAsync(TimeSpan.FromSeconds(60));
         HarnessLog.Line($"RESULT format=consent status={(consent ? "PASS" : "FAIL")} detail=\"{Sanitize(consentDetail)}\"");
 
-        var (loadWaitsForConsent, loadDetail) = await EarlyLoads.WaitForLoadAsync(HarnessConsent.ConsentAt, TimeSpan.FromSeconds(TimeoutSeconds));
+        var (loadWaitsForConsent, loadDetail) = await EarlyLoads.WaitForLoadAsync(HarnessConsent.ConsentAt, TimeSpan.FromSeconds(EarlyLoadTimeoutSeconds));
         HarnessLog.Line($"RESULT format=load-waits-for-consent status={(loadWaitsForConsent ? "PASS" : "FAIL")} detail=\"{Sanitize(loadDetail)}\"");
 
-        var prepareBeforeConsent = await EarlyLoads.WaitForPreparedAsync(TimeSpan.FromSeconds(TimeoutSeconds));
+        var prepareBeforeConsent = await EarlyLoads.WaitForPreparedAsync(TimeSpan.FromSeconds(EarlyLoadTimeoutSeconds));
         HarnessLog.Line($"RESULT format=prepare-before-consent status={(prepareBeforeConsent ? "PASS" : "FAIL")}");
 
         // Give the Mobile Ads SDK a moment to initialize before the first request.

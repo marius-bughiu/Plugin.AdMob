@@ -18,12 +18,7 @@ internal static class MobileAdsInitialization
             return;
         }
 
-#if ANDROID
         AdMobInitializer.EnsureInitialized();
-#else
-        Google.MobileAds.MobileAds.SharedInstance.RequestConfiguration.ApplyGlobalAdConfiguration();
-        Google.MobileAds.MobileAds.SharedInstance.Start(completionHandler: null);
-#endif
     }
 }
 #endif
