@@ -1,0 +1,7 @@
+<Project>
+
+	<ItemGroup Condition="'$(TargetPlatformIdentifier)' == 'android'">
+		<ProguardConfiguration Include="$(MSBuildThisFileDirectory)Plugin.AdMob.proguard.cfg" Visible="false" />
+	</ItemGroup>
+
+</Project>
