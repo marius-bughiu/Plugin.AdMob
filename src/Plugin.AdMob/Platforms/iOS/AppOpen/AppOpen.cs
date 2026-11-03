@@ -14,10 +14,13 @@ internal partial class AppOpenAd
     {
         MobileAdsInitialization.Start();
 
-        MobileAds.SharedInstance.RequestConfiguration.ApplyGlobalAdConfiguration();
-        var request = Request.GetDefaultRequest();
+        AdMobInitializer.RunWhenInitialized(() =>
+        {
+            MobileAds.SharedInstance.RequestConfiguration.ApplyGlobalAdConfiguration();
+            var request = Request.GetDefaultRequest();
 
-        Google.MobileAds.AppOpenAd.Load(AdUnitId, request, AdLoaded);
+            Google.MobileAds.AppOpenAd.Load(AdUnitId, request, AdLoaded);
+        });
     }
 
     public void Show()

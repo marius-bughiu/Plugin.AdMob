@@ -6,7 +6,8 @@
 public enum AdSize
 {
     /// <summary>
-    /// A dynamically sized banner that is full-width and auto-height.
+    /// An anchored adaptive banner that spans the width of the window's safe area, with a height picked by the SDK.
+    /// It loads a new ad when that width changes, for example after the device rotates.
     /// </summary>
     SmartBanner,
 

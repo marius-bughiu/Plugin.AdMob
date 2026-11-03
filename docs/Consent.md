@@ -3,6 +3,44 @@ Starting with version `1.3.0` of the plugin, consent is handled automatically us
 > [!NOTE]
 > For consent to work, you need to configure all the dialogs in AdMob’s *Privacy & messaging* section.
 
+## iOS: UMP, IDFA, and ATT
+
+Google's User Messaging Platform (UMP) and Apple's App Tracking Transparency (ATT) serve different purposes:
+
+- UMP gathers privacy choices required by regulations such as GDPR and controls whether ads can be requested.
+- ATT is the iOS system permission for tracking and access to the IDFA.
+
+If your app requests tracking permission, create and publish an **IDFA message** for the same app in AdMob's *Privacy & messaging* section. Also publish any GDPR or other regional messages your app needs. When both GDPR and IDFA messages are enabled, UMP decides which messages are required based on the user's location and choices. Right before the ATT prompt it shows one of them: the European regulations message to users who still have to make their European regulations choices (in the EEA, or everywhere if that message targets all locations), and the IDFA explainer to everyone else. See Google's [IDFA message guide](https://developers.google.com/admob/ios/privacy/idfa) and [Which message your users will see](https://support.google.com/admob/answer/10114020#which-message-your-users-will-see).
+
+With automatic consent handling enabled, use this flow:
+
+1. Configure and publish the required messages in AdMob.
+2. Add `NSUserTrackingUsageDescription` to `Platforms/iOS/Info.plist` as described in [Setup](Setup.md#ios-setup).
+3. Call `UseAdMob()` and let the plugin start the UMP flow.
+4. While the ATT authorization status is not determined, UMP shows that message (the IDFA explainer, or the European regulations message) and then the native ATT prompt.
+
+Don't also call `ATTrackingManager.RequestTrackingAuthorization` yourself when using an AdMob IDFA message. A separate or earlier request can reverse the intended message order or make a later consent form look like a second request to track.
+
+### When the user denies tracking
+
+ATT denial does not mean that all ads must be disabled. Google states that ads can still be requested without the IDFA. The plugin continues once UMP reports that ads can be requested, while the Google Mobile Ads SDK omits the IDFA from its requests.
+
+Don't ask the user to allow tracking again in the same flow, gate app functionality on ATT approval, or treat a GDPR choice as overriding an ATT denial. Any separate regional privacy message must clearly describe its own data use and remain consistent with the ATT choice. Apple explains these requirements in [User Privacy and Data Use](https://developer.apple.com/app-store/user-privacy-and-data-use/).
+
+### Testing the complete flow
+
+ATT is a system permission and its prompt normally appears only once per installation. `IAdConsentService.Reset()` and `ConsentDebugSettings.Reset` reset UMP state for testing, but they don't reset the iOS ATT decision. Uninstall and reinstall the app to test the ATT prompt again. The prompt only appears while **Allow Apps to Request to Track** is on in *Settings > Privacy & Security > Tracking*.
+
+Before shipping, test a clean **Release** installation, not only a Debug build:
+
+- Outside the EEA, confirm the IDFA explainer appears before the native ATT prompt.
+- Test both **Allow** and **Ask App Not to Track**.
+- Confirm ads can still load after ATT denial, without showing another tracking request.
+- With EEA geography forced on a test device (see [Forcing a geography](#forcing-a-geography)), confirm that a fresh install shows the European regulations message, followed by the native ATT prompt.
+- Confirm that the messages are published for the `GADApplicationIdentifier` used by the build.
+
+While testing, use test ad unit IDs (`AdConfig.UseTestAdUnitIds`) or register your device as a test device (`AdConfig.AddTestDevice`). Consent debug settings only take effect on test devices, as described in [Forcing a geography](#forcing-a-geography). Remove test ad unit IDs, `Reset` and forced geography from production builds.
+
 ## Opting out
 
 The `UseAdMob` method allows you to opt out of automatic consent handling in one of two ways:
