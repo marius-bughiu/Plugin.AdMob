@@ -6,9 +6,11 @@ name: Device tests
 # (source), and is reusable (workflow_call) for the nightly job (published package) and the
 # MAUI auto-bump gate (source).
 #
-# GATING MODEL — banner is the hard gate. Measured on the hosted runner (headless, software GPU,
-# google_apis): banner and all four full-screen formats load; native/native-video do not, because
-# native demo creatives need market:// click resolution and therefore a Play Store system image.
+# GATING MODEL — consent, the banner and the ads requested before consent are the hard gates on
+# Android; iOS gates on consent and reports fill. Measured on the hosted runner (headless,
+# software GPU, google_apis): banner and all four full-screen formats load; native/native-video
+# do not, because native demo creatives need market:// click resolution and therefore a Play Store
+# system image.
 # Set require_all_formats: true only against a google_apis_playstore AVD on a self-hosted runner.
 
 on:
@@ -207,8 +209,17 @@ jobs:
             echo "::error::Automatic consent never completed, so no consent-gated ad can load."
             exit 1
           fi
-          # Google's test ads intermittently answer "Invalid request" or time out on the iOS 27
-          # simulators, so fill on iOS is reported, not gated.
+          if grep -F "format=load-waits-for-consent " sim.log | grep -q "loaded before consent"; then
+            echo "::error::An ad requested before consent loaded before consent allowed it."
+            exit 1
+          fi
+          # Google's test ads sometimes time out on the iOS simulators, and GMA 12 reports some
+          # timeouts as "Invalid request", so fill on iOS is reported, not gated.
+          for check in load-waits-for-consent prepare-before-consent; do
+            if ! grep -F "format=$check " sim.log | grep -q "status=PASS"; then
+              echo "::warning::The ad requested before consent didn't load on the iOS simulator ($check)."
+            fi
+          done
           if ! grep -F "SUMMARY_BANNER" sim.log | tail -1 | grep -q "status=PASS"; then
             echo "::warning::Banner ad didn't load on the iOS simulator (fill is advisory on iOS)."
           fi
