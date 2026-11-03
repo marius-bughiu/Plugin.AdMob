@@ -142,6 +142,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ needs.build.outputs.tag }}
+          VERSION: ${{ needs.build.outputs.version }}
           PRERELEASE: ${{ needs.build.outputs.prerelease }}
         run: |
           gh release view $env:TAG --repo $env:GITHUB_REPOSITORY *> $null
@@ -149,6 +150,12 @@ jobs:
             Write-Output "Release $env:TAG already exists; leaving it as is."
             exit 0
           }
-          $flags = @('--latest')
-          if ($env:PRERELEASE -eq 'True') { $flags = @('--prerelease', '--latest=false') }
+          $flags = @('--prerelease', '--latest=false')
+          if ($env:PRERELEASE -ne 'True') {
+            $newest = gh release list --repo $env:GITHUB_REPOSITORY --exclude-drafts --exclude-pre-releases --limit 1000 --json tagName --jq '.[].tagName' |
+              ForEach-Object { $v = $null; if ([version]::TryParse(($_ -replace '^v', ''), [ref]$v)) { $v } } |
+              Sort-Object -Descending | Select-Object -First 1
+            $latest = $null -eq $newest -or [version]$env:VERSION -ge $newest
+            $flags = @("--latest=$($latest.ToString().ToLowerInvariant())")
+          }
           gh release create $env:TAG --repo $env:GITHUB_REPOSITORY --verify-tag --title $env:TAG --generate-notes @flags (Get-ChildItem "${{ env.NuGetDirectory }}" -Filter *.nupkg).FullName
