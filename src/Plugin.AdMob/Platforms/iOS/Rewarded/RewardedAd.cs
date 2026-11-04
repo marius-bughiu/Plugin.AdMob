@@ -20,7 +20,7 @@ internal partial class RewardedAd
             var request = Request.GetDefaultRequest();
 
             Google.MobileAds.RewardedAd.Load(AdUnitId, request, AdLoaded);
-        });
+        }, ex => OnAdFailedToLoad?.Invoke(this, new AdError(ex)));
     }
 
     public void Show()

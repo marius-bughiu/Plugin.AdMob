@@ -59,6 +59,11 @@
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
 	</ItemGroup>
 
+	<!-- Checks that use API newer than the published package are compiled for source builds only. -->
+	<PropertyGroup Condition="'$(UsePublishedAdMob)' != 'true'">
+		<DefineConstants>$(DefineConstants);ADMOB_SOURCE</DefineConstants>
+	</PropertyGroup>
+
 	<!-- SOURCE reference (default): validates the code on this branch. -->
 	<ItemGroup Condition="'$(UsePublishedAdMob)' != 'true'">
 		<ProjectReference Include="..\..\src\Plugin.AdMob\Plugin.AdMob.csproj" />

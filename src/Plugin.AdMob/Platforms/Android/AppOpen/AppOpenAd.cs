@@ -30,7 +30,7 @@ internal partial class AppOpenAd
             callback.Failed += (s, e) => OnAdFailedToLoad?.Invoke(this, new AdError(e.Message));
 
             SdkAppOpenAd.Load(adRequest, callback);
-        });
+        }, ex => OnAdFailedToLoad?.Invoke(this, new AdError(ex)));
     }
 
     public void Show()

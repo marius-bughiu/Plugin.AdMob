@@ -167,6 +167,8 @@ nativeAd.Load();
 
 `Load()` only requests an ad once consent allows it (`IAdConsentService.CanRequestAds()`, unless you disabled the consent check). Called earlier, it waits for consent and requests the ad then.
 
+If sending the ad request throws, for example inside the Google Mobile Ads SDK, `Load()` doesn't throw: it raises `OnAdFailedToLoad` with the exception's type and message in `IAdError.Message`. A `NativeAdView` forwards it through its own `OnAdFailedToLoad`.
+
 To obtain the service:
 
 ```
