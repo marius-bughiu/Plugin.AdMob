@@ -37,6 +37,13 @@ public interface IAppOpenAdService
     /// event handler of the IAppOpenAd returned by the method.
     /// </summary>
     event EventHandler OnAdLoaded;
+
+    /// <summary>
+    /// Raised when the ad requested by <see cref="PrepareAd" /> fails to load.
+    /// Note: This is not a catch-all event handler. When using <see cref="CreateAd" />, you should register to the ad failed to load
+    /// event handler of the IAppOpenAd returned by the method.
+    /// </summary>
+    event EventHandler<IAdError> OnAdFailedToLoad;
 }
 
 internal class AppOpenAdService(IAdConsentService _adConsentService) 
@@ -51,6 +58,7 @@ internal class AppOpenAdService(IAdConsentService _adConsentService)
     public bool IsAdLoaded => _appOpenAd?.IsLoaded ?? false;
 
     public event EventHandler? OnAdLoaded;
+    public event EventHandler<IAdError>? OnAdFailedToLoad;
 
     public IAppOpenAd CreateAd(string? adUnitId = null)
     {
@@ -72,6 +80,7 @@ internal class AppOpenAdService(IAdConsentService _adConsentService)
         if (_appOpenAd is not null)
         {
             _appOpenAd.OnAdLoaded -= OnAdLoadedInternal;
+            _appOpenAd.OnAdFailedToLoad -= OnAdFailedToLoadInternal;
             _appOpenAd = null;
         }
 
@@ -85,6 +94,7 @@ internal class AppOpenAdService(IAdConsentService _adConsentService)
 
         var appOpenAd = CreateAd(adUnitId);
         appOpenAd.OnAdLoaded += OnAdLoadedInternal;
+        appOpenAd.OnAdFailedToLoad += OnAdFailedToLoadInternal;
 
         appOpenAd.Load();
 
@@ -139,5 +149,10 @@ internal class AppOpenAdService(IAdConsentService _adConsentService)
     private void OnAdLoadedInternal(object? sender, EventArgs e)
     {
         OnAdLoaded?.Invoke(sender, e);
+    }
+
+    private void OnAdFailedToLoadInternal(object? sender, IAdError e)
+    {
+        OnAdFailedToLoad?.Invoke(sender, e);
     }
 }

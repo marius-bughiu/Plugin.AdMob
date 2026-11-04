@@ -38,6 +38,13 @@ public interface IRewardedAdService
     /// event handler of the IRewardedAd returned by the method.
     /// </summary>
     event EventHandler OnAdLoaded;
+
+    /// <summary>
+    /// Raised when the ad requested by <see cref="PrepareAd" /> fails to load.
+    /// Note: This is not a catch-all event handler. When using <see cref="CreateAd" />, you should register to the ad failed to load
+    /// event handler of the IRewardedAd returned by the method.
+    /// </summary>
+    event EventHandler<IAdError> OnAdFailedToLoad;
 }
 
 internal class RewardedAdService(IAdConsentService _adConsentService) 
@@ -52,6 +59,7 @@ internal class RewardedAdService(IAdConsentService _adConsentService)
     public bool IsAdLoaded => _rewardedAd?.IsLoaded ?? false;
 
     public event EventHandler? OnAdLoaded;
+    public event EventHandler<IAdError>? OnAdFailedToLoad;
 
     public IRewardedAd CreateAd(string? adUnitId = null)
     {
@@ -73,6 +81,7 @@ internal class RewardedAdService(IAdConsentService _adConsentService)
         if (_rewardedAd is not null)
         {
             _rewardedAd.OnAdLoaded -= OnAdLoadedInternal;
+            _rewardedAd.OnAdFailedToLoad -= OnAdFailedToLoadInternal;
             _rewardedAd = null;
         }
 
@@ -87,6 +96,7 @@ internal class RewardedAdService(IAdConsentService _adConsentService)
 
         var rewardedAd = CreateAd(adUnitId);
         rewardedAd.OnAdLoaded += OnAdLoadedInternal;
+        rewardedAd.OnAdFailedToLoad += OnAdFailedToLoadInternal;
 
         if (onUserEarnedReward != null)
         {
@@ -137,5 +147,10 @@ internal class RewardedAdService(IAdConsentService _adConsentService)
     private void OnAdLoadedInternal(object? sender, EventArgs e)
     {
         OnAdLoaded?.Invoke(sender, e);
+    }
+
+    private void OnAdFailedToLoadInternal(object? sender, IAdError e)
+    {
+        OnAdFailedToLoad?.Invoke(sender, e);
     }
 }

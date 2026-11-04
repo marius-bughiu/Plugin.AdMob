@@ -25,5 +25,10 @@ internal class AdError : IAdError
         Debug.WriteLine($"[Plugin.AdMob] Ad error: {message}");
     }
 
+    public AdError(Exception exception)
+        : this($"{exception.GetType().FullName}: {exception.Message}")
+    {
+    }
+
     public string Message { get; }
 }

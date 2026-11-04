@@ -4,6 +4,7 @@ using Google.Android.Libraries.Ads.Mobile.Sdk;
 using Google.Android.Libraries.Ads.Mobile.Sdk.Common;
 using Google.Android.Libraries.Ads.Mobile.Sdk.Initialization;
 using System.Diagnostics;
+using SdkIInitializationStatus = Google.Android.Libraries.Ads.Mobile.Sdk.Initialization.IInitializationStatus;
 
 namespace Plugin.AdMob.Platforms.Android;
 
@@ -18,7 +19,19 @@ internal static class AdMobInitializer
 
     internal static void EnsureInitialized() => RunWhenInitialized(null);
 
-    internal static void RunWhenInitialized(Action? onInitialized)
+    internal static void RunWhenInitialized(Action request, Action<Exception> onFailed) => RunWhenInitialized(() =>
+    {
+        try
+        {
+            request();
+        }
+        catch (Exception ex)
+        {
+            MainThread.BeginInvokeOnMainThread(() => onFailed(ex));
+        }
+    });
+
+    private static void RunWhenInitialized(Action? onInitialized)
     {
         bool initialized;
         var start = false;
@@ -117,7 +130,7 @@ internal static class AdMobInitializer
         }
     }
 
-    private static void OnInitializationComplete()
+    private static void OnInitializationComplete(SdkIInitializationStatus status)
     {
         List<Action> callbacks;
 
@@ -132,20 +145,15 @@ internal static class AdMobInitializer
         {
             foreach (var callback in callbacks)
             {
-                try
-                {
-                    callback();
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"[Plugin.AdMob] A queued ad request failed after initialization: {ex.Message}");
-                }
+                callback();
             }
         });
+
+        MobileAdsInitialization.Complete(status.ToInitializationStatus);
     }
 
     private sealed class InitializationCompleteListener : Java.Lang.Object, IOnAdapterInitializationCompleteListener
     {
-        public void OnAdapterInitializationComplete(IInitializationStatus status) => OnInitializationComplete();
+        public void OnAdapterInitializationComplete(SdkIInitializationStatus status) => OnInitializationComplete(status);
     }
 }

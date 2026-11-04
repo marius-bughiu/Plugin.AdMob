@@ -25,6 +25,10 @@ dotnet build tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj -f n
   -p:UsePublishedAdMob=true -p:AdMobPackageVersion=10.0.90 -p:MauiVersion=10.0.90
 ```
 
+Source builds of the harness define `ADMOB_SOURCE`. Checks of API that no published package has
+yet are compiled only when it's defined, so the nightly can still build the harness against the
+latest release. Remove the condition once a release has the API.
+
 ## Workflows
 
 - **`build.yml`** — source-build gate on every PR and every push to `main` or a `support/*`
