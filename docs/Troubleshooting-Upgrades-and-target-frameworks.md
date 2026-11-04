@@ -1,5 +1,7 @@
 ## Troubleshooting (Upgrades & target frameworks)
 
+For what to change when you update the plugin, for example 10.0.120.3's Android API 24 minimum, `Xamarin.AndroidX.Fragment.Ktx` 1.9.1 requirement and legacy SDK conflicts, see [Upgrading](Upgrading.md).
+
 ## “Package is not compatible with netX.Y-windows...”
 
 ### Symptoms
