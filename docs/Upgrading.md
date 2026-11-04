@@ -10,13 +10,15 @@ These notes cover the changes since 10.0.120.2. If you're upgrading from an olde
 
 #### Set the minimum Android version to 24
 
-The Next-Gen SDK requires API 24; 10.0.120.2 needed 23. Set the Android `SupportedOSPlatformVersion` in your app's `.csproj` to 24.0. MAUI's app template sets it to 21.0 in the first `PropertyGroup`, so change that value, or add this `PropertyGroup` after it:
+The Next-Gen SDK requires API 24; 10.0.120.2 needed 23. Raise the Android `SupportedOSPlatformVersion` in your app's `.csproj` to 24.0. If you followed the [setup guide](Setup.md#android-setup) for 10.0.120.2 or earlier, change the 23.0 in this `PropertyGroup`:
 
 ```
 <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-android'">
 	<SupportedOSPlatformVersion>24.0</SupportedOSPlatformVersion>
 </PropertyGroup>
 ```
+
+Changing only the 21.0 that MAUI's app template sets in the first `PropertyGroup` doesn't help then, because MSBuild uses the last value the project sets. If your project has no such `PropertyGroup`, change the template's value, or add the one above at the end of the project.
 
 A lower value fails the build in the manifest merger with `uses-sdk:minSdkVersion 23 cannot be smaller than version 24 declared in library`. This drops support for devices on API 23.
 
