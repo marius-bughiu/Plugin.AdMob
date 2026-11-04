@@ -96,9 +96,8 @@ internal class AppOpenAdService(IAdConsentService _adConsentService)
         appOpenAd.OnAdLoaded += OnAdLoadedInternal;
         appOpenAd.OnAdFailedToLoad += OnAdFailedToLoadInternal;
 
-        appOpenAd.Load();
-
         _appOpenAd = appOpenAd;
+        appOpenAd.Load();
     }
 
     public void ShowAd()

@@ -95,9 +95,8 @@ internal class InterstitialAdService(IAdConsentService _adConsentService)
         interstitialAd.OnAdLoaded += OnAdLoadedInternal;
         interstitialAd.OnAdFailedToLoad += OnAdFailedToLoadInternal;
 
-        interstitialAd.Load();
-
         _interstitialAd = interstitialAd;
+        interstitialAd.Load();
     }
 
     public void ShowAd()

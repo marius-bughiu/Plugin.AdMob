@@ -27,7 +27,7 @@ internal static class AdMobInitializer
         }
         catch (Exception ex)
         {
-            MainThread.BeginInvokeOnMainThread(() => onFailed(ex));
+            MainThreadDispatcher.Post(() => onFailed(ex));
         }
     });
 

@@ -1,3 +1,5 @@
+using Android.OS;
+
 namespace Plugin.AdMob.Platforms.Android;
 
 /// <summary>
@@ -8,6 +10,8 @@ namespace Plugin.AdMob.Platforms.Android;
 /// </summary>
 internal static class MainThreadDispatcher
 {
+    private static readonly Handler _mainHandler = new(Looper.MainLooper!);
+
     internal static void Run(Action action)
     {
         if (MainThread.IsMainThread)
@@ -18,4 +22,6 @@ internal static class MainThreadDispatcher
 
         MainThread.BeginInvokeOnMainThread(action);
     }
+
+    internal static void Post(Action action) => _mainHandler.Post(action);
 }

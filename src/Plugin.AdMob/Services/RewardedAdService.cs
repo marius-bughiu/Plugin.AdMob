@@ -102,9 +102,8 @@ internal class RewardedAdService(IAdConsentService _adConsentService)
         {
             rewardedAd.OnUserEarnedReward += (_, reward) => onUserEarnedReward(reward);
         }
-        rewardedAd.Load();
-        
         _rewardedAd = rewardedAd;
+        rewardedAd.Load();
     }
 
     public void ShowAd()

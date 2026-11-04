@@ -102,9 +102,8 @@ internal class RewardedInterstitialAdService(IAdConsentService _adConsentService
         {
             rewardedInterstitialAd.OnUserEarnedReward += (_, reward) => onUserEarnedReward(reward);
         }
-        rewardedInterstitialAd.Load();
-        
         _rewardedInterstitialAd = rewardedInterstitialAd;
+        rewardedInterstitialAd.Load();
     }
     
     public void ShowAd()

@@ -11,7 +11,7 @@ public interface IMobileAdsService
     /// Completes once the plugin has started the Google Mobile Ads SDK and its mediation adapters have initialized or timed out,
     /// with the status of each adapter. The plugin starts the SDK once consent allows ad requests, or right before the first ad
     /// request when <see cref="AdConfig.DisableConsentCheck" /> is true, so this doesn't complete before then. It never completes
-    /// on platforms other than Android and iOS.
+    /// on platforms other than Android and iOS. If the SDK's status can't be read, the task fails with that exception.
     /// </summary>
     Task<IInitializationStatus> Initialization { get; }
 }
