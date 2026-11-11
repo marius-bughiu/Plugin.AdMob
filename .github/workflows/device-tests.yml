@@ -126,9 +126,8 @@ jobs:
 
   ios:
     name: ios simulator
-    # .NET for iOS on the 10.0.4xx SDK requires Xcode 27.1, which only the xcode-27 (preview)
-    # image has; macos-latest stops at Xcode 26.6, so the lane failed on every run from July to
-    # October 2026.
+    # .NET 11.0.100 for iOS requires Xcode 27.2, which only the xcode-27 (preview) image has;
+    # macos-latest stops at Xcode 26.6.
     runs-on: xcode-27
     timeout-minutes: 45
     steps:
