@@ -61,7 +61,6 @@ jobs:
       uses: actions/setup-dotnet@v6
       with:
         dotnet-version: 11.0.x
-        dotnet-quality: preview
 
     - name: Restore workloads
       working-directory: src
@@ -126,7 +125,6 @@ jobs:
         uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 11.0.x
-          dotnet-quality: preview
 
       - name: Log in to nuget.org
         id: nuget

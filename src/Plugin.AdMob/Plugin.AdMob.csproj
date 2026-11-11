@@ -28,7 +28,7 @@
 			Release builds ($(MauiPackageVersion)-beta.<height>). Debug builds are versioned
 			$(MauiPackageVersion)-dev.<timestamp>.
 		-->
-		<MauiPackageVersion>11.0.0-rc.2.26505.5</MauiPackageVersion>
+		<MauiPackageVersion>11.0.0</MauiPackageVersion>
 		<MinVerTagPrefix>v</MinVerTagPrefix>
 		<MinVerDefaultPreReleaseIdentifiers>beta</MinVerDefaultPreReleaseIdentifiers>
 		<MinVerSkip Condition="'$(Configuration)' == 'Debug'">true</MinVerSkip>
@@ -41,7 +41,7 @@
 	</ItemGroup>
 	
 	<PropertyGroup Condition="'$(TargetFramework)' == 'net11.0-ios'">
-		<TargetPlatformVersion>27.0</TargetPlatformVersion>
+		<TargetPlatformVersion>27.2</TargetPlatformVersion>
 		<SupportedOSPlatformVersion>15.0</SupportedOSPlatformVersion>
 	</PropertyGroup>
 

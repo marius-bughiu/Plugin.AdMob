@@ -59,7 +59,6 @@ jobs:
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 11.0.x
-          dotnet-quality: preview
 
       # Install the leg's workload explicitly rather than `dotnet workload restore <project>`:
       # that has to evaluate the project first, and on a clean runner the platform TFMs aren't

@@ -36,8 +36,8 @@
 
 		<!-- Bounded to major 11: every TFM here is net11.0-*, so an unbounded `*` could float
 		     onto a future major the project cannot build. CI pins both explicitly. -->
-		<AdMobPackageVersion Condition="'$(AdMobPackageVersion)' == ''">11.*-*</AdMobPackageVersion>
-		<MauiVersion Condition="'$(MauiVersion)' == ''">11.*-*</MauiVersion>
+		<AdMobPackageVersion Condition="'$(AdMobPackageVersion)' == ''">11.*</AdMobPackageVersion>
+		<MauiVersion Condition="'$(MauiVersion)' == ''">11.*</MauiVersion>
 	</PropertyGroup>
 
 	<!-- The Google Mobile Ads Next-Gen SDK requires API 24. -->

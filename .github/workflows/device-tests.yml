@@ -83,7 +83,6 @@ jobs:
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 11.0.x
-          dotnet-quality: preview
 
       - name: Install MAUI Android workload
         run: dotnet workload install maui-android
@@ -140,7 +139,6 @@ jobs:
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 11.0.x
-          dotnet-quality: preview
 
       - name: Install MAUI iOS workload
         run: dotnet workload install maui-ios
