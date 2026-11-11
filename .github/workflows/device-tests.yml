@@ -82,7 +82,7 @@ jobs:
 
       - uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: 10.0.x
+          dotnet-version: 11.0.x
 
       - name: Install MAUI Android workload
         run: dotnet workload install maui-android
@@ -102,7 +102,7 @@ jobs:
           # IDE / `dotnet build -t:Run` to push them separately. Installing such an APK with
           # plain `adb install` yields an app that aborts at startup with
           # "No assemblies found in .../.__override__/x86_64" before a single line is logged.
-          dotnet build tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj -c Debug -p:TargetFrameworks=net10.0-android -p:EmbedAssembliesIntoApk=true $props
+          dotnet build tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj -c Debug -p:TargetFrameworks=net11.0-android -p:EmbedAssembliesIntoApk=true -p:UseMonoRuntime=false $props
           apk=$(find "$PWD/tests/Plugin.AdMob.DeviceTests/bin" -name '*-Signed.apk' | head -1)
           if [ -z "$apk" ]; then apk=$(find "$PWD/tests/Plugin.AdMob.DeviceTests/bin" -name '*.apk' | head -1); fi
           if [ -z "$apk" ]; then echo "::error::No APK produced"; exit 1; fi
@@ -126,9 +126,8 @@ jobs:
 
   ios:
     name: ios simulator
-    # .NET for iOS on the 10.0.4xx SDK requires Xcode 27.1, which only the xcode-27 (preview)
-    # image has; macos-latest stops at Xcode 26.6, so the lane failed on every run from July to
-    # October 2026.
+    # .NET 11.0.100 for iOS requires Xcode 27.2, which only the xcode-27 (preview) image has;
+    # macos-latest stops at Xcode 26.6.
     runs-on: xcode-27
     timeout-minutes: 45
     steps:
@@ -138,7 +137,7 @@ jobs:
 
       - uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: 10.0.x
+          dotnet-version: 11.0.x
 
       - name: Install MAUI iOS workload
         run: dotnet workload install maui-ios
@@ -148,7 +147,7 @@ jobs:
       - name: Select the Xcode the iOS workload requires
         run: |
           xcode=$(dotnet msbuild tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj \
-            -p:TargetFramework=net10.0-ios -getProperty:_RecommendedXcodeVersion)
+            -p:TargetFramework=net11.0-ios -getProperty:_RecommendedXcodeVersion)
           app=$(ls -d "/Applications/Xcode_$xcode.app" "/Applications/Xcode_$xcode".*.app 2>/dev/null | head -1 || true)
           if [ -z "$app" ]; then
             echo "::error::The iOS workload requires Xcode $xcode, which this image doesn't have."
@@ -164,7 +163,7 @@ jobs:
           if [ "${{ inputs.use_published }}" = "true" ]; then props="-p:UsePublishedAdMob=true"; fi
           if [ -n "${{ inputs.admob_version }}" ]; then props="$props -p:AdMobPackageVersion=${{ inputs.admob_version }}"; fi
           if [ -n "${{ inputs.maui_version }}" ]; then props="$props -p:MauiVersion=${{ inputs.maui_version }}"; fi
-          dotnet build tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj -c Debug -p:TargetFrameworks=net10.0-ios -p:RuntimeIdentifier=iossimulator-arm64 $props
+          dotnet build tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj -c Debug -p:TargetFrameworks=net11.0-ios -p:RuntimeIdentifier=iossimulator-arm64 $props
           app=$(find tests/Plugin.AdMob.DeviceTests/bin -name '*.app' -type d | head -1)
           echo "APP=$app" >> "$GITHUB_ENV"
           echo "Built $app"

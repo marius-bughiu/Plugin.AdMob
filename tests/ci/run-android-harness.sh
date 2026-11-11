@@ -20,8 +20,15 @@ APK="${APK:?APK env var not set}"
 dump_diagnostics() {
   echo "===== app process ====="
   adb shell pidof "$PKG" || echo "(app is not running)"
-  echo "===== fatal / crash ====="
-  adb logcat -d -s AndroidRuntime:E monodroid:F monodroid-assembly:F DEBUG:F 2>/dev/null | tail -40 || true
+  echo "===== crash buffer ====="
+  adb logcat -d -b crash 2>/dev/null | tail -80 || true
+  echo "===== app lifecycle events ====="
+  adb logcat -d -b events 2>/dev/null | grep -E "am_(proc_died|kill|crash|anr|low_memory)|$PKG" | tail -40 || true
+  pid=$(adb logcat -d -s "${TAG}:I" | awk '/START/ { print $3; exit }')
+  if [ -n "$pid" ]; then
+    echo "===== app process $pid log ====="
+    adb logcat -d -b main,system 2>/dev/null | awk -v pid="$pid" '$3 == pid' | tail -150 || true
+  fi
   echo "===== last 120 log lines (unfiltered) ====="
   adb logcat -d 2>/dev/null | tail -120 || true
 }
@@ -29,6 +36,7 @@ dump_diagnostics() {
 echo "Installing $APK"
 adb install -r "$APK"
 
+adb logcat -G 16M || true
 adb logcat -c
 echo "Launching $PKG"
 adb shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1 >/dev/null

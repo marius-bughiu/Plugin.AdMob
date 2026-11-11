@@ -18,11 +18,11 @@ properties, so the same code validates a branch change *and* the shipped artifac
 
 ```bash
 # source (default) — validates the code on this branch
-dotnet build tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj -f net10.0-android
+dotnet build tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj -f net11.0-android
 
 # published package — validates the shipped .nupkg
-dotnet build tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj -f net10.0-android \
-  -p:UsePublishedAdMob=true -p:AdMobPackageVersion=10.0.90 -p:MauiVersion=10.0.90
+dotnet build tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj -f net11.0-android \
+  -p:UsePublishedAdMob=true -p:AdMobPackageVersion=11.0.0.0 -p:MauiVersion=11.0.0
 ```
 
 Source builds of the harness define `ADMOB_SOURCE`. Checks of API that no published package has
@@ -41,8 +41,9 @@ latest release. Remove the condition once a release has the API.
   the banner and the ads requested before consent (`load-waits-for-consent`,
   `prepare-before-consent`); iOS reports their fill and fails only if
   one loads before consent. Reusable by the nightly and the bump gate.
-- **`nightly.yml`** — 04:00 UTC. Resolves the latest published version and runs both the build
-  smoke and the device tests **against the published package**.
+- **`nightly.yml`** — 04:00 UTC. Resolves the newest published stable version of the branch's
+  major (from `MauiPackageVersion`) and runs both the build smoke and the device tests **against
+  the published package**. Until that major has a stable release, it skips both with a notice.
 - **`bump-maui.yml`** — the MAUI auto-bump now *validates before it publishes*. It pushes the
   candidate to a throwaway `bump-maui-validate` branch, runs `build.yml` + `device-tests.yml`
   against that commit, and only then fast-forwards the reviewed `bump-maui-version` branch and
@@ -96,9 +97,9 @@ Run the harness locally against a booted emulator:
 
 ```bash
 dotnet build tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj -c Debug \
-  -p:TargetFrameworks=net10.0-android -p:EmbedAssembliesIntoApk=true \
+  -p:TargetFrameworks=net11.0-android -p:EmbedAssembliesIntoApk=true \
   "-p:AndroidSdkDirectory=%LOCALAPPDATA%\Android\Sdk" "-p:JavaSdkDirectory=%LOCALAPPDATA%\Android\Jdk"
-adb install -r tests/Plugin.AdMob.DeviceTests/bin/Debug/net10.0-android/com.plugin.admob.devicetests-Signed.apk
+adb install -r tests/Plugin.AdMob.DeviceTests/bin/Debug/net11.0-android/com.plugin.admob.devicetests-Signed.apk
 adb logcat -c && adb shell monkey -p com.plugin.admob.devicetests -c android.intent.category.LAUNCHER 1
 adb logcat -s AdMobHarness:I   # watch RESULT / SUMMARY_* lines
 ```
@@ -109,8 +110,8 @@ aborts at startup with `No assemblies found in .../.__override__/...` before log
 
 ### The iOS leg
 
-The iOS simulator job runs on the `xcode-27` image (preview). .NET for iOS on the 10.0.4xx SDK
-requires Xcode 27.1, which `macos-latest` doesn't have, so from July to October 2026 the job
+The iOS simulator job runs on the `xcode-27` image (preview). .NET for iOS requires the Xcode its
+workload was built with (27.2 for .NET 11.0.100), which `macos-latest` doesn't have, so from July to October 2026 the job
 failed on every run while `continue-on-error` kept the workflow green. It now gates on the app
 starting, consent completing and no ad loading before consent. Fill is reported, not gated, because
 Google's test ads sometimes time out on the iOS simulators, and GMA 12 reports some timeouts as
@@ -118,8 +119,9 @@ Google's test ads sometimes time out on the iOS simulators, and GMA 12 reports s
 
 ## Required checks
 
-The `main protect` ruleset requires the four `build.yml` checks (`net10.0-android`,
-`net10.0-ios`, `net10.0-maccatalyst`, `net10.0-windows10.0.19041.0`). The device tests run on
+The `main protect` ruleset requires the four `build.yml` checks (`net11.0-android`,
+`net11.0-ios`, `net11.0-maccatalyst`, `net11.0-windows10.0.19041.0`); `support protect` keeps
+the `net10.0-*` names for `support/net10`. The device tests run on
 every PR but aren't required, so a fill hiccup in Google's test ads can't block a merge; read
 their result before merging.
 
