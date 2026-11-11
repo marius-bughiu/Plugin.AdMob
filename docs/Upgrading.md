@@ -1,10 +1,14 @@
 This page lists what to change in your app when you update `Plugin.AdMob`, newest release first.
 
-## Upgrading from 10.0.120.3
+## Upgrading from 10.0.120.3 to 10.0.130.0
 
-The release after 10.0.120.3 reports load failures that were lost before, including those of ads prepared with `PrepareAd()`, and tells you when the Google Mobile Ads SDK has started.
+10.0.130.0 moves to .NET MAUI 10.0.130, reports load failures that were lost before, including those of ads prepared with `PrepareAd()`, and tells you when the Google Mobile Ads SDK has started.
 
 ### Required changes
+
+#### Update .NET MAUI to 10.0.130
+
+The package depends on `Microsoft.Maui.Controls` 10.0.130 or later. If your app references `Microsoft.Maui.Controls` directly at an older version, for example through `$(MauiVersion)` from an older workload, restore fails with NU1605 (detected package downgrade). Raise the reference to 10.0.130 or later, along with `Microsoft.AspNetCore.Components.WebView.Maui` in a Blazor Hybrid app. It needs no newer .NET SDK, workload or Xcode.
 
 #### Add `OnAdFailedToLoad` to your own service implementations
 
