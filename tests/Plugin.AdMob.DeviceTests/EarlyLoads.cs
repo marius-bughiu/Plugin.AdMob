@@ -8,7 +8,7 @@ namespace Plugin.AdMob.DeviceTests;
 /// </summary>
 internal static class EarlyLoads
 {
-    private static readonly TaskCompletionSource _prepared = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private static readonly TaskCompletionSource<string?> _prepared = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private static readonly TaskCompletionSource<DateTime> _loaded = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     private static string? _loadError;
@@ -16,7 +16,10 @@ internal static class EarlyLoads
     public static void Start(IServiceProvider services)
     {
         var interstitialAdService = services.GetRequiredService<IInterstitialAdService>();
-        interstitialAdService.OnAdLoaded += (_, _) => _prepared.TrySetResult();
+        interstitialAdService.OnAdLoaded += (_, _) => _prepared.TrySetResult(null);
+#if ADMOB_SOURCE
+        interstitialAdService.OnAdFailedToLoad += (_, error) => _prepared.TrySetResult(error.Message);
+#endif
         interstitialAdService.PrepareAd();
 
         var ad = interstitialAdService.CreateAd();
@@ -25,8 +28,17 @@ internal static class EarlyLoads
         ad.Load();
     }
 
-    public static async Task<bool> WaitForPreparedAsync(TimeSpan timeout)
-        => await Task.WhenAny(_prepared.Task, Task.Delay(timeout)) == _prepared.Task;
+    public static async Task<(bool Passed, string Detail)> WaitForPreparedAsync(TimeSpan timeout)
+    {
+        if (await Task.WhenAny(_prepared.Task, Task.Delay(timeout)) != _prepared.Task)
+        {
+            return (false, $"no load within {timeout.TotalSeconds}s");
+        }
+
+        return await _prepared.Task is { } error
+            ? (false, error)
+            : (true, "loaded");
+    }
 
     public static async Task<(bool Passed, string Detail)> WaitForLoadAsync(DateTime consentAt, TimeSpan timeout)
     {

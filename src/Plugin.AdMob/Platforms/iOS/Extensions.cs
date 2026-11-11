@@ -1,10 +1,20 @@
-﻿using Google.MobileAds;
+﻿using Foundation;
+using Google.MobileAds;
 using Plugin.AdMob.Configuration;
 
 namespace Plugin.AdMob.Platforms.iOS;
 
 internal static class Extensions
 {
+    internal static InitializationStatus ToInitializationStatus(this Google.MobileAds.InitializationStatus status) => new(
+    [
+        .. status.AdapterStatusesByClassName.Select((KeyValuePair<NSString, Google.MobileAds.AdapterStatus> adapter) => new AdapterStatus(
+            adapter.Key.ToString(),
+            adapter.Value.State == AdapterInitializationState.Ready ? AdapterState.Ready : AdapterState.NotReady,
+            adapter.Value.Description,
+            TimeSpan.FromSeconds(adapter.Value.Latency)))
+    ]);
+
     internal static void ApplyGlobalAdConfiguration(this RequestConfiguration requestConfiguration)
     {
         requestConfiguration.TestDeviceIdentifiers = [.. AdConfig.TestDevices];

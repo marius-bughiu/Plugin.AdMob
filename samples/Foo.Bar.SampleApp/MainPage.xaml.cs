@@ -26,15 +26,19 @@ namespace Foo.Bar.SampleApp
             _adConsentService = ServiceProvider.GetRequiredService<IAdConsentService>();
 
             _interstitialAdService.OnAdLoaded += (_, __) => Debug.WriteLine("Interstitial ad prepared.");
+            _interstitialAdService.OnAdFailedToLoad += (_, error) => Debug.WriteLine($"Interstitial ad failed to load: {error.Message}");
             _interstitialAdService.PrepareAd();
 
             _rewardedAdService.OnAdLoaded += (_, __) => Debug.WriteLine("Rewarded ad prepared.");
+            _rewardedAdService.OnAdFailedToLoad += (_, error) => Debug.WriteLine($"Rewarded ad failed to load: {error.Message}");
             _rewardedAdService.PrepareAd(onUserEarnedReward: UserDidEarnReward);
 
             _rewardedInterstitialAdService.OnAdLoaded += (_, __) => Debug.WriteLine("Rewarded interstitial ad prepared.");
+            _rewardedInterstitialAdService.OnAdFailedToLoad += (_, error) => Debug.WriteLine($"Rewarded interstitial ad failed to load: {error.Message}");
             _rewardedInterstitialAdService.PrepareAd(onUserEarnedReward: UserDidEarnReward);
 
             _appOpenAdService.OnAdLoaded += (_, __) => Debug.WriteLine("App open ad prepared.");
+            _appOpenAdService.OnAdFailedToLoad += (_, error) => Debug.WriteLine($"App open ad failed to load: {error.Message}");
             _appOpenAdService.PrepareAd();
 
             _adConsentService.OnConsentInfoUpdated += OnConsentInfoUpdated;

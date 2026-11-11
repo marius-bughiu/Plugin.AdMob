@@ -30,7 +30,7 @@ internal partial class InterstitialAd
             callback.Failed += (s, e) => OnAdFailedToLoad?.Invoke(this, new AdError(e.Message));
 
             SdkInterstitialAd.Load(adRequest, callback);
-        });
+        }, ex => OnAdFailedToLoad?.Invoke(this, new AdError(ex)));
     }
 
     public void Show()

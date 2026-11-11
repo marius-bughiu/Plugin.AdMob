@@ -1,6 +1,5 @@
 using CoreFoundation;
 using Google.MobileAds;
-using System.Diagnostics;
 
 namespace Plugin.AdMob.Platforms.iOS;
 
@@ -13,7 +12,19 @@ internal static class AdMobInitializer
 
     internal static void EnsureInitialized() => RunWhenInitialized(null);
 
-    internal static void RunWhenInitialized(Action? onInitialized)
+    internal static void RunWhenInitialized(Action request, Action<Exception> onFailed) => RunWhenInitialized(() =>
+    {
+        try
+        {
+            request();
+        }
+        catch (Exception ex)
+        {
+            DispatchQueue.MainQueue.DispatchAsync(() => onFailed(ex));
+        }
+    });
+
+    private static void RunWhenInitialized(Action? onInitialized)
     {
         bool initialized;
         var start = false;
@@ -41,11 +52,11 @@ internal static class AdMobInitializer
         else if (start)
         {
             MobileAds.SharedInstance.RequestConfiguration.ApplyGlobalAdConfiguration();
-            MobileAds.SharedInstance.Start(_ => OnInitializationComplete());
+            MobileAds.SharedInstance.Start(OnInitializationComplete);
         }
     }
 
-    private static void OnInitializationComplete()
+    private static void OnInitializationComplete(Google.MobileAds.InitializationStatus status)
     {
         List<Action> callbacks;
 
@@ -60,15 +71,10 @@ internal static class AdMobInitializer
         {
             foreach (var callback in callbacks)
             {
-                try
-                {
-                    callback();
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"[Plugin.AdMob] A queued ad request failed after initialization: {ex.Message}");
-                }
+                callback();
             }
         });
+
+        MobileAdsInitialization.Complete(status.ToInitializationStatus);
     }
 }

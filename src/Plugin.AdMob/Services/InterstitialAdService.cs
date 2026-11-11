@@ -37,6 +37,13 @@ public interface IInterstitialAdService
     /// event handler of the IInterstitialAd returned by the method.
     /// </summary>
     event EventHandler OnAdLoaded;
+
+    /// <summary>
+    /// Raised when the ad requested by <see cref="PrepareAd" /> fails to load.
+    /// Note: This is not a catch-all event handler. When using <see cref="CreateAd" />, you should register to the ad failed to load
+    /// event handler of the IInterstitialAd returned by the method.
+    /// </summary>
+    event EventHandler<IAdError> OnAdFailedToLoad;
 }
 
 internal class InterstitialAdService(IAdConsentService _adConsentService) 
@@ -50,6 +57,7 @@ internal class InterstitialAdService(IAdConsentService _adConsentService)
     public bool IsAdLoaded => _interstitialAd?.IsLoaded ?? false;
 
     public event EventHandler? OnAdLoaded;
+    public event EventHandler<IAdError>? OnAdFailedToLoad;
 
     public IInterstitialAd CreateAd(string? adUnitId = null)
     {
@@ -71,6 +79,7 @@ internal class InterstitialAdService(IAdConsentService _adConsentService)
         if (_interstitialAd is not null)
         {
             _interstitialAd.OnAdLoaded -= OnAdLoadedInternal;
+            _interstitialAd.OnAdFailedToLoad -= OnAdFailedToLoadInternal;
             _interstitialAd = null;
         }
 
@@ -84,10 +93,10 @@ internal class InterstitialAdService(IAdConsentService _adConsentService)
 
         var interstitialAd = CreateAd(adUnitId);
         interstitialAd.OnAdLoaded += OnAdLoadedInternal;
-
-        interstitialAd.Load();
+        interstitialAd.OnAdFailedToLoad += OnAdFailedToLoadInternal;
 
         _interstitialAd = interstitialAd;
+        interstitialAd.Load();
     }
 
     public void ShowAd()
@@ -130,5 +139,10 @@ internal class InterstitialAdService(IAdConsentService _adConsentService)
     private void OnAdLoadedInternal(object? sender, EventArgs e)
     {
         OnAdLoaded?.Invoke(sender, e);
+    }
+
+    private void OnAdFailedToLoadInternal(object? sender, IAdError e)
+    {
+        OnAdFailedToLoad?.Invoke(sender, e);
     }
 }

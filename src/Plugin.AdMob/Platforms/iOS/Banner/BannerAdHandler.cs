@@ -123,6 +123,14 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
             var request = Request.GetDefaultRequest();
 
             adView.LoadRequest(request);
+        }, ex =>
+        {
+            if (_disconnected || load != _latestLoad)
+            {
+                return;
+            }
+
+            VirtualView.RaiseOnAdFailedToLoad(this, new AdError(ex));
         });
 
         VirtualView.WidthRequest = adSize.Size.Width;
