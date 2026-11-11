@@ -24,6 +24,7 @@ internal static class AdLoadHarness
 {
     private const int TimeoutSeconds = 30;
     private const int EarlyLoadTimeoutSeconds = 60;
+    private const int SdkStartTimeoutSeconds = 120;
     private const int Attempts = 2;
 
     public static async Task RunAllAsync(Layout bannerHost)
@@ -37,7 +38,7 @@ internal static class AdLoadHarness
         HarnessLog.Line($"RESULT format=consent status={(consent ? "PASS" : "FAIL")} detail=\"{Sanitize(consentDetail)}\"");
 
 #if ADMOB_SOURCE
-        var (sdkInitialized, sdkDetail) = await WaitForSdkInitializationAsync(services.GetRequiredService<IMobileAdsService>(), TimeSpan.FromSeconds(EarlyLoadTimeoutSeconds));
+        var (sdkInitialized, sdkDetail) = await WaitForSdkInitializationAsync(services.GetRequiredService<IMobileAdsService>(), TimeSpan.FromSeconds(SdkStartTimeoutSeconds));
         HarnessLog.Line($"RESULT format=sdk-initialization status={(sdkInitialized ? "PASS" : "FAIL")} detail=\"{Sanitize(sdkDetail)}\"");
 #endif
 
@@ -99,7 +100,7 @@ internal static class AdLoadHarness
         }
         catch (TimeoutException)
         {
-            return (false, $"no SDK start within {timeout.TotalSeconds}s");
+            return (false, $"the SDK start didn't complete within {timeout.TotalSeconds}s of consent");
         }
         catch (Exception ex)
         {

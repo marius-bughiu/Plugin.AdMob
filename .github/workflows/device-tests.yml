@@ -6,8 +6,8 @@ name: Device tests
 # (source), and is reusable (workflow_call) for the nightly job (published package) and the
 # MAUI auto-bump gate (source).
 #
-# GATING MODEL — consent, the banner and the ads requested before consent are the hard gates on
-# Android; iOS gates on consent and reports fill. Measured on the hosted runner (headless,
+# GATING MODEL — consent, the SDK start, the banner and the ads requested before consent are the
+# hard gates on Android; iOS gates on consent and reports fill. Measured on the hosted runner (headless,
 # software GPU, google_apis): banner and all four full-screen formats load; native/native-video
 # do not, because native demo creatives need market:// click resolution and therefore a Play Store
 # system image.

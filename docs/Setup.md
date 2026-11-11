@@ -20,7 +20,7 @@ foreach (var adapter in status.AdapterStatuses)
 }
 ```
 
-The list includes the Google Mobile Ads SDK itself (`com.google.android.libraries.ads.mobile.sdk.MobileAds` on Android, `GADMobileAds` on iOS) and the adapters the SDK looks for. An adapter that initialized is `Ready`; one that failed, timed out or isn't in your app is `NotReady`, and `Description` is the SDK's explanation (on iOS it also repeats the state). `Initialization` completes only after the plugin has started the SDK, which waits for consent, and never on MacCatalyst or Windows, so give it a timeout if your code waits for it, for example `Initialization.WaitAsync(TimeSpan.FromSeconds(30))`.
+The list includes the Google Mobile Ads SDK itself (`com.google.android.libraries.ads.mobile.sdk.MobileAds` on Android, `GADMobileAds` on iOS) and the adapters the SDK looks for. An adapter that initialized is `Ready`; one that failed, timed out or isn't in your app is `NotReady`, and `Description` is the SDK's explanation (on iOS it also repeats the state). `Initialization` completes only after the plugin has started the SDK, which waits for consent, and never on MacCatalyst or Windows, so give it a timeout if your code waits for it, for example `Initialization.WaitAsync(TimeSpan.FromSeconds(60))`. The first start on a newly created iOS simulator can take close to a minute.
 
 ## Platform support
 
