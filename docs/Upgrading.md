@@ -34,6 +34,10 @@ If you start the SDK yourself to see how your mediation adapters initialized, re
 
 - A native ad's `OnAdFailedToLoad`, also as forwarded by `NativeAdView`, now passes the `INativeAd` as `sender` instead of an internal object, like the native ad's other events.
 
+#### Windows and Mac Catalyst
+
+- `Load()` now raises `OnAdFailedToLoad` ("Ads are only supported on Android and iOS.") on the main thread after it returns, instead of inside `Load()`, so a handler that retries with `Load()` or `PrepareAd()` no longer recurses.
+
 ## Upgrading from 10.0.120.2 and earlier to 10.0.120.3
 
 10.0.120.3 moves Android from the legacy Google Mobile Ads SDK v24 (`Xamarin.GooglePlayServices.Ads.Lite` 124.0.0.8) to the Google Mobile Ads Next-Gen SDK (`Xamarin.Google.Android.Libraries.Ads.Mobile.Sdk` 1.5.0), for every ad format. Google [deprecates v24](https://developers.google.com/admob/android/deprecation) on 2027-06-30, when technical support ends but ads still serve, and sunsets it on 2028-06-30, after which its ad requests are at risk of returning no fill. iOS stays on `Jc.GMA.iOS` 12.10.0 and `Jc.UMP.iOS` 2.7.5 and needs no changes, and the plugin's cross-platform API is unchanged.
