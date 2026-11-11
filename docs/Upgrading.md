@@ -1,5 +1,29 @@
 This page lists what to change in your app when you update `Plugin.AdMob`, newest release first.
 
+## Upgrading from 10.0.x to 11.0.0.0
+
+11.0.0.0 moves the plugin to .NET 11 and .NET MAUI 11.0.0. The changes below are the ones .NET 11 needs; also read the sections below for any 10.0 releases you skip. Apps that stay on .NET 10 can keep using 10.0.x releases.
+
+### Required changes
+
+#### Target .NET 11
+
+Install the .NET 11 SDK (11.0.100 or later) with its MAUI workloads, change your app's `TargetFrameworks` from `net10.0-*` to `net11.0-*`, and update `Microsoft.Maui.Controls` to 11.0.0 or later (and `Microsoft.AspNetCore.Components.WebView.Maui` too in a Blazor Hybrid app). The package has only `net11.0` builds, so a `net10.0` project can't restore it. On iOS, .NET 11.0.100 needs Xcode 27.2.
+
+#### Update the platform conditions in your project
+
+Conditions such as `'$(TargetFramework)' == 'net10.0-android'` no longer match once your app targets `net11.0-android`, so the settings inside them stop applying, including the `SupportedOSPlatformVersion` values from the [setup guide](Setup.md). If the Android minimum then drops below 24, the build fails in the manifest merger with `uses-sdk:minSdkVersion ... cannot be smaller than version 24 declared in library`. Change the conditions to `net11.0-android` and `net11.0-ios`:
+
+```
+<PropertyGroup Condition="'$(TargetFramework)' == 'net11.0-android'">
+	<SupportedOSPlatformVersion>24.0</SupportedOSPlatformVersion>
+</PropertyGroup>
+
+<PropertyGroup Condition="'$(TargetFramework)' == 'net11.0-ios'">
+	<SupportedOSPlatformVersion>15.0</SupportedOSPlatformVersion>
+</PropertyGroup>
+```
+
 ## Upgrading from 10.0.120.2 and earlier to 10.0.120.3
 
 10.0.120.3 moves Android from the legacy Google Mobile Ads SDK v24 (`Xamarin.GooglePlayServices.Ads.Lite` 124.0.0.8) to the Google Mobile Ads Next-Gen SDK (`Xamarin.Google.Android.Libraries.Ads.Mobile.Sdk` 1.5.0), for every ad format. Google [deprecates v24](https://developers.google.com/admob/android/deprecation) on 2027-06-30, when technical support ends but ads still serve, and sunsets it on 2028-06-30, after which its ad requests are at risk of returning no fill. iOS stays on `Jc.GMA.iOS` 12.10.0 and `Jc.UMP.iOS` 2.7.5 and needs no changes, and the plugin's cross-platform API is unchanged.
