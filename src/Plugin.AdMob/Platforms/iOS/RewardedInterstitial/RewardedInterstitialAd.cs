@@ -20,7 +20,7 @@ internal partial class RewardedInterstitialAd
             var request = Request.GetDefaultRequest();
 
             Google.MobileAds.RewardedInterstitialAd.Load(AdUnitId, request, AdLoaded);
-        });
+        }, ex => OnAdFailedToLoad?.Invoke(this, new AdError(ex)));
     }
 
     public void Show()

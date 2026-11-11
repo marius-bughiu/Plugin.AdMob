@@ -4,7 +4,7 @@ set -euo pipefail
 # Installs the pre-built device-test APK on the booted emulator, launches it, and scrapes the
 # harness's result lines from logcat.
 #
-# Consent, the banner and the ads requested before consent are the hard gates. On the hosted
+# Consent, the SDK start, the banner and the ads requested before consent are the hard gates. On the hosted
 # runner's google_apis image the full-screen formats load too, but native/native-video do not
 # (they need a Play Store image for market:// click resolution), so the full set (SUMMARY_ALL) is
 # only enforced when REQUIRE_ALL=true — i.e. against a google_apis_playstore AVD on a self-hosted
@@ -74,6 +74,13 @@ fi
 
 if ! echo "$banner" | grep -q "status=PASS"; then
   echo "::error::Banner ad failed to load against Google's test ad unit."
+  dump_diagnostics
+  exit 1
+fi
+
+sdk=$(adb logcat -d -s "${TAG}:I" | grep -F "format=sdk-initialization " | tail -1 || true)
+if [ -n "$sdk" ] && ! echo "$sdk" | grep -q "status=PASS"; then
+  echo "::error::IMobileAdsService.Initialization didn't complete after consent (sdk-initialization)."
   dump_diagnostics
   exit 1
 fi

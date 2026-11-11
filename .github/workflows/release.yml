@@ -90,6 +90,11 @@ jobs:
           Write-Output "::error::Expected $expected, got: $($nupkg.Name -join ', ')"
           exit 1
         }
+        $snupkg = [IO.Path]::ChangeExtension($expected, 'snupkg')
+        if (-not (Test-Path "${{ env.NuGetDirectory }}/$snupkg")) {
+          Write-Output "::error::Missing the symbols package $snupkg"
+          exit 1
+        }
         Add-Type -AssemblyName System.IO.Compression.FileSystem
         $zip = [System.IO.Compression.ZipFile]::OpenRead($nupkg[0].FullName)
         $tfms = $zip.Entries | Where-Object { $_.FullName -like 'lib/*/Plugin.AdMob.dll' } | ForEach-Object { $_.FullName.Split('/')[1] }
@@ -112,7 +117,9 @@ jobs:
         name: nuget
         if-no-files-found: error
         retention-days: 7
-        path: ${{ env.NuGetDirectory }}/*.nupkg
+        path: |
+          ${{ env.NuGetDirectory }}/*.nupkg
+          ${{ env.NuGetDirectory }}/*.snupkg
 
   deploy:
     runs-on: ubuntu-latest
@@ -140,7 +147,7 @@ jobs:
       - name: Publish NuGet package
         run: |
           foreach($file in (Get-ChildItem "${{ env.NuGetDirectory }}" -Recurse -Include *.nupkg)) {
-              dotnet nuget push $file --api-key "${{ steps.nuget.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
+              dotnet nuget push $file --no-symbols --api-key "${{ steps.nuget.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
           }
 
       - name: Create the GitHub Release
@@ -164,3 +171,9 @@ jobs:
             $flags = @("--latest=$($latest.ToString().ToLowerInvariant())")
           }
           gh release create $env:TAG --repo $env:GITHUB_REPOSITORY --verify-tag --title $env:TAG --generate-notes @flags (Get-ChildItem "${{ env.NuGetDirectory }}" -Filter *.nupkg).FullName
+
+      - name: Publish symbols
+        run: |
+          foreach($file in (Get-ChildItem "${{ env.NuGetDirectory }}" -Recurse -Include *.snupkg)) {
+              dotnet nuget push $file --api-key "${{ steps.nuget.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
+          }
