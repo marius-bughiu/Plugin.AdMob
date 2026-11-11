@@ -16,6 +16,10 @@
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageTags>maui;dotnet-maui;dotnet;admob;google-admob;google;google-mobile-ads;ads;advertising;monetization;banner;interstitial;rewarded;rewarded-interstitial;app-open;native-ads;native-video;consent;ump;user-messaging-platform;gdpr;android;ios;cross-platform</PackageTags>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -28,7 +32,7 @@
 			Release builds ($(MauiPackageVersion)-beta.<height>). Debug builds are versioned
 			$(MauiPackageVersion)-dev.<timestamp>.
 		-->
-		<MauiPackageVersion>10.0.120</MauiPackageVersion>
+		<MauiPackageVersion>10.0.130</MauiPackageVersion>
 		<MinVerTagPrefix>v</MinVerTagPrefix>
 		<MinVerDefaultPreReleaseIdentifiers>beta</MinVerDefaultPreReleaseIdentifiers>
 		<MinVerSkip Condition="'$(Configuration)' == 'Debug'">true</MinVerSkip>
@@ -107,6 +111,7 @@
 			<AssemblyVersion>$(_ReleaseNumericVersion)</AssemblyVersion>
 			<FileVersion>$(_ReleaseNumericVersion)</FileVersion>
 			<InformationalVersion>$(Version)</InformationalVersion>
+			<PackageReleaseNotes>$(PackageProjectUrl)/releases/tag/$(_ReleaseTag)</PackageReleaseNotes>
 		</PropertyGroup>
 
 		<!-- Untagged build: MAUI version + MinVer's pre-release height, e.g. 10.0.30-beta.5. -->

@@ -38,6 +38,13 @@ public interface IRewardedInterstitialAdService
     /// event handler of the IRewardedInterstitialAd returned by the method.
     /// </summary>
     event EventHandler OnAdLoaded;
+
+    /// <summary>
+    /// Raised when the ad requested by <see cref="PrepareAd" /> fails to load.
+    /// Note: This is not a catch-all event handler. When using <see cref="CreateAd" />, you should register to the ad failed to load
+    /// event handler of the IRewardedInterstitialAd returned by the method.
+    /// </summary>
+    event EventHandler<IAdError> OnAdFailedToLoad;
 }
 
 internal class RewardedInterstitialAdService(IAdConsentService _adConsentService) 
@@ -52,6 +59,7 @@ internal class RewardedInterstitialAdService(IAdConsentService _adConsentService
     public bool IsAdLoaded => _rewardedInterstitialAd?.IsLoaded ?? false;
 
     public event EventHandler? OnAdLoaded;
+    public event EventHandler<IAdError>? OnAdFailedToLoad;
 
     public IRewardedInterstitialAd CreateAd(string? adUnitId = null)
     {
@@ -73,6 +81,7 @@ internal class RewardedInterstitialAdService(IAdConsentService _adConsentService
         if (_rewardedInterstitialAd is not null)
         {
             _rewardedInterstitialAd.OnAdLoaded -= OnAdLoadedInternal;
+            _rewardedInterstitialAd.OnAdFailedToLoad -= OnAdFailedToLoadInternal;
             _rewardedInterstitialAd = null;
         }
 
@@ -87,14 +96,14 @@ internal class RewardedInterstitialAdService(IAdConsentService _adConsentService
 
         var rewardedInterstitialAd = CreateAd(adUnitId);
         rewardedInterstitialAd.OnAdLoaded += OnAdLoadedInternal;
+        rewardedInterstitialAd.OnAdFailedToLoad += OnAdFailedToLoadInternal;
 
         if (onUserEarnedReward != null)
         {
             rewardedInterstitialAd.OnUserEarnedReward += (_, reward) => onUserEarnedReward(reward);
         }
-        rewardedInterstitialAd.Load();
-        
         _rewardedInterstitialAd = rewardedInterstitialAd;
+        rewardedInterstitialAd.Load();
     }
     
     public void ShowAd()
@@ -137,5 +146,10 @@ internal class RewardedInterstitialAdService(IAdConsentService _adConsentService
     private void OnAdLoadedInternal(object? sender, EventArgs e)
     {
         OnAdLoaded?.Invoke(sender, e);
+    }
+
+    private void OnAdFailedToLoadInternal(object? sender, IAdError e)
+    {
+        OnAdFailedToLoad?.Invoke(sender, e);
     }
 }

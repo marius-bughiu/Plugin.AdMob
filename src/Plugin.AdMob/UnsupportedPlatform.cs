@@ -17,30 +17,43 @@ namespace Plugin.AdMob.Services
 
 namespace Plugin.AdMob
 {
+    internal static class UnsupportedPlatform
+    {
+        internal static void PostLoadFailure(Action raise)
+        {
+            if (Application.Current?.Dispatcher is { } dispatcher && dispatcher.Dispatch(raise))
+            {
+                return;
+            }
+
+            raise();
+        }
+    }
+
     internal partial class InterstitialAd
     {
-        public void Load() => OnAdFailedToLoad?.Invoke(this, new AdError(AdError.UnsupportedPlatformMessage));
+        public void Load() => UnsupportedPlatform.PostLoadFailure(() => OnAdFailedToLoad?.Invoke(this, new AdError(AdError.UnsupportedPlatformMessage)));
 
         public void Show() { }
     }
 
     internal partial class RewardedAd
     {
-        public void Load() => OnAdFailedToLoad?.Invoke(this, new AdError(AdError.UnsupportedPlatformMessage));
+        public void Load() => UnsupportedPlatform.PostLoadFailure(() => OnAdFailedToLoad?.Invoke(this, new AdError(AdError.UnsupportedPlatformMessage)));
 
         public void Show() { }
     }
 
     internal partial class RewardedInterstitialAd
     {
-        public void Load() => OnAdFailedToLoad?.Invoke(this, new AdError(AdError.UnsupportedPlatformMessage));
+        public void Load() => UnsupportedPlatform.PostLoadFailure(() => OnAdFailedToLoad?.Invoke(this, new AdError(AdError.UnsupportedPlatformMessage)));
 
         public void Show() { }
     }
 
     internal partial class AppOpenAd
     {
-        public void Load() => OnAdFailedToLoad?.Invoke(this, new AdError(AdError.UnsupportedPlatformMessage));
+        public void Load() => UnsupportedPlatform.PostLoadFailure(() => OnAdFailedToLoad?.Invoke(this, new AdError(AdError.UnsupportedPlatformMessage)));
 
         public void Show() { }
     }
@@ -85,7 +98,7 @@ namespace Plugin.AdMob
 
         public void SetVideoMuted(bool muted) { }
 
-        public void Load() => OnAdFailedToLoad?.Invoke(this, new AdError(AdError.UnsupportedPlatformMessage));
+        public void Load() => UnsupportedPlatform.PostLoadFailure(() => OnAdFailedToLoad?.Invoke(this, new AdError(AdError.UnsupportedPlatformMessage)));
     }
 }
 #endif

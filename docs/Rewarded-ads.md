@@ -20,6 +20,8 @@ public interface IRewardedAdService
     void ShowAd();
     
     event EventHandler OnAdLoaded;
+
+    event EventHandler<IAdError> OnAdFailedToLoad;
 }
 ```
 
@@ -30,6 +32,7 @@ public interface IRewardedAdService
 | Event | Description |
 | --- | --- |
 | `OnAdLoaded` | Raised when an ad is loaded, after calling PrepareAd. You can now call ShowAd to present the ad to the user. Note: This is not a catch-all event handler. When using CreateAd, you should register to the ad loaded event handler of the `IRewardedAd` returned by the method. |
+| `OnAdFailedToLoad` | Raised when the ad requested by PrepareAd fails to load, with the reason in `IAdError.Message`. Like `OnAdLoaded`, it isn't raised for ads created with CreateAd: subscribe to the `OnAdFailedToLoad` event of the `IRewardedAd` returned by the method. |
 
 | Method| Description |
 | --- | --- |
@@ -60,3 +63,5 @@ public interface IRewardedAd
     void Show();
 }
 ```
+
+If sending the ad request throws, for example inside the Google Mobile Ads SDK, `Load()` doesn't throw: it raises `OnAdFailedToLoad` with the exception's type and message in `IAdError.Message`. `PrepareAd` reports it through the service's `OnAdFailedToLoad`.

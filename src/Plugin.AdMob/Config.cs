@@ -103,6 +103,7 @@ public static class Config
         builder.Services.AddSingleton<IRewardedInterstitialAdService, RewardedInterstitialAdService>();
         builder.Services.AddSingleton<IAppOpenAdService, AppOpenAdService>();
         builder.Services.AddSingleton<INativeAdService, NativeAdService>();
+        builder.Services.AddSingleton<IMobileAdsService, MobileAdsService>();
 
         var adConsentService = new AdConsentService();
         builder.Services.AddSingleton<IAdConsentService>(adConsentService);

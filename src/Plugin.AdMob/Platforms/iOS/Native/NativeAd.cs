@@ -83,7 +83,7 @@ internal partial class NativeAd : NativeAdLoaderDelegate
 
             var request = Request.GetDefaultRequest();
             adLoader.LoadRequest(request);
-        });
+        }, ex => OnAdFailedToLoad?.Invoke(this, new AdError(ex)));
     }
 
     internal Google.MobileAds.NativeAd GetPlatformAd() => _ad!;

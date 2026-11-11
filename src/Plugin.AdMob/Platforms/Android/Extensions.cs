@@ -1,11 +1,22 @@
 using Google.Android.Libraries.Ads.Mobile.Sdk.Common;
+using Google.Android.Libraries.Ads.Mobile.Sdk.Initialization;
 using Plugin.AdMob.Configuration;
+using SdkIInitializationStatus = Google.Android.Libraries.Ads.Mobile.Sdk.Initialization.IInitializationStatus;
 using SdkRequestConfiguration = Google.Android.Libraries.Ads.Mobile.Sdk.Common.RequestConfiguration;
 
 namespace Plugin.AdMob.Platforms.Android;
 
 internal static class Extensions
 {
+    internal static InitializationStatus ToInitializationStatus(this SdkIInitializationStatus status) => new(
+    [
+        .. status.AdapterStatusMap.Select(adapter => new AdapterStatus(
+            adapter.Key,
+            AdapterStatusInitializationState.Complete!.Equals(adapter.Value.InitializationState) ? AdapterState.Ready : AdapterState.NotReady,
+            adapter.Value.Description,
+            TimeSpan.FromMilliseconds(adapter.Value.Latency)))
+    ]);
+
     internal static void ApplyGlobalAdConfiguration(this SdkRequestConfiguration.Builder builder)
     {
         builder.SetTestDeviceIds(AdConfig.TestDevices);

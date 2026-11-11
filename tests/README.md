@@ -25,6 +25,10 @@ dotnet build tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj -f n
   -p:UsePublishedAdMob=true -p:AdMobPackageVersion=10.0.90 -p:MauiVersion=10.0.90
 ```
 
+Source builds of the harness define `ADMOB_SOURCE`. Checks of API that no published package has
+yet are compiled only when it's defined, so the nightly can still build the harness against the
+latest release. Remove the condition once a release has the API.
+
 ## Workflows
 
 - **`build.yml`** — source-build gate on every PR and every push to `main` or a `support/*`
@@ -33,8 +37,9 @@ dotnet build tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj -f n
   constraint drift — the issue #68 / #82 class) to the run summary.
 - **`device-tests.yml`** — runs the harness on an Android emulator and an iOS simulator, on every
   PR and every push to `main` or a `support/*` branch (docs-only changes skipped). Both lanes
-  gate on consent. Android also gates on the banner and on the ads requested before consent
-  (`load-waits-for-consent`, `prepare-before-consent`); iOS reports their fill and fails only if
+  gate on consent. Android also gates on the SDK start (`sdk-initialization`, in source builds),
+  the banner and the ads requested before consent (`load-waits-for-consent`,
+  `prepare-before-consent`); iOS reports their fill and fails only if
   one loads before consent. Reusable by the nightly and the bump gate.
 - **`nightly.yml`** — 04:00 UTC. Resolves the latest published version and runs both the build
   smoke and the device tests **against the published package**.

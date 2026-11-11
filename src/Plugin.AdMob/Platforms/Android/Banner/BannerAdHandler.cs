@@ -191,6 +191,14 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
             {
                 // The AdView was disposed after the check above; nothing left to load into.
             }
+        }, ex =>
+        {
+            if (_disconnected || load != _latestLoad)
+            {
+                return;
+            }
+
+            SafeRaise(() => VirtualView.RaiseOnAdFailedToLoad(this, new AdError(ex)));
         });
 
         VirtualView.HeightRequest = adSize.Height;
