@@ -20,11 +20,19 @@ jobs:
       version: ${{ steps.v.outputs.version }}
       maui: ${{ steps.v.outputs.maui }}
     steps:
+      - uses: actions/checkout@v7
+
       - id: v
         run: |
-          latest=$(curl -sf https://api.nuget.org/v3-flatcontainer/plugin.admob/index.json \
-            | jq -r '.versions[] | select(contains("-") | not)' | sort -V | tail -1)
-          if [ -z "$latest" ]; then echo "::error::Could not resolve latest published Plugin.AdMob version"; exit 1; fi
+          major=$(sed -n 's:.*<MauiPackageVersion>\([0-9]*\)\..*:\1:p' src/Plugin.AdMob/Plugin.AdMob.csproj)
+          if [ -z "$major" ]; then echo "::error::Could not read MauiPackageVersion"; exit 1; fi
+          index=$(curl -sf https://api.nuget.org/v3-flatcontainer/plugin.admob/index.json) ||
+            { echo "::error::Could not read the published Plugin.AdMob versions"; exit 1; }
+          latest=$(jq -r --arg m "$major." '.versions[] | select(startswith($m) and (contains("-") | not))' <<<"$index" | sort -V | tail -1)
+          if [ -z "$latest" ]; then
+            echo "::notice::No stable Plugin.AdMob $major.x is published yet, so there is no package to test."
+            exit 0
+          fi
           # The plugin version tracks MAUI: X.Y.Z[.build] -> MAUI X.Y.Z.
           maui=$(echo "$latest" | awk -F. '{print $1"."$2"."$3}')
           echo "version=$latest" >> "$GITHUB_OUTPUT"
@@ -34,6 +42,7 @@ jobs:
   smoke:
     name: build smoke ${{ matrix.tfm }}
     needs: resolve
+    if: needs.resolve.outputs.version != ''
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -95,6 +104,7 @@ jobs:
   device-tests:
     name: device tests
     needs: resolve
+    if: needs.resolve.outputs.version != ''
     uses: ./.github/workflows/device-tests.yml
     with:
       use_published: true
