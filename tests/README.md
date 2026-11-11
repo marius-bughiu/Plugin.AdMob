@@ -27,15 +27,15 @@ dotnet build tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj -f n
 
 ## Workflows
 
-- **`build.yml`** — source-build gate on every PR / push to `main`. Restores + compiles the
-  plugin and sample app across Android / iOS / MacCatalyst / Windows. Hard-fails on **NU1605**
-  (package downgrade); surfaces **NU1608** (native-binding constraint drift — the issue #68 /
-  #82 class) to the run summary.
+- **`build.yml`** — source-build gate on every PR and every push to `main` or a `support/*`
+  branch. Restores + compiles the plugin and sample app across Android / iOS / MacCatalyst /
+  Windows. Hard-fails on **NU1605** (package downgrade); surfaces **NU1608** (native-binding
+  constraint drift — the issue #68 / #82 class) to the run summary.
 - **`device-tests.yml`** — runs the harness on an Android emulator and an iOS simulator, on every
-  PR and push to `main` (docs-only changes skipped). Both lanes gate on consent. Android also
-  gates on the banner and on the ads requested before consent (`load-waits-for-consent`,
-  `prepare-before-consent`); iOS reports their fill and fails only if one loads before consent.
-  Reusable by the nightly and the bump gate.
+  PR and every push to `main` or a `support/*` branch (docs-only changes skipped). Both lanes
+  gate on consent. Android also gates on the banner and on the ads requested before consent
+  (`load-waits-for-consent`, `prepare-before-consent`); iOS reports their fill and fails only if
+  one loads before consent. Reusable by the nightly and the bump gate.
 - **`nightly.yml`** — 04:00 UTC. Resolves the latest published version and runs both the build
   smoke and the device tests **against the published package**.
 - **`bump-maui.yml`** — the MAUI auto-bump now *validates before it publishes*. It pushes the
@@ -48,7 +48,8 @@ dotnet build tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj -f n
   prerelease suffix such as `v10.0.120.1-beta.1`) is pushed, or manually from such a tag. It fails
   without the tag, checks the package version and that all four target frameworks are in the
   package, publishes to nuget.org through trusted publishing (no API key secret) and creates the
-  GitHub Release.
+  GitHub Release. A stable release becomes the latest GitHub release only if no higher version
+  has been released, so a release from a support branch doesn't displace a newer major.
 - **`binding-drift.yml`** — weekly. Keeps a "Native binding updates available" issue open while a
   package pinned in the plugin's csproj (the Google ad SDK bindings, MinVer) is behind nuget.org.
 - **`dependabot.yml`** — weekly GitHub Actions updates. NuGet isn't tracked there, because its
@@ -122,3 +123,11 @@ PRs opened by `bump-maui.yml` use the default `GITHUB_TOKEN`. Since 2026-06-11 t
 expires after 30 days. The bump validates inline before opening the PR and asks the repository
 owner for a review. To let the checks run on bump PRs without the click, give the workflow a
 GitHub App installation token instead of `GITHUB_TOKEN`.
+
+## Support branches
+
+`support/net10` starts at the v10.0.120.3 release and carries .NET 10 fixes and MAUI 10 bumps
+while .NET MAUI 10 is supported, after `main` moves to .NET 11. PRs into it and pushes to it run
+`build.yml` and `device-tests.yml` from the branch's own copies, and its release tags publish
+10.x packages through its own `release.yml`. The scheduled workflows (`nightly.yml`,
+`bump-maui.yml`, `binding-drift.yml`) run from `main` only, so they don't cover it.

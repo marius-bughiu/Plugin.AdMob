@@ -80,6 +80,7 @@ interstitialAdService.ShowAd();
 1. [Rewarded interstitial ads](https://github.com/marius-bughiu/Plugin.AdMob/blob/main/docs/Rewarded-interstitial-ads.md)
 1. [Native ads](https://github.com/marius-bughiu/Plugin.AdMob/blob/main/docs/Native-ads.md) — design your own ad layout, including video
 1. [App open ads](https://github.com/marius-bughiu/Plugin.AdMob/blob/main/docs/App-open-ads.md) — ads on app launch and foregrounding
+1. [Upgrading](https://github.com/marius-bughiu/Plugin.AdMob/blob/main/docs/Upgrading.md) — what to change when you update the plugin
 1. [Troubleshooting](https://github.com/marius-bughiu/Plugin.AdMob/blob/main/docs/Troubleshooting.md)
 1. [Samples](https://github.com/marius-bughiu/Plugin.AdMob/blob/main/docs/Samples.md)
 

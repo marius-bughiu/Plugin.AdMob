@@ -63,6 +63,7 @@
 	<ItemGroup Condition="'$(UsePublishedAdMob)' != 'true'">
 		<ProjectReference Include="..\..\src\Plugin.AdMob\Plugin.AdMob.csproj" />
 	</ItemGroup>
+	<Import Project="..\..\src\Plugin.AdMob\buildTransitive\Plugin.AdMob.targets" Condition="'$(UsePublishedAdMob)' != 'true'" />
 
 	<!-- PUBLISHED reference: validates the shipped NuGet artifact. -->
 	<ItemGroup Condition="'$(UsePublishedAdMob)' == 'true'">

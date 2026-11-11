@@ -9,7 +9,7 @@ name: Build
 on:
   pull_request:
   push:
-    branches: [ main ]
+    branches: [ main, 'support/**' ]
   workflow_dispatch:
   workflow_call:
     inputs:

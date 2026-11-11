@@ -93,12 +93,17 @@ jobs:
         Add-Type -AssemblyName System.IO.Compression.FileSystem
         $zip = [System.IO.Compression.ZipFile]::OpenRead($nupkg[0].FullName)
         $tfms = $zip.Entries | Where-Object { $_.FullName -like 'lib/*/Plugin.AdMob.dll' } | ForEach-Object { $_.FullName.Split('/')[1] }
+        $missing = 'buildTransitive/Plugin.AdMob.targets', 'buildTransitive/Plugin.AdMob.proguard.cfg' | Where-Object { $_ -notin $zip.Entries.FullName }
         $zip.Dispose()
         foreach ($platform in 'android', 'ios', 'maccatalyst', 'windows') {
           if (-not ($tfms | Where-Object { $_ -like "net11.0-$platform*" })) {
             Write-Output "::error::The package has no net11.0-$platform build. Found: $($tfms -join ', ')"
             exit 1
           }
+        }
+        if ($missing) {
+          Write-Output "::error::The package has no $($missing -join ' or ')"
+          exit 1
         }
         Write-Output "$expected contains: $($tfms -join ', ')"
 
@@ -142,6 +147,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ needs.build.outputs.tag }}
+          VERSION: ${{ needs.build.outputs.version }}
           PRERELEASE: ${{ needs.build.outputs.prerelease }}
         run: |
           gh release view $env:TAG --repo $env:GITHUB_REPOSITORY *> $null
@@ -149,6 +155,12 @@ jobs:
             Write-Output "Release $env:TAG already exists; leaving it as is."
             exit 0
           }
-          $flags = @('--latest')
-          if ($env:PRERELEASE -eq 'True') { $flags = @('--prerelease', '--latest=false') }
+          $flags = @('--prerelease', '--latest=false')
+          if ($env:PRERELEASE -ne 'True') {
+            $newest = gh release list --repo $env:GITHUB_REPOSITORY --exclude-drafts --exclude-pre-releases --limit 1000 --json tagName --jq '.[].tagName' |
+              ForEach-Object { $v = $null; if ([version]::TryParse(($_ -replace '^v', ''), [ref]$v)) { $v } } |
+              Sort-Object -Descending | Select-Object -First 1
+            $latest = $null -eq $newest -or [version]$env:VERSION -ge $newest
+            $flags = @("--latest=$($latest.ToString().ToLowerInvariant())")
+          }
           gh release create $env:TAG --repo $env:GITHUB_REPOSITORY --verify-tag --title $env:TAG --generate-notes @flags (Get-ChildItem "${{ env.NuGetDirectory }}" -Filter *.nupkg).FullName
