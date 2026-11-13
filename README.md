@@ -67,7 +67,7 @@ interstitialAdService.ShowAd();
 
 ### 📽️ Video tutorial
 
-[![How to display an AdMob banner ad in your .NET MAUI app in under 5 minutes](https://i.ytimg.com/vi/-oxEb6aCAKQ/hqdefault.jpg?sqp=-oaymwEnCNACELwBSFryq4qpAxkIARUAAIhCGAHYAQHiAQoIGBACGAY4AUAB&rs=AOn4CLBLqbS3LegqEUbJVp_A3DE68ufjVw)](https://www.youtube.com/watch?v=-oxEb6aCAKQ "How to display an AdMob banner ad in your .NET MAUI app in under 5 minutes")
+[![How to display an AdMob banner ad in your .NET MAUI app in under 5 minutes](https://raw.githubusercontent.com/marius-bughiu/Plugin.AdMob/main/.nuget/video-thumbnail.jpg)](https://www.youtube.com/watch?v=-oxEb6aCAKQ "How to display an AdMob banner ad in your .NET MAUI app in under 5 minutes")
 
 ## Documentation
 

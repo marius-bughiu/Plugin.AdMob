@@ -36,6 +36,9 @@ jobs:
       prerelease: ${{ steps.tag.outputs.prerelease }}
 
     steps:
+    - name: Keep the repository's LF line endings
+      run: git config --global core.autocrlf false
+
     - uses: actions/checkout@v7
       with:
         fetch-depth: 0
