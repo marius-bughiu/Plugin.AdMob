@@ -17,9 +17,7 @@ internal static class EarlyLoads
     {
         var interstitialAdService = services.GetRequiredService<IInterstitialAdService>();
         interstitialAdService.OnAdLoaded += (_, _) => _prepared.TrySetResult(null);
-#if ADMOB_SOURCE
         interstitialAdService.OnAdFailedToLoad += (_, error) => _prepared.TrySetResult(error.Message);
-#endif
         interstitialAdService.PrepareAd();
 
         var ad = interstitialAdService.CreateAd();

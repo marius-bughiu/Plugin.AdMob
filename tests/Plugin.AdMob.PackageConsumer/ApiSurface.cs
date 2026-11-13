@@ -37,6 +37,10 @@ public static class ApiSurface
         typeof(IAppOpenAdService),
         typeof(INativeAdService),
         typeof(IAdConsentService),
+        typeof(IMobileAdsService),
+        typeof(IInitializationStatus),
+        typeof(IAdapterStatus),
+        typeof(AdapterState),
         typeof(IInterstitialAd),
         typeof(IRewardedAd),
         typeof(IRewardedInterstitialAd),
@@ -44,5 +48,24 @@ public static class ApiSurface
         typeof(INativeAd),
         typeof(IAdError),
         typeof(VideoOptions),
+    ];
+
+    public static void SubscribeToLoadFailures(
+        IInterstitialAdService interstitial,
+        IRewardedAdService rewarded,
+        IRewardedInterstitialAdService rewardedInterstitial,
+        IAppOpenAdService appOpen,
+        EventHandler<IAdError> handler)
+    {
+        interstitial.OnAdFailedToLoad += handler;
+        rewarded.OnAdFailedToLoad += handler;
+        rewardedInterstitial.OnAdFailedToLoad += handler;
+        appOpen.OnAdFailedToLoad += handler;
+    }
+
+    public static async Task<string[]> DescribeAdaptersAsync(IMobileAdsService mobileAds) =>
+    [
+        .. (await mobileAds.Initialization).AdapterStatuses
+            .Select(a => $"{a.Name}: {(a.State == AdapterState.Ready ? "ready" : "not ready")} in {a.Latency}, {a.Description}")
     ];
 }

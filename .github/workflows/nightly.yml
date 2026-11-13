@@ -3,10 +3,17 @@ name: Nightly (published package)
 # Exercises the LATEST PUBLISHED Plugin.AdMob package (not the source) to catch upstream /
 # time-driven drift under a shipped release: new transitive native-binding versions, a MAUI
 # release that breaks restore, or Google SDK behavior changes. Runs before the MAUI auto-bump.
+#
+# Schedules only run on the default branch, so main's nightly.yml calls this copy with
+# ref: support/net10.
 
 on:
-  schedule:
-    - cron: '0 4 * * *'   # 04:00 UTC, ahead of bump-maui (06:00 UTC)
+  workflow_call:
+    inputs:
+      ref:
+        description: Branch to test. Defaults to the branch the workflow runs on.
+        required: false
+        type: string
   workflow_dispatch:
 
 permissions:
@@ -20,11 +27,21 @@ jobs:
       version: ${{ steps.v.outputs.version }}
       maui: ${{ steps.v.outputs.maui }}
     steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
       - id: v
         run: |
-          latest=$(curl -sf https://api.nuget.org/v3-flatcontainer/plugin.admob/index.json \
-            | jq -r '.versions[] | select(contains("-") | not)' | sort -V | tail -1)
-          if [ -z "$latest" ]; then echo "::error::Could not resolve latest published Plugin.AdMob version"; exit 1; fi
+          major=$(sed -n 's:.*<MauiPackageVersion>\([0-9]*\)\..*:\1:p' src/Plugin.AdMob/Plugin.AdMob.csproj)
+          if [ -z "$major" ]; then echo "::error::Could not read MauiPackageVersion"; exit 1; fi
+          index=$(curl -sf https://api.nuget.org/v3-flatcontainer/plugin.admob/index.json) ||
+            { echo "::error::Could not read the published Plugin.AdMob versions"; exit 1; }
+          latest=$(jq -r --arg m "$major." '.versions[] | select(startswith($m) and (contains("-") | not))' <<<"$index" | sort -V | tail -1)
+          if [ -z "$latest" ]; then
+            echo "::notice::No stable Plugin.AdMob $major.x is published yet, so there is no package to test."
+            exit 0
+          fi
           # The plugin version tracks MAUI: X.Y.Z[.build] -> MAUI X.Y.Z.
           maui=$(echo "$latest" | awk -F. '{print $1"."$2"."$3}')
           echo "version=$latest" >> "$GITHUB_OUTPUT"
@@ -34,6 +51,7 @@ jobs:
   smoke:
     name: build smoke ${{ matrix.tfm }}
     needs: resolve
+    if: needs.resolve.outputs.version != ''
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -53,6 +71,8 @@ jobs:
             workload: maui-windows
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.ref }}
 
       - uses: actions/setup-dotnet@v6
         with:
@@ -95,8 +115,10 @@ jobs:
   device-tests:
     name: device tests
     needs: resolve
+    if: needs.resolve.outputs.version != ''
     uses: ./.github/workflows/device-tests.yml
     with:
+      ref: ${{ inputs.ref || github.ref }}
       use_published: true
       admob_version: ${{ needs.resolve.outputs.version }}
       maui_version: ${{ needs.resolve.outputs.maui }}
