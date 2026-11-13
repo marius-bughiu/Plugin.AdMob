@@ -183,3 +183,10 @@ jobs:
       - name: Clean up the validation branch
         if: always()
         run: git push origin --delete bump-maui-validate || true
+
+  # Schedules only run on the default branch, so the .NET 10 line's bump runs from here.
+  support-net10:
+    name: support/net10
+    uses: marius-bughiu/Plugin.AdMob/.github/workflows/bump-maui.yml@support/net10
+    with:
+      ref: support/net10

@@ -110,3 +110,10 @@ jobs:
       use_published: true
       admob_version: ${{ needs.resolve.outputs.version }}
       maui_version: ${{ needs.resolve.outputs.maui }}
+
+  # Schedules only run on the default branch, so the .NET 10 line's nightly runs from here.
+  support-net10:
+    name: support/net10
+    uses: marius-bughiu/Plugin.AdMob/.github/workflows/nightly.yml@support/net10
+    with:
+      ref: support/net10
