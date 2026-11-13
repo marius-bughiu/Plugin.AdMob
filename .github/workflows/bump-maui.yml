@@ -19,6 +19,7 @@ concurrency:
 
 jobs:
   check:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     outputs:
       bump: ${{ steps.check.outputs.bump }}
