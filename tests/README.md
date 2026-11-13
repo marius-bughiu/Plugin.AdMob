@@ -138,3 +138,5 @@ while .NET MAUI 10 is supported, after `main` moves to .NET 11. PRs into it and 
 jobs in `main`'s `nightly.yml` and `bump-maui.yml` call this branch's copies of those workflows
 with `ref: support/net10`. A broken copy here fails `main`'s scheduled run as well, and the jobs
 go when the branch is retired. `binding-drift.yml` runs for `main` only.
+
+Proof only: this line moves the scratch base so the bump has to update its open PR.
