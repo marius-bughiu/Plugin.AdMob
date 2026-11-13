@@ -32,7 +32,7 @@
 			Release builds ($(MauiPackageVersion)-beta.<height>). Debug builds are versioned
 			$(MauiPackageVersion)-dev.<timestamp>.
 		-->
-		<MauiPackageVersion>11.0.0</MauiPackageVersion>
+		<MauiPackageVersion>11.0.10</MauiPackageVersion>
 		<MinVerTagPrefix>v</MinVerTagPrefix>
 		<MinVerDefaultPreReleaseIdentifiers>beta</MinVerDefaultPreReleaseIdentifiers>
 		<MinVerSkip Condition="'$(Configuration)' == 'Debug'">true</MinVerSkip>
