@@ -22,8 +22,11 @@ dotnet build tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj -f n
 
 # published package — validates the shipped .nupkg
 dotnet build tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj -f net10.0-android \
-  -p:UsePublishedAdMob=true -p:AdMobPackageVersion=10.0.90 -p:MauiVersion=10.0.90
+  -p:UsePublishedAdMob=true -p:AdMobPackageVersion=10.0.130 -p:MauiVersion=10.0.130
 ```
+
+The harness builds against Plugin.AdMob 10.0.130 or later, the first release with `IMobileAdsService`
+and the services' `OnAdFailedToLoad`.
 
 ## Workflows
 
@@ -118,8 +121,9 @@ Google's test ads sometimes time out on the iOS simulators, and GMA 12 reports s
 
 ## Required checks
 
-The `main protect` ruleset requires the four `build.yml` checks (`net10.0-android`,
-`net10.0-ios`, `net10.0-maccatalyst`, `net10.0-windows10.0.19041.0`). The device tests run on
+The `support protect` ruleset requires the four `build.yml` checks (`net10.0-android`,
+`net10.0-ios`, `net10.0-maccatalyst`, `net10.0-windows10.0.19041.0`) on `support/**`; `main protect`
+requires the `net11.0-*` names on `main`. The device tests run on
 every PR but aren't required, so a fill hiccup in Google's test ads can't block a merge; read
 their result before merging.
 
