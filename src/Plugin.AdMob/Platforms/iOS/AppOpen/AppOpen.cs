@@ -20,7 +20,7 @@ internal partial class AppOpenAd
             var request = Request.GetDefaultRequest();
 
             Google.MobileAds.AppOpenAd.Load(AdUnitId, request, AdLoaded);
-        });
+        }, ex => OnAdFailedToLoad?.Invoke(this, new AdError(ex)));
     }
 
     public void Show()

@@ -8,6 +8,20 @@ builder.UseAdMob()
 
 The plugin starts the Google Mobile Ads SDK for you, on both platforms, as soon as consent allows ad requests: consent stored from an earlier session counts as soon as the session's consent request starts. If you disabled the consent check, it starts the SDK right before your first ad request. Ads requested while the SDK is still starting are loaded once it has started. Google asks apps not to start the SDK before consent is gathered, so you don't need to call `MobileAds.SharedInstance.Start(...)` (iOS) or `MobileAds.Initialize(...)` (Android) yourself. If you do, call it only once `IAdConsentService.CanRequestAds()` is true.
 
+To find out when the SDK has started, for example to check that your mediation adapters initialized, await `IMobileAdsService.Initialization`. It completes once the SDK has started and its adapters have initialized or timed out, with the status of each adapter:
+
+```
+var mobileAdsService = IPlatformApplication.Current.Services.GetRequiredService<IMobileAdsService>();
+var status = await mobileAdsService.Initialization;
+
+foreach (var adapter in status.AdapterStatuses)
+{
+    Console.WriteLine($"{adapter.Name}: {adapter.State} in {adapter.Latency.TotalMilliseconds} ms. {adapter.Description}");
+}
+```
+
+The list includes the Google Mobile Ads SDK itself (`com.google.android.libraries.ads.mobile.sdk.MobileAds` on Android, `GADMobileAds` on iOS) and the adapters the SDK looks for. An adapter that initialized is `Ready`; one that failed, timed out or isn't in your app is `NotReady`, and `Description` is the SDK's explanation (on iOS it also repeats the state). `Initialization` completes only after the plugin has started the SDK, which waits for consent, and never on MacCatalyst or Windows, so give it a timeout if your code waits for it, for example `Initialization.WaitAsync(TimeSpan.FromSeconds(60))`. The first start on a newly created iOS simulator can take close to a minute.
+
 ## Platform support
 
 - **Android / iOS**: fully supported.

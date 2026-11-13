@@ -77,10 +77,10 @@ internal partial class NativeAd
 
             var callback = new NativeAdLoaderCallback();
             callback.AdLoaded += (s, ad) => OnAdLoadedInternal(ad);
-            callback.AdFailedToLoad += (s, e) => OnAdFailedToLoad?.Invoke(s, new AdError(e.Message));
+            callback.AdFailedToLoad += (s, e) => OnAdFailedToLoad?.Invoke(this, new AdError(e.Message));
 
             SdkNativeAdLoader.Load(requestBuilder.Build(), callback);
-        });
+        }, ex => OnAdFailedToLoad?.Invoke(this, new AdError(ex)));
     }
 
     internal SdkINativeAd GetPlatformAd() => _ad!;
