@@ -22,12 +22,11 @@ dotnet build tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj -f n
 
 # published package — validates the shipped .nupkg
 dotnet build tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj -f net10.0-android \
-  -p:UsePublishedAdMob=true -p:AdMobPackageVersion=10.0.90 -p:MauiVersion=10.0.90
+  -p:UsePublishedAdMob=true -p:AdMobPackageVersion=10.0.130 -p:MauiVersion=10.0.130
 ```
 
-Source builds of the harness define `ADMOB_SOURCE`. Checks of API that no published package has
-yet are compiled only when it's defined, so the nightly can still build the harness against the
-latest release. Remove the condition once a release has the API.
+The harness builds against Plugin.AdMob 10.0.130 or later, the first release with `IMobileAdsService`
+and the services' `OnAdFailedToLoad`.
 
 ## Workflows
 
@@ -37,18 +36,22 @@ latest release. Remove the condition once a release has the API.
   constraint drift — the issue #68 / #82 class) to the run summary.
 - **`device-tests.yml`** — runs the harness on an Android emulator and an iOS simulator, on every
   PR and every push to `main` or a `support/*` branch (docs-only changes skipped). Both lanes
-  gate on consent. Android also gates on the SDK start (`sdk-initialization`, in source builds),
+  gate on consent. Android also gates on the SDK start (`sdk-initialization`),
   the banner and the ads requested before consent (`load-waits-for-consent`,
   `prepare-before-consent`); iOS reports their fill and fails only if
   one loads before consent. Reusable by the nightly and the bump gate.
-- **`nightly.yml`** — 04:00 UTC. Resolves the latest published version and runs both the build
-  smoke and the device tests **against the published package**.
-- **`bump-maui.yml`** — the MAUI auto-bump now *validates before it publishes*. It pushes the
-  candidate to a throwaway `bump-maui-validate` branch, runs `build.yml` + `device-tests.yml`
-  against that commit, and only then fast-forwards the reviewed `bump-maui-version` branch and
-  opens/updates the PR. So the head of an open bump PR is never replaced by an unvalidated
-  commit, and its body always describes the commit actually on the branch. If someone pushes a
-  manual commit onto `bump-maui-version`, the promotion is skipped rather than clobbering it.
+- **`nightly.yml`** — called by `main`'s nightly (04:00 UTC) with `ref: support/net10`. Resolves
+  the newest published stable version of the branch's major (from `MauiPackageVersion`) and runs
+  both the build smoke and the device tests **against the published package**. Until that major
+  has a stable release, it skips both with a notice.
+- **`bump-maui.yml`** — called by `main`'s MAUI bump (06:00 UTC) with `ref: support/net10`, and
+  skipped if it would target `main`. It *validates before it publishes*: it pushes the candidate
+  to a throwaway `bump-maui-support-net10-validate` branch, runs `build.yml` + `device-tests.yml`
+  against that commit, and only then fast-forwards the reviewed `bump-maui-support-net10` branch
+  and opens/updates the PR into `support/net10`. So the head of an open bump PR is never replaced
+  by an unvalidated commit, and its body always describes the commit actually on the branch. If
+  someone pushes a manual commit onto `bump-maui-support-net10`, the promotion is skipped rather
+  than clobbering it.
 - **`release.yml`** — runs when a release tag (`v<MauiPackageVersion>.<build>`, optionally with a
   prerelease suffix such as `v10.0.120.1-beta.1`) is pushed, or manually from such a tag. It fails
   without the tag, checks the package version and that all four target frameworks are in the
@@ -118,8 +121,9 @@ Google's test ads sometimes time out on the iOS simulators, and GMA 12 reports s
 
 ## Required checks
 
-The `main protect` ruleset requires the four `build.yml` checks (`net10.0-android`,
-`net10.0-ios`, `net10.0-maccatalyst`, `net10.0-windows10.0.19041.0`). The device tests run on
+The `support protect` ruleset requires the four `build.yml` checks (`net10.0-android`,
+`net10.0-ios`, `net10.0-maccatalyst`, `net10.0-windows10.0.19041.0`) on `support/**`; `main protect`
+requires the `net11.0-*` names on `main`. The device tests run on
 every PR but aren't required, so a fill hiccup in Google's test ads can't block a merge; read
 their result before merging.
 
@@ -134,5 +138,7 @@ GitHub App installation token instead of `GITHUB_TOKEN`.
 `support/net10` starts at the v10.0.120.3 release and carries .NET 10 fixes and MAUI 10 bumps
 while .NET MAUI 10 is supported, after `main` moves to .NET 11. PRs into it and pushes to it run
 `build.yml` and `device-tests.yml` from the branch's own copies, and its release tags publish
-10.x packages through its own `release.yml`. The scheduled workflows (`nightly.yml`,
-`bump-maui.yml`, `binding-drift.yml`) run from `main` only, so they don't cover it.
+10.x packages through its own `release.yml`. Schedules only run on `main`, so the `support-net10`
+jobs in `main`'s `nightly.yml` and `bump-maui.yml` call this branch's copies of those workflows
+with `ref: support/net10`. A broken copy here fails `main`'s scheduled run as well, and the jobs
+go when the branch is retired. `binding-drift.yml` runs for `main` only.

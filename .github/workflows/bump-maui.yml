@@ -4,10 +4,17 @@ name: Bump MAUI
 # is opened: the change is pushed to a branch, built across all target frameworks, and run
 # through the device tests. The PR is only opened when the build gate passes, so a MAUI patch
 # that fails to restore/compile against the native bindings never reaches review as a green PR.
+#
+# Schedules only run on the default branch, so main's bump-maui.yml calls this copy with
+# ref: support/net10. Its PR comes from bump-maui-support-net10 and targets support/net10.
 
 on:
-  schedule:
-    - cron: '0 6 * * *'
+  workflow_call:
+    inputs:
+      ref:
+        description: Branch to bump. Defaults to the branch the workflow runs on.
+        required: false
+        type: string
   workflow_dispatch:
 
 permissions:
@@ -15,24 +22,36 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: bump-maui
+  group: bump-maui-${{ inputs.ref || github.ref_name }}
 
 jobs:
   check:
+    # A called workflow runs on the caller's branch, so without a ref it would bump main.
+    if: (inputs.ref || github.ref_name) != 'main'
     runs-on: ubuntu-latest
     outputs:
       bump: ${{ steps.check.outputs.bump }}
       current: ${{ steps.check.outputs.current }}
       latest: ${{ steps.check.outputs.latest }}
+      base: ${{ steps.check.outputs.base }}
+      branch: ${{ steps.check.outputs.branch }}
+      validate: ${{ steps.check.outputs.validate }}
     defaults:
       run:
         shell: bash
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.ref }}
 
       - name: Check NuGet for a newer MAUI release
         id: check
+        env:
+          BASE: ${{ inputs.ref || github.ref_name }}
         run: |
+          echo "base=$BASE" >> "$GITHUB_OUTPUT"
+          echo "branch=bump-maui-${BASE//\//-}" >> "$GITHUB_OUTPUT"
+          echo "validate=bump-maui-${BASE//\//-}-validate" >> "$GITHUB_OUTPUT"
           current=$(sed -n 's:.*<MauiPackageVersion>\(.*\)</MauiPackageVersion>.*:\1:p' src/Plugin.AdMob/Plugin.AdMob.csproj)
           major=${current%%.*}
           latest=$(curl -sf https://api.nuget.org/v3-flatcontainer/microsoft.maui.controls/index.json |
@@ -46,10 +65,10 @@ jobs:
           echo "latest=$latest" >> "$GITHUB_OUTPUT"
           if [ "$latest" != "$current" ] && [ "$(printf '%s\n%s\n' "$current" "$latest" | sort -V | tail -n 1)" = "$latest" ]; then
             echo "bump=true" >> "$GITHUB_OUTPUT"
-            echo "MAUI $current -> $latest"
+            echo "MAUI $current -> $latest on $BASE"
           else
             echo "bump=false" >> "$GITHUB_OUTPUT"
-            echo "MAUI $current is up to date"
+            echo "MAUI $current is up to date on $BASE"
           fi
 
   prepare:
@@ -61,6 +80,8 @@ jobs:
         shell: bash
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.check.outputs.base }}
 
       # The candidate goes to a THROWAWAY branch, never straight to the reviewed branch. The
       # reviewed branch is only moved once the gate is green (see open-pr), so a failing bump
@@ -69,6 +90,7 @@ jobs:
         id: push
         env:
           LATEST: ${{ needs.check.outputs.latest }}
+          VALIDATE: ${{ needs.check.outputs.validate }}
         run: |
           sed -i -E "s|<MauiPackageVersion>[^<]+</MauiPackageVersion>|<MauiPackageVersion>$LATEST</MauiPackageVersion>|" \
             src/Plugin.AdMob/Plugin.AdMob.csproj
@@ -80,9 +102,9 @@ jobs:
           git diff --stat
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout -B bump-maui-validate
+          git checkout -B "$VALIDATE"
           git commit -am "Bump .NET MAUI to $LATEST"
-          git push --force origin bump-maui-validate
+          git push --force origin "$VALIDATE"
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
   # Hard gate: the bumped source must restore + compile on every target framework.
@@ -91,7 +113,7 @@ jobs:
     if: needs.check.outputs.bump == 'true'
     uses: ./.github/workflows/build.yml
     with:
-      ref: bump-maui-validate
+      ref: ${{ needs.check.outputs.validate }}
 
   # Runtime signal: device tests against the bumped SOURCE. Advisory for opening the PR
   # (its result is reported in the PR body) so emulator flakiness can't block a valid bump.
@@ -100,7 +122,7 @@ jobs:
     if: needs.check.outputs.bump == 'true'
     uses: ./.github/workflows/device-tests.yml
     with:
-      ref: bump-maui-validate
+      ref: ${{ needs.check.outputs.validate }}
       use_published: false
       # Pin MAUI to the version being bumped to — otherwise the harness's floating
       # Microsoft.Maui.Controls reference would test a different MAUI than the PR ships.
@@ -113,10 +135,14 @@ jobs:
     defaults:
       run:
         shell: bash
+    env:
+      BASE: ${{ needs.check.outputs.base }}
+      BRANCH: ${{ needs.check.outputs.branch }}
+      VALIDATE: ${{ needs.check.outputs.validate }}
     steps:
       - uses: actions/checkout@v7
         with:
-          ref: bump-maui-validate
+          ref: ${{ needs.check.outputs.validate }}
           fetch-depth: 0   # need real history to tell bot commits from human ones
 
       # Move the reviewed branch onto the validated commit. Head, title and body therefore
@@ -124,32 +150,32 @@ jobs:
       - name: Promote the validated commit onto the review branch
         id: promote
         run: |
-          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
-          git fetch --no-tags origin +refs/heads/bump-maui-version:refs/remotes/origin/bump-maui-version || true
+          git fetch --no-tags origin "+refs/heads/$BASE:refs/remotes/origin/$BASE"
+          git fetch --no-tags origin "+refs/heads/$BRANCH:refs/remotes/origin/$BRANCH" || true
 
-          if ! git rev-parse -q --verify refs/remotes/origin/bump-maui-version >/dev/null; then
-            git push origin HEAD:refs/heads/bump-maui-version
+          if ! git rev-parse -q --verify "refs/remotes/origin/$BRANCH" >/dev/null; then
+            git push origin "HEAD:refs/heads/$BRANCH"
             echo "pushed=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
           # Already holds exactly this change (open PR, re-run on a later night): leave it alone.
-          if [ "$(git rev-parse refs/remotes/origin/bump-maui-version^{tree})" = "$(git rev-parse HEAD^{tree})" ]; then
-            echo "bump-maui-version already holds this exact change; nothing to push."
+          if [ "$(git rev-parse "refs/remotes/origin/$BRANCH^{tree}")" = "$(git rev-parse HEAD^{tree})" ]; then
+            echo "$BRANCH already holds this exact change; nothing to push."
             echo "pushed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          # Only inspect commits unique to the branch, so main's own human history is ignored.
-          if git log --format=%ae refs/remotes/origin/main..refs/remotes/origin/bump-maui-version |
+          # Only inspect commits unique to the branch, so the base's own human history is ignored.
+          if git log --format=%ae "refs/remotes/origin/$BASE..refs/remotes/origin/$BRANCH" |
              grep -qv '^41898282+github-actions\[bot\]@users\.noreply\.github\.com$'; then
-            echo "::warning::bump-maui-version carries manual commits — skipping the bump rather than clobbering them."
+            echo "::warning::$BRANCH carries manual commits — skipping the bump rather than clobbering them."
             echo "pushed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          git push --force-with-lease=bump-maui-version:"$(git rev-parse refs/remotes/origin/bump-maui-version)" \
-            origin HEAD:refs/heads/bump-maui-version
+          git push --force-with-lease="$BRANCH:$(git rev-parse "refs/remotes/origin/$BRANCH")" \
+            origin "HEAD:refs/heads/$BRANCH"
           echo "pushed=true" >> "$GITHUB_OUTPUT"
 
       - name: Open or update the pull request
@@ -172,14 +198,14 @@ jobs:
             "- Validation run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
             "" \
             "Release notes: https://github.com/dotnet/maui/releases")
-          existing=$(gh pr list --head bump-maui-version --state open --json number -q '.[0].number' || true)
+          existing=$(gh pr list --base "$BASE" --head "$BRANCH" --state open --json number -q '.[0].number' || true)
           if [ -n "$existing" ]; then
             echo "PR #$existing already open; branch push updated it."
             gh pr edit "$existing" --title "Bump .NET MAUI to $LATEST" --body "$body" --add-reviewer "$GITHUB_REPOSITORY_OWNER"
           else
-            gh pr create --base main --head bump-maui-version --title "Bump .NET MAUI to $LATEST" --body "$body" --reviewer "$GITHUB_REPOSITORY_OWNER"
+            gh pr create --base "$BASE" --head "$BRANCH" --title "Bump .NET MAUI to $LATEST" --body "$body" --reviewer "$GITHUB_REPOSITORY_OWNER"
           fi
 
       - name: Clean up the validation branch
         if: always()
-        run: git push origin --delete bump-maui-validate || true
+        run: git push origin --delete "$VALIDATE" || true

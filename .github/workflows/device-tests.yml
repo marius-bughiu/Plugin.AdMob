@@ -49,7 +49,7 @@ on:
         type: boolean
         default: true
       admob_version:
-        description: Package version to test (blank = latest).
+        description: Package version to test, 10.0.130 or later (blank = latest).
         type: string
         default: ''
       maui_version:
