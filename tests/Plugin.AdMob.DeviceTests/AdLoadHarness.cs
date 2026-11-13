@@ -37,10 +37,8 @@ internal static class AdLoadHarness
         var (consent, consentDetail) = await HarnessConsent.WaitAsync(TimeSpan.FromSeconds(60));
         HarnessLog.Line($"RESULT format=consent status={(consent ? "PASS" : "FAIL")} detail=\"{Sanitize(consentDetail)}\"");
 
-#if ADMOB_SOURCE
         var (sdkInitialized, sdkDetail) = await WaitForSdkInitializationAsync(services.GetRequiredService<IMobileAdsService>(), TimeSpan.FromSeconds(SdkStartTimeoutSeconds));
         HarnessLog.Line($"RESULT format=sdk-initialization status={(sdkInitialized ? "PASS" : "FAIL")} detail=\"{Sanitize(sdkDetail)}\"");
-#endif
 
         var (loadWaitsForConsent, loadDetail) = await EarlyLoads.WaitForLoadAsync(HarnessConsent.ConsentAt, TimeSpan.FromSeconds(EarlyLoadTimeoutSeconds));
         HarnessLog.Line($"RESULT format=load-waits-for-consent status={(loadWaitsForConsent ? "PASS" : "FAIL")} detail=\"{Sanitize(loadDetail)}\"");
@@ -63,9 +61,7 @@ internal static class AdLoadHarness
         var results = new List<bool>
         {
             consent,
-#if ADMOB_SOURCE
             sdkInitialized,
-#endif
             loadWaitsForConsent,
             prepareBeforeConsent,
             banner,
@@ -84,7 +80,6 @@ internal static class AdLoadHarness
         HarnessLog.Line($"SUMMARY_ALL status={(passed == results.Count ? "PASS" : "FAIL")} passed={passed} total={results.Count}");
     }
 
-#if ADMOB_SOURCE
     /// <summary>
     /// Waits for the plugin's SDK start and lists each adapter's reported status.
     /// </summary>
@@ -107,7 +102,6 @@ internal static class AdLoadHarness
             return (false, ex.Message);
         }
     }
-#endif
 
     private static Task<bool> RunInterstitialAsync(IInterstitialAd ad) => AwaitLoadAsync(
         "interstitial",

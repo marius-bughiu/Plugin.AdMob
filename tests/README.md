@@ -25,10 +25,6 @@ dotnet build tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj -f n
   -p:UsePublishedAdMob=true -p:AdMobPackageVersion=11.0.0.0 -p:MauiVersion=11.0.0
 ```
 
-Source builds of the harness define `ADMOB_SOURCE`. Checks of API that no published package has
-yet are compiled only when it's defined, so the nightly can still build the harness against the
-latest release. Remove the condition once a release has the API.
-
 ## Workflows
 
 - **`build.yml`** — source-build gate on every PR and every push to `main` or a `support/*`
@@ -37,7 +33,7 @@ latest release. Remove the condition once a release has the API.
   constraint drift — the issue #68 / #82 class) to the run summary.
 - **`device-tests.yml`** — runs the harness on an Android emulator and an iOS simulator, on every
   PR and every push to `main` or a `support/*` branch (docs-only changes skipped). Both lanes
-  gate on consent. Android also gates on the SDK start (`sdk-initialization`, in source builds),
+  gate on consent. Android also gates on the SDK start (`sdk-initialization`),
   the banner and the ads requested before consent (`load-waits-for-consent`,
   `prepare-before-consent`); iOS reports their fill and fails only if
   one loads before consent. Reusable by the nightly and the bump gate.
@@ -136,5 +132,9 @@ GitHub App installation token instead of `GITHUB_TOKEN`.
 `support/net10` starts at the v10.0.120.3 release and carries .NET 10 fixes and MAUI 10 bumps
 while .NET MAUI 10 is supported, after `main` moves to .NET 11. PRs into it and pushes to it run
 `build.yml` and `device-tests.yml` from the branch's own copies, and its release tags publish
-10.x packages through its own `release.yml`. The scheduled workflows (`nightly.yml`,
-`bump-maui.yml`, `binding-drift.yml`) run from `main` only, so they don't cover it.
+10.x packages through its own `release.yml`. Schedules only run on `main`, so the `support-net10`
+jobs in `main`'s `nightly.yml` and `bump-maui.yml` call the branch's copies of those workflows
+with `ref: support/net10`. Its nightly tests the newest published 10.x package, and a MAUI 10 bump
+is validated on `bump-maui-support-net10-validate` and proposed from `bump-maui-support-net10`
+into `support/net10`. A broken copy on the branch fails `main`'s scheduled run as well, and the
+jobs go when the branch is retired. `binding-drift.yml` runs for `main` only.

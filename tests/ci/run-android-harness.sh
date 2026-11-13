@@ -87,7 +87,7 @@ if ! echo "$banner" | grep -q "status=PASS"; then
 fi
 
 sdk=$(adb logcat -d -s "${TAG}:I" | grep -F "format=sdk-initialization " | tail -1 || true)
-if [ -n "$sdk" ] && ! echo "$sdk" | grep -q "status=PASS"; then
+if ! echo "$sdk" | grep -q "status=PASS"; then
   echo "::error::IMobileAdsService.Initialization didn't complete after consent (sdk-initialization)."
   dump_diagnostics
   exit 1
