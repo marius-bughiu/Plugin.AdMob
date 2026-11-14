@@ -113,6 +113,32 @@ starting, consent completing and no ad loading before consent. Fill is reported,
 Google's test ads sometimes time out on the iOS simulators, and GMA 12 reports some timeouts as
 `Invalid request`.
 
+### Optional iOS Meta adapter check
+
+Pass `MetaAdapterPackageVersion` to include `AdMaui.MetaAdapter.iOS` in the iOS harness.
+For an adapter built locally, add its package directory as a restore source (replace the
+version with the version in that local package):
+
+```bash
+dotnet build tests/Plugin.AdMob.DeviceTests/Plugin.AdMob.DeviceTests.csproj -c Debug \
+  -p:TargetFrameworks=net11.0-ios -p:RuntimeIdentifier=iossimulator-arm64 \
+  -p:MetaAdapterPackageVersion=6.22.1 \
+  -p:RestoreAdditionalProjectSources=/absolute/path/to/local-feed
+```
+
+Install and launch the resulting app with `simctl` as in the iOS workflow. The additional
+`RESULT format=meta-adapter-link` must pass, and it contributes to `SUMMARY_ALL`. It checks
+that `GADMediationAdapterFacebook` is registered in the running app, catching a missing or
+discarded native adapter. Every iOS run also logs the native Google Mobile Ads version as
+`SDK platform=iOS gma=...`, which helps identify an unexpectedly old linked framework.
+
+The normal consent, SDK initialization and ad-load checks still run with the adapter present.
+Initialization logs any adapter statuses the SDK reports, but this check does not require
+Meta to report `Ready`: Google's sample app ID and test ad units do not configure this app's
+Meta mediation. A passing run establishes native linkage, startup and Google test-ad
+compatibility. Serving Meta ads still needs a configured AdMob mediation app and Meta
+placement, plus a separate device test. Android runs ignore `MetaAdapterPackageVersion`.
+
 ## Required checks
 
 The `main protect` ruleset requires the four `build.yml` checks (`net11.0-android`,
