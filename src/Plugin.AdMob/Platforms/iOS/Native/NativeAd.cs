@@ -51,32 +51,39 @@ internal partial class NativeAd : NativeAdLoaderDelegate
 
     public void SetVideoMuted(bool muted) => _ad?.MediaContent?.VideoController?.SetMute(muted);
 
-    public void Load()
+    public void Load() => _consentGate.WhenAllowed(LoadAd);
+
+    private void LoadAd()
     {
-        MobileAds.SharedInstance.RequestConfiguration.ApplyGlobalAdConfiguration();
+        MobileAdsInitialization.Start();
 
-        var options = new List<AdLoaderOptions>();
-
-        if (VideoOptions is not null)
+        AdMobInitializer.RunWhenInitialized(() =>
         {
-            options.Add(new Google.MobileAds.VideoOptions
+            MobileAds.SharedInstance.RequestConfiguration.ApplyGlobalAdConfiguration();
+
+            var options = new List<AdLoaderOptions>();
+
+            if (VideoOptions is not null)
             {
-                StartMuted = VideoOptions.StartMuted,
-                CustomControlsRequested = VideoOptions.CustomControlsRequested,
-                ClickToExpandRequested = VideoOptions.ClickToExpandRequested,
-            });
-        }
+                options.Add(new Google.MobileAds.VideoOptions
+                {
+                    StartMuted = VideoOptions.StartMuted,
+                    CustomControlsRequested = VideoOptions.CustomControlsRequested,
+                    ClickToExpandRequested = VideoOptions.ClickToExpandRequested,
+                });
+            }
 
-        var adLoader = new AdLoader(adUnitID: AdUnitId,
-            // The UIViewController parameter is optional.
-            rootViewController: null,
-            adTypes: [AdLoadAdTypeConstants.Native],
-            options: [.. options]);
+            var adLoader = new AdLoader(adUnitID: AdUnitId,
+                // The UIViewController parameter is optional.
+                rootViewController: null,
+                adTypes: [AdLoadAdTypeConstants.Native],
+                options: [.. options]);
 
-        adLoader.Delegate = this;
+            adLoader.Delegate = this;
 
-        var request = Request.GetDefaultRequest();
-        adLoader.LoadRequest(request);
+            var request = Request.GetDefaultRequest();
+            adLoader.LoadRequest(request);
+        }, ex => OnAdFailedToLoad?.Invoke(this, new AdError(ex)));
     }
 
     internal Google.MobileAds.NativeAd GetPlatformAd() => _ad!;

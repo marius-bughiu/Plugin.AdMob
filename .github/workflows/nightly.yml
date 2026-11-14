@@ -20,11 +20,19 @@ jobs:
       version: ${{ steps.v.outputs.version }}
       maui: ${{ steps.v.outputs.maui }}
     steps:
+      - uses: actions/checkout@v7
+
       - id: v
         run: |
-          latest=$(curl -sf https://api.nuget.org/v3-flatcontainer/plugin.admob/index.json \
-            | jq -r '.versions[] | select(contains("-") | not)' | sort -V | tail -1)
-          if [ -z "$latest" ]; then echo "::error::Could not resolve latest published Plugin.AdMob version"; exit 1; fi
+          major=$(sed -n 's:.*<MauiPackageVersion>\([0-9]*\)\..*:\1:p' src/Plugin.AdMob/Plugin.AdMob.csproj)
+          if [ -z "$major" ]; then echo "::error::Could not read MauiPackageVersion"; exit 1; fi
+          index=$(curl -sf https://api.nuget.org/v3-flatcontainer/plugin.admob/index.json) ||
+            { echo "::error::Could not read the published Plugin.AdMob versions"; exit 1; }
+          latest=$(jq -r --arg m "$major." '.versions[] | select(startswith($m) and (contains("-") | not))' <<<"$index" | sort -V | tail -1)
+          if [ -z "$latest" ]; then
+            echo "::notice::No stable Plugin.AdMob $major.x is published yet, so there is no package to test."
+            exit 0
+          fi
           # The plugin version tracks MAUI: X.Y.Z[.build] -> MAUI X.Y.Z.
           maui=$(echo "$latest" | awk -F. '{print $1"."$2"."$3}')
           echo "version=$latest" >> "$GITHUB_OUTPUT"
@@ -34,29 +42,30 @@ jobs:
   smoke:
     name: build smoke ${{ matrix.tfm }}
     needs: resolve
+    if: needs.resolve.outputs.version != ''
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
-            tfm: net10.0-android
+            tfm: net11.0-android
             workload: maui-android
           - os: macos-latest
-            tfm: net10.0-ios
+            tfm: net11.0-ios
             workload: maui-ios
           - os: macos-latest
-            tfm: net10.0-maccatalyst
+            tfm: net11.0-maccatalyst
             workload: maui-maccatalyst
           - os: windows-latest
-            tfm: net10.0-windows10.0.19041.0
+            tfm: net11.0-windows10.0.19041.0
             workload: maui-windows
     steps:
       - uses: actions/checkout@v7
 
       - uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: 10.0.x
+          dotnet-version: 11.0.x
 
       # Explicit install + -p:TargetFrameworks below, so restore stays single-TFM and this
       # leg only needs its own workload. See the note in build.yml.
@@ -95,8 +104,16 @@ jobs:
   device-tests:
     name: device tests
     needs: resolve
+    if: needs.resolve.outputs.version != ''
     uses: ./.github/workflows/device-tests.yml
     with:
       use_published: true
       admob_version: ${{ needs.resolve.outputs.version }}
       maui_version: ${{ needs.resolve.outputs.maui }}
+
+  # Schedules only run on the default branch, so the .NET 10 line's nightly runs from here.
+  support-net10:
+    name: support/net10
+    uses: marius-bughiu/Plugin.AdMob/.github/workflows/nightly.yml@support/net10
+    with:
+      ref: support/net10

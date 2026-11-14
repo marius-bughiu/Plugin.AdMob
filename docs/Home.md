@@ -17,5 +17,6 @@ These docs describe how to integrate and use `Plugin.AdMob` in a .NET MAUI app.
 
 ## Help
 
+1. [Upgrading](Upgrading.md)
 1. [Troubleshooting](Troubleshooting.md)
 1. [Samples](Samples.md)

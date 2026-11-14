@@ -26,8 +26,10 @@ public interface INativeAdService
     INativeAd CreateAd(string? adUnitId, VideoOptions? videoOptions) => CreateAd(adUnitId);
 }
 
-internal class NativeAdService : INativeAdService
+internal class NativeAdService(IAdConsentService _adConsentService) : INativeAdService
 {
+    private readonly ConsentGate _consentGate = new(_adConsentService);
+
     public INativeAd CreateAd(string? adUnitId = null) => CreateAd(adUnitId, videoOptions: null);
 
     public INativeAd CreateAd(string? adUnitId, VideoOptions? videoOptions)
@@ -39,7 +41,7 @@ internal class NativeAdService : INativeAdService
             throw new ArgumentNullException(nameof(adUnitId), "No ad unit ID was specified, and no default native ad unit ID has been configured.");
         }
 
-        return new NativeAd(adUnitId, videoOptions);
+        return new NativeAd(adUnitId, _consentGate, videoOptions);
     }
 
     private static string? GetAdUnitId(string? adUnitId, VideoOptions? videoOptions)
@@ -49,8 +51,10 @@ internal class NativeAdService : INativeAdService
         {
             return videoOptions is null ? AdMobTestAdUnits.Native : AdMobTestAdUnits.NativeVideo;
         }
-#endif
 
         return adUnitId ?? AdConfig.DefaultNativeAdUnitId;
+#else
+        return adUnitId ?? string.Empty;
+#endif
     }
 }

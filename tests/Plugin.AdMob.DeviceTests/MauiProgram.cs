@@ -8,6 +8,9 @@ public static class MauiProgram
 {
     public static MauiApp CreateMauiApp()
     {
+        AppDomain.CurrentDomain.UnhandledException += (_, e) => HarnessLog.Line($"CRASH unhandled {e.ExceptionObject}");
+        TaskScheduler.UnobservedTaskException += (_, e) => HarnessLog.Line($"CRASH unobserved {e.Exception}");
+
         // Route every request to Google's official test ad units — no AdMob account,
         // no invalid-traffic risk, and Google guarantees these demo units fill.
         AdConfig.UseTestAdUnitIds = true;
@@ -29,6 +32,7 @@ public static class MauiProgram
 
         var app = builder.Build();
         HarnessConsent.Observe(app.Services.GetRequiredService<IAdConsentService>());
+        EarlyLoads.Start(app.Services);
 
         return app;
     }

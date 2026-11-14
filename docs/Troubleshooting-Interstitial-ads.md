@@ -14,7 +14,7 @@ An interstitial only shows after it has loaded. If you call `ShowAd()` while no 
 ### Fix / mitigation
 
 - Use `IInterstitialAdService.IsAdLoaded` (or `IInterstitialAd.IsLoaded`) and/or subscribe to `OnAdLoaded` before calling `ShowAd()`.
-- If you need reliable error handling, use `CreateAd(...)` and subscribe to `OnAdFailedToLoad` / `OnAdFailedToShow`.
+- To see why a prepared ad didn't load, subscribe to `IInterstitialAdService.OnAdFailedToLoad`. To also handle `OnAdFailedToShow`, use `CreateAd(...)` and subscribe to the ad's events.
 
 ### Related issues
 

@@ -13,13 +13,15 @@ internal static class HarnessConsent
     private static readonly TaskCompletionSource<(bool Passed, string Detail)> _result =
         new(TaskCreationOptions.RunContinuationsAsynchronously);
 
+    public static DateTime ConsentAt { get; private set; } = DateTime.MaxValue;
+
     public static void Observe(IAdConsentService consentService)
     {
         consentService.OnConsentInfoUpdated += (_, info) =>
         {
-            if (info?.CanRequestAds is true)
+            if (info?.CanRequestAds is true && _result.TrySetResult((true, $"status={info.Status} canRequestAds={info.CanRequestAds}")))
             {
-                _result.TrySetResult((true, $"status={info.Status} canRequestAds={info.CanRequestAds}"));
+                ConsentAt = DateTime.UtcNow;
             }
         };
 

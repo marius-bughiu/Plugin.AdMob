@@ -1,60 +1,62 @@
-using Android.Gms.Ads;
-using Android.Util;
+using Android.OS;
+using Android.Runtime;
+using Android.Views;
+using Google.Android.Libraries.Ads.Mobile.Sdk;
+using Google.Android.Libraries.Ads.Mobile.Sdk.Banner;
+using Google.Android.Libraries.Ads.Mobile.Sdk.Common;
 using Microsoft.Maui.Handlers;
 using Plugin.AdMob.Configuration;
 using Plugin.AdMob.Platforms.Android;
+using Plugin.AdMob.Platforms.Android.Banner;
 using Plugin.AdMob.Services;
-using System.Collections.Generic;
+using AdView = Google.Android.Libraries.Ads.Mobile.Sdk.Banner.AdView;
+using SdkAdSize = Google.Android.Libraries.Ads.Mobile.Sdk.Banner.AdSize;
 
 namespace Plugin.AdMob.Handlers;
 
 internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
 {
-    // Active banner views are tracked so app lifecycle can pause/resume them
-    // without forcing the host app to recreate the MAUI control.
-    private static readonly object _activeViewsLock = new();
-    private static readonly List<WeakReference<AdView>> _activeViews = [];
+    private const long ResizeDelayMilliseconds = 500;
 
+    private readonly Handler _resizeHandler = new(Looper.MainLooper!);
+    private readonly Action _reloadIfResized;
     private IAdConsentService? _adConsentService;
-    private EventHandler<IConsentInformation?>? _consentInfoUpdatedHandler;
+    private SdkAdSize? _requestedAdSize;
+    private SdkAdSize? _pendingAdSize;
+    private int _latestLoad;
+
+    // Loading an ad is deferred until the SDK finishes initializing, so the handler can be disconnected
+    // (and the AdView destroyed) while a load is still queued. The queued work checks this before running.
+    private bool _disconnected;
 
     public static IPropertyMapper<BannerAd, BannerAdHandler> PropertyMapper =
         new PropertyMapper<BannerAd, BannerAdHandler>(ViewMapper);
 
-    public BannerAdHandler() : base(PropertyMapper) { }
-
-    internal static void PauseActiveBanners()
+    public BannerAdHandler() : base(PropertyMapper)
     {
-        foreach (var adView in GetActiveViews())
-        {
-            try
-            {
-                adView.Pause();
-            }
-            catch (Exception)
-            {
-                RemoveActiveView(adView);
-            }
-        }
+        _reloadIfResized = ReloadIfResized;
     }
 
-    internal static void ResumeActiveBanners()
+    public override void PlatformArrange(Rect rect)
     {
-        foreach (var adView in GetActiveViews())
+        base.PlatformArrange(rect);
+
+        var adSize = GetResizedAdSize();
+
+        if (adSize is not null && !adSize.Equals(_pendingAdSize))
         {
-            try
-            {
-                adView.Resume();
-            }
-            catch (Exception)
-            {
-                RemoveActiveView(adView);
-            }
+            _resizeHandler.RemoveCallbacks(_reloadIfResized);
+            _resizeHandler.PostDelayed(_reloadIfResized, ResizeDelayMilliseconds);
         }
+
+        _pendingAdSize = adSize;
     }
 
     protected override void DisconnectHandler(AdView platformView)
     {
+        _disconnected = true;
+        _resizeHandler.RemoveCallbacks(_reloadIfResized);
+
         if (_adConsentService is not null)
         {
             _adConsentService.OnConsentInfoUpdated -= OnConsentInfoUpdated;
@@ -62,11 +64,8 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
 
         try
         {
-            RemoveActiveView(platformView);
-            // Explicitly stop the native AdView before disposal so Android does not
-            // keep banner work alive after the handler has been disconnected.
-            platformView.AdListener = null;
-            platformView.Pause();
+            // Explicitly stop the native AdView before disposal so the SDK does not keep banner work alive
+            // after the handler has been disconnected.
             platformView.Destroy();
             platformView.Dispose();
         }
@@ -90,24 +89,7 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
             throw new ArgumentNullException(nameof(adUnitId), "No ad unit ID was specified, and no default banner ad unit ID has been configured.");
         }
 
-        var adSize = GetAdSize();
-
-        var adView = new AdView(Context)
-        {
-            AdSize = adSize,
-            AdUnitId = adUnitId
-        };
-
-        var listener = new Platforms.Android.AdListener();
-        listener.AdLoaded += (s, e) => SafeRaise(() => VirtualView.RaiseOnAdLoaded(s, e));
-        listener.AdFailedToLoad += (s, e) => SafeRaise(() => VirtualView.RaiseOnAdFailedToLoad(s, new AdError(e.Message)));
-        listener.AdImpression += (s, e) => SafeRaise(() => VirtualView.RaiseOnAdImpression(s, e));
-        listener.AdClicked += (s, e) => SafeRaise(() => VirtualView.RaiseOnAdClicked(s, e));
-        listener.AdSwiped += (s, e) => SafeRaise(() => VirtualView.RaiseOnAdSwiped(s, e));
-        listener.AdOpened += (s, e) => SafeRaise(() => VirtualView.RaiseOnAdOpened(s, e));
-        listener.AdClosed += (s, e) => SafeRaise(() => VirtualView.RaiseOnAdClosed(s, e));
-
-        adView.AdListener = listener;
+        var adView = new AdView(Context);
 
         if (CanRequestAds() is true)
         {
@@ -120,7 +102,6 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
             _adConsentService.OnConsentInfoUpdated += OnConsentInfoUpdated;
         }
 
-        AddActiveView(adView);
         return adView;
     }
 
@@ -133,20 +114,117 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
             return;
         }
 
+        var adUnitId = GetAdUnitId()!;
+        var adSize = GetAdSize();
+        var load = ++_latestLoad;
+        _requestedAdSize = adSize;
+
+        MobileAdsInitialization.Start();
+
         // Reset IsLoaded before loading a new ad
         VirtualView.SetValue(BannerAd.IsLoadedProperty, false);
 
-        var configBuilder = new RequestConfiguration.Builder();
-        configBuilder.ApplyGlobalAdConfiguration();
-        MobileAds.RequestConfiguration = configBuilder.Build();
+        AdMobInitializer.RunWhenInitialized(() =>
+        {
+            // The handler can be disconnected while the SDK is still initializing, in which case the
+            // AdView captured above has already been destroyed and disposed.
+            if (_disconnected || load != _latestLoad)
+            {
+                return;
+            }
 
-        var requestBuilder = new AdRequest.Builder();
-        var adRequest = requestBuilder.Build();
+            var configBuilder = new RequestConfiguration.Builder();
+            configBuilder.ApplyGlobalAdConfiguration();
+            MobileAds.RequestConfiguration = configBuilder.Build();
 
-        adView.LoadAd(adRequest);
+            var adRequest = new BannerAdRequest.Builder(adUnitId, adSize).Build();
 
-        VirtualView.HeightRequest = adView.AdSize!.Height;
-        VirtualView.WidthRequest = adView.AdSize!.Width;
+            var callback = new AdLoadCallback();
+            callback.Loaded += (s, ad) =>
+            {
+                if (load != _latestLoad)
+                {
+                    return;
+                }
+
+                var bannerAd = ad.JavaCast<IBannerAd>();
+                if (bannerAd is not null)
+                {
+                    var eventCallback = new BannerAdEventCallback();
+                    eventCallback.AdImpression += (s2, e) => SafeRaise(() => VirtualView.RaiseOnAdImpression(s2, e));
+                    eventCallback.AdClicked += (s2, e) => SafeRaise(() => VirtualView.RaiseOnAdClicked(s2, e));
+                    eventCallback.AdOpened += (s2, e) => SafeRaise(() => VirtualView.RaiseOnAdOpened(s2, e));
+                    eventCallback.AdClosed += (s2, e) => SafeRaise(() => VirtualView.RaiseOnAdClosed(s2, e));
+                    bannerAd.AdEventCallback = eventCallback;
+
+                    var refreshCallback = new BannerAdRefreshCallback();
+                    refreshCallback.AdRefreshed += (s2, e) => SafeRaise(() => VirtualView.RaiseOnAdLoaded(s2, e));
+                    refreshCallback.AdFailedToRefresh += (s2, e) => SafeRaise(() => VirtualView.RaiseOnAdFailedToLoad(s2, new AdError(e.Message)));
+                    bannerAd.BannerAdRefreshCallback = refreshCallback;
+                }
+
+                SafeRaise(() => VirtualView.RaiseOnAdLoaded(s, EventArgs.Empty));
+            };
+            callback.Failed += (s, e) =>
+            {
+                if (load != _latestLoad)
+                {
+                    return;
+                }
+
+                SafeRaise(() => VirtualView.RaiseOnAdFailedToLoad(s, new AdError(e.Message)));
+            };
+
+            try
+            {
+                // The AdView doesn't destroy an ad it replaces, and unregistering one reports its cancelled refresh as a failure.
+                if (adView.BannerAd is { } displayedAd)
+                {
+                    displayedAd.BannerAdRefreshCallback = null;
+                    adView.UnregisterBannerAd();
+                    displayedAd.Destroy();
+                }
+
+                adView.LoadAd(adRequest, callback);
+            }
+            catch (ObjectDisposedException)
+            {
+                // The AdView was disposed after the check above; nothing left to load into.
+            }
+        }, ex =>
+        {
+            if (_disconnected || load != _latestLoad)
+            {
+                return;
+            }
+
+            SafeRaise(() => VirtualView.RaiseOnAdFailedToLoad(this, new AdError(ex)));
+        });
+
+        VirtualView.HeightRequest = adSize.Height;
+        VirtualView.WidthRequest = adSize.Width;
+    }
+
+    private void ReloadIfResized()
+    {
+        _pendingAdSize = null;
+
+        if (!_disconnected && GetResizedAdSize() is not null)
+        {
+            LoadAd(PlatformView);
+        }
+    }
+
+    private SdkAdSize? GetResizedAdSize()
+    {
+        if (_requestedAdSize is null || VirtualView.AdSize is not (null or AdSize.SmartBanner) || CanRequestAds() is not true)
+        {
+            return null;
+        }
+
+        var adSize = GetAdSize();
+
+        return adSize.Equals(_requestedAdSize) ? null : adSize;
     }
 
     private string? GetAdUnitId()
@@ -159,34 +237,32 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
         return VirtualView.AdUnitId ?? AdConfig.DefaultBannerAdUnitId;
     }
 
-    private Android.Gms.Ads.AdSize GetAdSize()
+    private SdkAdSize GetAdSize()
     {
         switch (VirtualView.AdSize)
         {
-            case AdSize.Banner: return Android.Gms.Ads.AdSize.Banner;
-            case AdSize.LargeBanner: return Android.Gms.Ads.AdSize.LargeBanner;
-            case AdSize.MediumRectangle: return Android.Gms.Ads.AdSize.MediumRectangle;
-            case AdSize.FullBanner: return Android.Gms.Ads.AdSize.FullBanner;
-            case AdSize.Leaderboard: return Android.Gms.Ads.AdSize.Leaderboard;
-            case AdSize.Custom: return new Android.Gms.Ads.AdSize(VirtualView.CustomAdWidth, VirtualView.CustomAdHeight);
+            case AdSize.Banner: return SdkAdSize.Banner!;
+            case AdSize.LargeBanner: return SdkAdSize.LargeBanner!;
+            case AdSize.MediumRectangle: return SdkAdSize.MediumRectangle!;
+            case AdSize.FullBanner: return SdkAdSize.FullBanner!;
+            case AdSize.Leaderboard: return SdkAdSize.Leaderboard!;
+            case AdSize.Custom: return new SdkAdSize(VirtualView.CustomAdWidth, VirtualView.CustomAdHeight);
 
             case AdSize.SmartBanner:
-            default: return Android.Gms.Ads.AdSize.GetCurrentOrientationAnchoredAdaptiveBannerAdSize(Context, GetScreenWidth());
+            default: return SdkAdSize.GetCurrentOrientationAnchoredAdaptiveBannerAdSize(Context, GetAdaptiveWidth());
         }
     }
 
-    private int GetScreenWidth()
+    private int GetAdaptiveWidth()
     {
-        DisplayMetrics displayMetrics;
+        var displayMetrics = Context.Resources!.DisplayMetrics!;
 
         if (OperatingSystem.IsAndroidVersionAtLeast(30))
         {
-            displayMetrics = new DisplayMetrics();
-            Context.Display!.GetMetrics(displayMetrics);
-        }
-        else
-        {
-            displayMetrics = Context.Resources!.DisplayMetrics!;
+            var windowMetrics = Context.GetSystemService(Android.Content.Context.WindowService).JavaCast<IWindowManager>()!.CurrentWindowMetrics;
+            var insets = windowMetrics.WindowInsets.GetInsets(WindowInsets.Type.SystemBars() | WindowInsets.Type.DisplayCutout());
+
+            return (int)((windowMetrics.Bounds.Width() - insets.Left - insets.Right) / displayMetrics.Density);
         }
 
         return (int)(displayMetrics.WidthPixels / displayMetrics.Density);
@@ -237,50 +313,5 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
             // Handler has been disconnected, ignore ad event.
             // This prevents: System.InvalidOperationException: VirtualView cannot be null here
         }
-    }
-
-    private static void AddActiveView(AdView adView)
-    {
-        lock (_activeViewsLock)
-        {
-            _activeViews.Add(new WeakReference<AdView>(adView));
-        }
-    }
-
-    private static void RemoveActiveView(AdView adView)
-    {
-        lock (_activeViewsLock)
-        {
-            _activeViews.RemoveAll(reference =>
-            {
-                if (!reference.TryGetTarget(out var target))
-                {
-                    return true;
-                }
-
-                return ReferenceEquals(target, adView);
-            });
-        }
-    }
-
-    private static List<AdView> GetActiveViews()
-    {
-        List<AdView> activeViews = [];
-
-        lock (_activeViewsLock)
-        {
-            _activeViews.RemoveAll(reference =>
-            {
-                if (!reference.TryGetTarget(out var target))
-                {
-                    return true;
-                }
-
-                activeViews.Add(target);
-                return false;
-            });
-        }
-
-        return activeViews;
     }
 }

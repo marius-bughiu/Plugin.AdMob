@@ -23,20 +23,31 @@ namespace Plugin.AdMob.DeviceTests;
 internal static class AdLoadHarness
 {
     private const int TimeoutSeconds = 30;
+    private const int EarlyLoadTimeoutSeconds = 60;
+    private const int SdkStartTimeoutSeconds = 120;
     private const int Attempts = 2;
 
     public static async Task RunAllAsync(Layout bannerHost)
     {
         HarnessLog.Line("START");
 
+        var services = IPlatformApplication.Current?.Services
+            ?? throw new InvalidOperationException("No MAUI service provider available.");
+
         var (consent, consentDetail) = await HarnessConsent.WaitAsync(TimeSpan.FromSeconds(60));
         HarnessLog.Line($"RESULT format=consent status={(consent ? "PASS" : "FAIL")} detail=\"{Sanitize(consentDetail)}\"");
 
+        var (sdkInitialized, sdkDetail) = await WaitForSdkInitializationAsync(services.GetRequiredService<IMobileAdsService>(), TimeSpan.FromSeconds(SdkStartTimeoutSeconds));
+        HarnessLog.Line($"RESULT format=sdk-initialization status={(sdkInitialized ? "PASS" : "FAIL")} detail=\"{Sanitize(sdkDetail)}\"");
+
+        var (loadWaitsForConsent, loadDetail) = await EarlyLoads.WaitForLoadAsync(HarnessConsent.ConsentAt, TimeSpan.FromSeconds(EarlyLoadTimeoutSeconds));
+        HarnessLog.Line($"RESULT format=load-waits-for-consent status={(loadWaitsForConsent ? "PASS" : "FAIL")} detail=\"{Sanitize(loadDetail)}\"");
+
+        var (prepareBeforeConsent, prepareDetail) = await EarlyLoads.WaitForPreparedAsync(TimeSpan.FromSeconds(EarlyLoadTimeoutSeconds));
+        HarnessLog.Line($"RESULT format=prepare-before-consent status={(prepareBeforeConsent ? "PASS" : "FAIL")} detail=\"{Sanitize(prepareDetail)}\"");
+
         // Give the Mobile Ads SDK a moment to initialize before the first request.
         await Task.Delay(TimeSpan.FromSeconds(3));
-
-        var services = IPlatformApplication.Current?.Services
-            ?? throw new InvalidOperationException("No MAUI service provider available.");
 
         var interstitial = services.GetRequiredService<IInterstitialAdService>();
         var rewarded = services.GetRequiredService<IRewardedAdService>();
@@ -50,6 +61,9 @@ internal static class AdLoadHarness
         var results = new List<bool>
         {
             consent,
+            sdkInitialized,
+            loadWaitsForConsent,
+            prepareBeforeConsent,
             banner,
             await RunBannerDisconnectAsync(bannerHost),
             await RunInterstitialAsync(interstitial.CreateAd()),
@@ -64,6 +78,29 @@ internal static class AdLoadHarness
 
         HarnessLog.Line($"SUMMARY_BANNER status={(banner ? "PASS" : "FAIL")}");
         HarnessLog.Line($"SUMMARY_ALL status={(passed == results.Count ? "PASS" : "FAIL")} passed={passed} total={results.Count}");
+    }
+
+    /// <summary>
+    /// Waits for the plugin's SDK start and lists each adapter's reported status.
+    /// </summary>
+    private static async Task<(bool Passed, string Detail)> WaitForSdkInitializationAsync(IMobileAdsService mobileAds, TimeSpan timeout)
+    {
+        try
+        {
+            var adapters = (await mobileAds.Initialization.WaitAsync(timeout)).AdapterStatuses;
+
+            return (true, adapters.Count == 0
+                ? "no adapters"
+                : string.Join("; ", adapters.Select(a => $"{a.Name}: {a.State} in {a.Latency.TotalMilliseconds:0} ms, '{a.Description}'")));
+        }
+        catch (TimeoutException)
+        {
+            return (false, $"the SDK start didn't complete within {timeout.TotalSeconds}s of consent");
+        }
+        catch (Exception ex)
+        {
+            return (false, ex.Message);
+        }
     }
 
     private static Task<bool> RunInterstitialAsync(IInterstitialAd ad) => AwaitLoadAsync(

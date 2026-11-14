@@ -1,5 +1,7 @@
 ## Troubleshooting (Upgrades & target frameworks)
 
+For what to change when you update the plugin, for example 10.0.120.3's Android API 24 minimum, `Xamarin.AndroidX.Fragment.Ktx` 1.9.1 requirement and legacy SDK conflicts, see [Upgrading](Upgrading.md).
+
 ## “Package is not compatible with netX.Y-windows...”
 
 ### Symptoms
@@ -16,7 +18,7 @@ Your app targets Windows, but the package is intended for mobile platforms. Depe
 Conditionally reference the package only for Android/iOS target frameworks in your app `.csproj`:
 
 ```
-<ItemGroup Condition="'$(TargetFramework)' == 'net10.0-android' Or '$(TargetFramework)' == 'net10.0-ios'">
+<ItemGroup Condition="'$(TargetFramework)' == 'net11.0-android' Or '$(TargetFramework)' == 'net11.0-ios'">
 	<PackageReference Include="Plugin.AdMob" Version="x.y.z" />
 </ItemGroup>
 ```

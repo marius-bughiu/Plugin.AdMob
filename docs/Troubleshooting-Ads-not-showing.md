@@ -54,7 +54,7 @@ private void Banner_OnAdFailedToLoad(object sender, IAdError e)
     => Console.WriteLine($"[AdMob] load failed: {e.Message}");
 ```
 
-The same `OnAdFailedToLoad` event exists on `InterstitialAd`, `RewardedAd`, `RewardedInterstitialAd`, `AppOpenAd`, and `NativeAdView` / `INativeAd`. Use `Console.WriteLine` (not `Debug.WriteLine`) if you need the output to reach a physical device's console.
+The same `OnAdFailedToLoad` event exists on `InterstitialAd`, `RewardedAd`, `RewardedInterstitialAd`, `AppOpenAd`, and `NativeAdView` / `INativeAd`, and on the interstitial, rewarded, rewarded interstitial and app open ad services for ads loaded with `PrepareAd()`. Use `Console.WriteLine` (not `Debug.WriteLine`) if you need the output to reach a physical device's console.
 
 **Read the message.** A no-fill looks like:
 

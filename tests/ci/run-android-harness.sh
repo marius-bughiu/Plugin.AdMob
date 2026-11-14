@@ -4,10 +4,11 @@ set -euo pipefail
 # Installs the pre-built device-test APK on the booted emulator, launches it, and scrapes the
 # harness's result lines from logcat.
 #
-# Banner is the hard gate. On the hosted runner's google_apis image the full-screen formats load
-# too, but native/native-video do not (they need a Play Store image for market:// click
-# resolution), so the full set (SUMMARY_ALL) is only enforced when REQUIRE_ALL=true — i.e. against
-# a google_apis_playstore AVD on a self-hosted runner.
+# Consent, the SDK start, the banner and the ads requested before consent are the hard gates. On the hosted
+# runner's google_apis image the full-screen formats load too, but native/native-video do not
+# (they need a Play Store image for market:// click resolution), so the full set (SUMMARY_ALL) is
+# only enforced when REQUIRE_ALL=true — i.e. against a google_apis_playstore AVD on a self-hosted
+# runner.
 
 PKG="com.plugin.admob.devicetests"
 TAG="AdMobHarness"
@@ -19,8 +20,15 @@ APK="${APK:?APK env var not set}"
 dump_diagnostics() {
   echo "===== app process ====="
   adb shell pidof "$PKG" || echo "(app is not running)"
-  echo "===== fatal / crash ====="
-  adb logcat -d -s AndroidRuntime:E monodroid:F monodroid-assembly:F DEBUG:F 2>/dev/null | tail -40 || true
+  echo "===== crash buffer ====="
+  adb logcat -d -b crash 2>/dev/null | tail -80 || true
+  echo "===== app lifecycle events ====="
+  adb logcat -d -b events 2>/dev/null | grep -E "am_(proc_died|kill|crash|anr|low_memory)|$PKG" | tail -40 || true
+  pid=$(adb logcat -d -s "${TAG}:I" | awk '/START/ { print $3; exit }')
+  if [ -n "$pid" ]; then
+    echo "===== app process $pid log ====="
+    adb logcat -d -b main,system 2>/dev/null | awk -v pid="$pid" '$3 == pid' | tail -150 || true
+  fi
   echo "===== last 120 log lines (unfiltered) ====="
   adb logcat -d 2>/dev/null | tail -120 || true
 }
@@ -28,6 +36,7 @@ dump_diagnostics() {
 echo "Installing $APK"
 adb install -r "$APK"
 
+adb logcat -G 16M || true
 adb logcat -c
 echo "Launching $PKG"
 adb shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1 >/dev/null
@@ -77,6 +86,22 @@ if ! echo "$banner" | grep -q "status=PASS"; then
   exit 1
 fi
 
+sdk=$(adb logcat -d -s "${TAG}:I" | grep -F "format=sdk-initialization " | tail -1 || true)
+if ! echo "$sdk" | grep -q "status=PASS"; then
+  echo "::error::IMobileAdsService.Initialization didn't complete after consent (sdk-initialization)."
+  dump_diagnostics
+  exit 1
+fi
+
+for check in load-waits-for-consent prepare-before-consent; do
+  line=$(adb logcat -d -s "${TAG}:I" | grep -F "format=$check " | tail -1 || true)
+  if ! echo "$line" | grep -q "status=PASS"; then
+    echo "::error::An ad requested before consent didn't load once consent allowed it ($check)."
+    dump_diagnostics
+    exit 1
+  fi
+done
+
 if [ "$REQUIRE_ALL" = "true" ]; then
   if ! echo "$allline" | grep -q "status=PASS"; then
     echo "::error::Not every ad format loaded (require_all_formats=true)."
@@ -84,4 +109,4 @@ if [ "$REQUIRE_ALL" = "true" ]; then
   fi
 fi
 
-echo "Device-test gate passed (banner loaded; require_all_formats=$REQUIRE_ALL)."
+echo "Device-test gate passed (banner and ads requested before consent loaded; require_all_formats=$REQUIRE_ALL)."

@@ -1,4 +1,5 @@
 ﻿using Plugin.AdMob.Configuration;
+using Plugin.AdMob.Services;
 
 namespace Plugin.AdMob;
 
@@ -105,6 +106,13 @@ public interface INativeAd
 
     /// <summary>
     /// Returns true when click-to-expand behavior is enabled for the ad's video.
+    /// <para>
+    /// On iOS this reports the loaded ad's actual state. On Android it reports what was requested via
+    /// <see cref="Configuration.VideoOptions.ClickToExpandRequested" /> (and is therefore false when the ad was
+    /// created without video options), because the Google Mobile Ads Next-Gen SDK no longer exposes the actual
+    /// state on its video controller. Requesting the behavior still works on both platforms; only reading back
+    /// the effective state is affected.
+    /// </para>
     /// </summary>
     bool VideoClickToExpandEnabled => throw new NotImplementedException();
 
@@ -189,8 +197,10 @@ public interface INativeAd
     void Load() => throw new NotImplementedException();
 }
 
-internal partial class NativeAd(string adUnitId, VideoOptions? videoOptions = null) : INativeAd
+internal partial class NativeAd(string adUnitId, ConsentGate consentGate, VideoOptions? videoOptions = null) : INativeAd
 {
+    private readonly ConsentGate _consentGate = consentGate;
+
     public string AdUnitId { get; } = adUnitId;
 
     public VideoOptions? VideoOptions { get; } = videoOptions;

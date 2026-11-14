@@ -1,4 +1,6 @@
-﻿namespace Plugin.AdMob;
+﻿using Plugin.AdMob.Services;
+
+namespace Plugin.AdMob;
 
 /// <summary>
 /// Manages an interstitial ad instance.
@@ -63,9 +65,17 @@ public interface IAppOpenAd
 
 internal partial class AppOpenAd : IAppOpenAd
 {
+    private static readonly TimeSpan Expiry = TimeSpan.FromHours(4);
+
+    private DateTime? _loadedAt;
+
     public string AdUnitId { get; }
 
-    public bool IsLoaded { get; private set; }
+    public bool IsLoaded
+    {
+        get => _loadedAt is { } loadedAt && DateTime.UtcNow - loadedAt < Expiry;
+        private set => _loadedAt = value ? DateTime.UtcNow : null;
+    }
 
     public event EventHandler? OnAdLoaded;
     public event EventHandler<IAdError>? OnAdFailedToLoad;
@@ -75,8 +85,28 @@ internal partial class AppOpenAd : IAppOpenAd
     public event EventHandler? OnAdClicked;
     public event EventHandler? OnAdDismissed;
 
-    public AppOpenAd(string adUnitId)
+    private readonly ConsentGate _consentGate;
+
+    public AppOpenAd(string adUnitId, ConsentGate consentGate)
     {
         AdUnitId = adUnitId;
+        _consentGate = consentGate;
+    }
+
+    private bool TryBeginShow()
+    {
+        if (IsLoaded)
+        {
+            IsLoaded = false;
+            return true;
+        }
+
+        if (_loadedAt is not null)
+        {
+            _loadedAt = null;
+            OnAdFailedToShow?.Invoke(this, new AdError(AdError.AdExpiredMessage));
+        }
+
+        return false;
     }
 }

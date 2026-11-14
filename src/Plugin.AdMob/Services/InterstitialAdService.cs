@@ -8,7 +8,7 @@ namespace Plugin.AdMob.Services;
 public interface IInterstitialAdService
 {
     /// <summary>
-    /// True when an ad is ready to be presented to the user.
+    /// True when an ad is ready to be presented to the user. Turns false once the ad is shown or expires.
     /// </summary>
     public bool IsAdLoaded { get; }
 
@@ -20,7 +20,7 @@ public interface IInterstitialAdService
     IInterstitialAd CreateAd(string? adUnitId = null);
 
     /// <summary>
-    /// Preloads an ad given the specified ad unit ID. If no ad unit ID is specified, <see cref="AdConfig.DefaultInterstitialAdUnitId" /> will be used.
+    /// Preloads an ad given the specified ad unit ID. If no ad unit ID is specified, <see cref="AdConfig.DefaultInterstitialAdUnitId" /> will be used. If consent doesn't allow ad requests yet, the ad is loaded as soon as it does.
     /// </summary>
     /// <param name="adUnitId">The ad unit ID.</param>
     void PrepareAd(string? adUnitId = null);
@@ -37,16 +37,27 @@ public interface IInterstitialAdService
     /// event handler of the IInterstitialAd returned by the method.
     /// </summary>
     event EventHandler OnAdLoaded;
+
+    /// <summary>
+    /// Raised when the ad requested by <see cref="PrepareAd" /> fails to load.
+    /// Note: This is not a catch-all event handler. When using <see cref="CreateAd" />, you should register to the ad failed to load
+    /// event handler of the IInterstitialAd returned by the method.
+    /// </summary>
+    event EventHandler<IAdError> OnAdFailedToLoad;
 }
 
 internal class InterstitialAdService(IAdConsentService _adConsentService) 
     : IInterstitialAdService
 {
     private IInterstitialAd? _interstitialAd;
+    private readonly ConsentGate _consentGate = new(_adConsentService);
+    private bool _hasPendingAd;
+    private string? _pendingAdUnitId;
 
-    public bool IsAdLoaded { get; private set; }
+    public bool IsAdLoaded => _interstitialAd?.IsLoaded ?? false;
 
     public event EventHandler? OnAdLoaded;
+    public event EventHandler<IAdError>? OnAdFailedToLoad;
 
     public IInterstitialAd CreateAd(string? adUnitId = null)
     {
@@ -57,33 +68,39 @@ internal class InterstitialAdService(IAdConsentService _adConsentService)
             throw new ArgumentNullException(nameof(adUnitId), "No ad unit ID was specified, and no default interstitial ad unit ID has been configured.");
         }
 
-        return new InterstitialAd(adUnitId);
+        return new InterstitialAd(adUnitId, _consentGate);
     }
 
     public void PrepareAd(string? adUnitId = null)
     {
+        _adConsentService.OnConsentInfoUpdated -= OnConsentInfoUpdated;
+        _hasPendingAd = false;
+
         if (_interstitialAd is not null)
         {
-            IsAdLoaded = false;
             _interstitialAd.OnAdLoaded -= OnAdLoadedInternal;
+            _interstitialAd.OnAdFailedToLoad -= OnAdFailedToLoadInternal;
+            _interstitialAd = null;
         }
 
         if (CanRequestAds() is false)
         {
+            _hasPendingAd = true;
+            _pendingAdUnitId = adUnitId;
+            _adConsentService.OnConsentInfoUpdated += OnConsentInfoUpdated;
             return;
         }
 
         var interstitialAd = CreateAd(adUnitId);
         interstitialAd.OnAdLoaded += OnAdLoadedInternal;
-
-        interstitialAd.Load();
+        interstitialAd.OnAdFailedToLoad += OnAdFailedToLoadInternal;
 
         _interstitialAd = interstitialAd;
+        interstitialAd.Load();
     }
 
     public void ShowAd()
     {
-        IsAdLoaded = false;
         _interstitialAd?.Show();
     }
 
@@ -94,9 +111,11 @@ internal class InterstitialAdService(IAdConsentService _adConsentService)
         {
             return AdMobTestAdUnits.Interstitial;
         }
-#endif
 
         return adUnitId ?? AdConfig.DefaultInterstitialAdUnitId;
+#else
+        return adUnitId ?? string.Empty;
+#endif
     }
 
     private bool CanRequestAds()
@@ -109,9 +128,21 @@ internal class InterstitialAdService(IAdConsentService _adConsentService)
         return _adConsentService.CanRequestAds();
     }
 
+    private void OnConsentInfoUpdated(object? sender, IConsentInformation? e)
+    {
+        if (_hasPendingAd && CanRequestAds())
+        {
+            PrepareAd(_pendingAdUnitId);
+        }
+    }
+
     private void OnAdLoadedInternal(object? sender, EventArgs e)
     {
-        IsAdLoaded = true;
         OnAdLoaded?.Invoke(sender, e);
+    }
+
+    private void OnAdFailedToLoadInternal(object? sender, IAdError e)
+    {
+        OnAdFailedToLoad?.Invoke(sender, e);
     }
 }

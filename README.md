@@ -23,7 +23,7 @@ dotnet add package Plugin.AdMob
 - **MAUI-first API** — drop a `BannerAd` or `NativeAdView` into your XAML, and use dependency-injected services (`IInterstitialAdService`, `IRewardedAdService`, `IAppOpenAdService`, ...) for full-screen ads.
 - **Test ads out of the box** — set `AdConfig.UseTestAdUnitIds = true` and develop safely against Google's test ad units.
 - **Cross-platform friendly** — your app still compiles and runs on Windows and Mac Catalyst; ads are simply not shown there.
-- **Actively maintained** — built for .NET 10 and the latest .NET MAUI, on top of up-to-date Google Mobile Ads SDK bindings.
+- **Actively maintained** — built for .NET 11 and the latest .NET MAUI, on top of up-to-date Google Mobile Ads SDK bindings.
 
 ## Quick start
 
@@ -67,7 +67,7 @@ interstitialAdService.ShowAd();
 
 ### 📽️ Video tutorial
 
-[![How to display an AdMob banner ad in your .NET MAUI app in under 5 minutes](https://i.ytimg.com/vi/-oxEb6aCAKQ/hqdefault.jpg?sqp=-oaymwEnCNACELwBSFryq4qpAxkIARUAAIhCGAHYAQHiAQoIGBACGAY4AUAB&rs=AOn4CLBLqbS3LegqEUbJVp_A3DE68ufjVw)](https://www.youtube.com/watch?v=-oxEb6aCAKQ "How to display an AdMob banner ad in your .NET MAUI app in under 5 minutes")
+[![How to display an AdMob banner ad in your .NET MAUI app in under 5 minutes](https://raw.githubusercontent.com/marius-bughiu/Plugin.AdMob/main/.nuget/video-thumbnail.jpg)](https://www.youtube.com/watch?v=-oxEb6aCAKQ "How to display an AdMob banner ad in your .NET MAUI app in under 5 minutes")
 
 ## Documentation
 
@@ -80,6 +80,7 @@ interstitialAdService.ShowAd();
 1. [Rewarded interstitial ads](https://github.com/marius-bughiu/Plugin.AdMob/blob/main/docs/Rewarded-interstitial-ads.md)
 1. [Native ads](https://github.com/marius-bughiu/Plugin.AdMob/blob/main/docs/Native-ads.md) — design your own ad layout, including video
 1. [App open ads](https://github.com/marius-bughiu/Plugin.AdMob/blob/main/docs/App-open-ads.md) — ads on app launch and foregrounding
+1. [Upgrading](https://github.com/marius-bughiu/Plugin.AdMob/blob/main/docs/Upgrading.md) — what to change when you update the plugin
 1. [Troubleshooting](https://github.com/marius-bughiu/Plugin.AdMob/blob/main/docs/Troubleshooting.md)
 1. [Samples](https://github.com/marius-bughiu/Plugin.AdMob/blob/main/docs/Samples.md)
 

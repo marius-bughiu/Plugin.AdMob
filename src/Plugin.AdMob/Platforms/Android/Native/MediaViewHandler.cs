@@ -1,8 +1,9 @@
 using Microsoft.Maui.Handlers;
+using SdkMediaView = Google.Android.Libraries.Ads.Mobile.Sdk.NativeAd.MediaView;
 
 namespace Plugin.AdMob.Handlers;
 
-internal partial class MediaViewHandler : ViewHandler<MediaView, global::Android.Gms.Ads.NativeAd.MediaView>
+internal partial class MediaViewHandler : ViewHandler<MediaView, SdkMediaView>
 {
     public static IPropertyMapper<MediaView, MediaViewHandler> PropertyMapper =
         new PropertyMapper<MediaView, MediaViewHandler>(ViewMapper);
@@ -11,6 +12,6 @@ internal partial class MediaViewHandler : ViewHandler<MediaView, global::Android
     {
     }
 
-    protected override global::Android.Gms.Ads.NativeAd.MediaView CreatePlatformView()
+    protected override SdkMediaView CreatePlatformView()
         => new(Context);
 }

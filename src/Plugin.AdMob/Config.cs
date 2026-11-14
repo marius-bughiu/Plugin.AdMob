@@ -103,11 +103,20 @@ public static class Config
         builder.Services.AddSingleton<IRewardedInterstitialAdService, RewardedInterstitialAdService>();
         builder.Services.AddSingleton<IAppOpenAdService, AppOpenAdService>();
         builder.Services.AddSingleton<INativeAdService, NativeAdService>();
+        builder.Services.AddSingleton<IMobileAdsService, MobileAdsService>();
 
         var adConsentService = new AdConsentService();
         builder.Services.AddSingleton<IAdConsentService>(adConsentService);
 
 #if ANDROID || IOS
+        adConsentService.OnConsentInfoUpdated += (_, info) =>
+        {
+            if (info?.CanRequestAds is true)
+            {
+                MobileAdsInitialization.Start();
+            }
+        };
+
         if (automaticallyAskForConsent is true)
         {
             adConsentService.OnConsentInfoFailedToUpdate += (_, _) => _initialized = false;
@@ -115,23 +124,13 @@ public static class Config
         }
 
 #if ANDROID
-        builder.ConfigureLifecycleEvents(events =>
+        if (automaticallyAskForConsent is true)
         {
-            events.AddAndroid(android =>
+            builder.ConfigureLifecycleEvents(events =>
             {
-                // Banner handlers manage native AdView instances, so they need
-                // explicit pause/resume hooks when the app moves through Android lifecycle.
-                var lifecycle = android
-                    .OnResume(_ => BannerAdHandler.ResumeActiveBanners())
-                    .OnPause(_ => BannerAdHandler.PauseActiveBanners())
-                    .OnStop(_ => BannerAdHandler.PauseActiveBanners());
-
-                if (automaticallyAskForConsent is true)
-                {
-                    lifecycle.OnStart(_ => OnStart());
-                }
+                events.AddAndroid(android => android.OnStart(_ => OnStart()));
             });
-        });
+        }
 #elif IOS
         if (automaticallyAskForConsent is true)
         {
