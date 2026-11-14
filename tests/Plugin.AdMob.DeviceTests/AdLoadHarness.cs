@@ -40,6 +40,17 @@ internal static class AdLoadHarness
         var (sdkInitialized, sdkDetail) = await WaitForSdkInitializationAsync(services.GetRequiredService<IMobileAdsService>(), TimeSpan.FromSeconds(SdkStartTimeoutSeconds));
         HarnessLog.Line($"RESULT format=sdk-initialization status={(sdkInitialized ? "PASS" : "FAIL")} detail=\"{Sanitize(sdkDetail)}\"");
 
+#if IOS
+        var sdkVersion = Google.MobileAds.MobileAds.SharedInstance.VersionNumber;
+        HarnessLog.Line($"SDK platform=iOS gma={sdkVersion.MajorVersion}.{sdkVersion.MinorVersion}.{sdkVersion.PatchVersion}");
+#endif
+#if ADMOB_META_ADAPTER
+        // Check the actual native class registry: a package restore alone does not prove that
+        // the adapter survived native linking and was loaded into the running app.
+        var metaAdapterPresent = ObjCRuntime.Class.GetHandle("GADMediationAdapterFacebook") != IntPtr.Zero;
+        HarnessLog.Line($"RESULT format=meta-adapter-link status={(metaAdapterPresent ? "PASS" : "FAIL")} detail=\"GADMediationAdapterFacebook {(metaAdapterPresent ? "registered" : "missing")}\"");
+#endif
+
         var (loadWaitsForConsent, loadDetail) = await EarlyLoads.WaitForLoadAsync(HarnessConsent.ConsentAt, TimeSpan.FromSeconds(EarlyLoadTimeoutSeconds));
         HarnessLog.Line($"RESULT format=load-waits-for-consent status={(loadWaitsForConsent ? "PASS" : "FAIL")} detail=\"{Sanitize(loadDetail)}\"");
 
@@ -62,6 +73,9 @@ internal static class AdLoadHarness
         {
             consent,
             sdkInitialized,
+#if ADMOB_META_ADAPTER
+            metaAdapterPresent,
+#endif
             loadWaitsForConsent,
             prepareBeforeConsent,
             banner,

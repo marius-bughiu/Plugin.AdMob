@@ -26,7 +26,7 @@
 		<SupportedOSPlatformVersion>24.0</SupportedOSPlatformVersion>
 	</PropertyGroup>
 
-	<!-- Jc.UMP.iOS 2.7.5 buildTransitive targets fail unless SupportedOSPlatformVersion is set explicitly -->
+	<!-- Jc.UMP.iOS buildTransitive targets fail unless SupportedOSPlatformVersion is set explicitly -->
 	<PropertyGroup Condition="'$(TargetFramework)' == 'net11.0-ios'">
 		<SupportedOSPlatformVersion>15.0</SupportedOSPlatformVersion>
 	</PropertyGroup>

@@ -59,6 +59,14 @@
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
 	</ItemGroup>
 
+	<!-- Opt in to native Meta mediation compatibility checks without adding an adapter to normal runs. -->
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net11.0-ios' and '$(MetaAdapterPackageVersion)' != ''">
+		<DefineConstants>$(DefineConstants);ADMOB_META_ADAPTER</DefineConstants>
+	</PropertyGroup>
+	<ItemGroup Condition="'$(TargetFramework)' == 'net11.0-ios' and '$(MetaAdapterPackageVersion)' != ''">
+		<PackageReference Include="AdMaui.MetaAdapter.iOS" Version="$(MetaAdapterPackageVersion)" />
+	</ItemGroup>
+
 	<!-- SOURCE reference (default): validates the code on this branch. -->
 	<ItemGroup Condition="'$(UsePublishedAdMob)' != 'true'">
 		<ProjectReference Include="..\..\src\Plugin.AdMob\Plugin.AdMob.csproj" />
