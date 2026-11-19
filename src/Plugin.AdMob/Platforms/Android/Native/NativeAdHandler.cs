@@ -9,7 +9,7 @@ namespace Plugin.AdMob.Handlers;
 
 internal partial class NativeAdHandler : ViewHandler<NativeAdView, SdkNativeAdView>
 {
-    private IAdConsentService? _adConsentService;
+    private ConsentGate.PendingRequest? _pendingAd;
     private bool _adContentAttached;
 
     // The ad outlives the handler on disconnect/reconnect, so the subscriptions
@@ -33,16 +33,17 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, SdkNativeAdVi
 
         if (VirtualView._ad is null)
         {
-            _adConsentService = IPlatformApplication.Current!.Services
-                .GetRequiredService<IAdConsentService>();
+            var consentGate = new ConsentGate(IPlatformApplication.Current!.Services.GetRequiredService<IAdConsentService>());
 
-            if (CanRequestAds() is true)
+            if (consentGate.CanRequestAds())
             {
                 LoadAd();
             }
             else
             {
-                _adConsentService.OnConsentInfoUpdated += OnConsentInfoUpdated;
+                var pendingAd = consentGate.CreateRequest(LoadAdIfConnected);
+                _pendingAd = pendingAd;
+                pendingAd.Start();
             }
         }
         else
@@ -54,10 +55,8 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, SdkNativeAdVi
 
     protected override void DisconnectHandler(SdkNativeAdView platformView)
     {
-        if (_adConsentService is not null)
-        {
-            _adConsentService.OnConsentInfoUpdated -= OnConsentInfoUpdated;
-        }
+        _pendingAd?.Dispose();
+        _pendingAd = null;
 
         UnregisterEventHandlers();
 
@@ -130,10 +129,11 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, SdkNativeAdVi
     {
         UnregisterEventHandlers();
 
-        _onAdFailedToLoad = (s, e) => VirtualView.RaiseOnAdFailedToLoad(s, new AdError(e.Message));
+        _onAdFailedToLoad = VirtualView.RaiseOnAdFailedToLoad;
 
         ad.OnAdFailedToLoad += _onAdFailedToLoad;
         ad.OnAdImpression += VirtualView.RaiseOnAdImpression;
+        ad.OnAdPaid += VirtualView.RaiseOnAdPaid;
         ad.OnAdClicked += VirtualView.RaiseOnAdClicked;
         ad.OnAdSwiped += VirtualView.RaiseOnAdSwiped;
         ad.OnAdOpened += VirtualView.RaiseOnAdOpened;
@@ -161,6 +161,7 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, SdkNativeAdVi
 
         _registeredAd.OnAdFailedToLoad -= _onAdFailedToLoad;
         _registeredAd.OnAdImpression -= VirtualView.RaiseOnAdImpression;
+        _registeredAd.OnAdPaid -= VirtualView.RaiseOnAdPaid;
         _registeredAd.OnAdClicked -= VirtualView.RaiseOnAdClicked;
         _registeredAd.OnAdSwiped -= VirtualView.RaiseOnAdSwiped;
         _registeredAd.OnAdOpened -= VirtualView.RaiseOnAdOpened;
@@ -186,31 +187,14 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, SdkNativeAdVi
         return VirtualView.AdUnitId ?? AdConfig.DefaultNativeAdUnitId;
     }
 
-    private bool CanRequestAds()
+    private void LoadAdIfConnected()
     {
-        if (AdConfig.DisableConsentCheck)
-        {
-            return true;
-        }
-
-        return _adConsentService?.CanRequestAds() ?? false;
-    }
-
-    private void OnConsentInfoUpdated(object? sender, IConsentInformation? e)
-    {
-        // Consent updates repeatedly (resets, privacy forms); load a single ad once consent allows it.
-        if (CanRequestAds() is false)
-        {
-            return;
-        }
-
         // Check if the handler is still connected before loading ad
         // In .NET MAUI 10+, PlatformView throws InvalidOperationException when disconnected
         try
         {
             if (PlatformView is not null)
             {
-                _adConsentService!.OnConsentInfoUpdated -= OnConsentInfoUpdated;
                 LoadAd();
             }
         }

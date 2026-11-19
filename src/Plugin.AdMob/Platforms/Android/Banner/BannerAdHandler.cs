@@ -20,7 +20,8 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
 
     private readonly Handler _resizeHandler = new(Looper.MainLooper!);
     private readonly Action _reloadIfResized;
-    private IAdConsentService? _adConsentService;
+    private ConsentGate? _consentGate;
+    private ConsentGate.PendingRequest? _pendingAd;
     private SdkAdSize? _requestedAdSize;
     private SdkAdSize? _pendingAdSize;
     private int _latestLoad;
@@ -57,10 +58,8 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
         _disconnected = true;
         _resizeHandler.RemoveCallbacks(_reloadIfResized);
 
-        if (_adConsentService is not null)
-        {
-            _adConsentService.OnConsentInfoUpdated -= OnConsentInfoUpdated;
-        }
+        _pendingAd?.Dispose();
+        _pendingAd = null;
 
         try
         {
@@ -80,7 +79,9 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
 
     protected override AdView CreatePlatformView()
     {
-        _adConsentService = IPlatformApplication.Current!.Services.GetRequiredService<IAdConsentService>();
+        var consentGate = new ConsentGate(IPlatformApplication.Current!.Services.GetRequiredService<IAdConsentService>());
+        _consentGate = consentGate;
+        _disconnected = false;
 
         var adUnitId = GetAdUnitId();
 
@@ -99,7 +100,15 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
         {
             VirtualView.HeightRequest = 0;
             VirtualView.WidthRequest = 0;
-            _adConsentService.OnConsentInfoUpdated += OnConsentInfoUpdated;
+            var pendingAd = consentGate.CreateRequest(() =>
+            {
+                if (!_disconnected)
+                {
+                    LoadAd(adView);
+                }
+            });
+            _pendingAd = pendingAd;
+            pendingAd.Start();
         }
 
         return adView;
@@ -118,8 +127,6 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
         var adSize = GetAdSize();
         var load = ++_latestLoad;
         _requestedAdSize = adSize;
-
-        MobileAdsInitialization.Start();
 
         // Reset IsLoaded before loading a new ad
         VirtualView.SetValue(BannerAd.IsLoadedProperty, false);
@@ -150,8 +157,9 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
                 var bannerAd = ad.JavaCast<IBannerAd>();
                 if (bannerAd is not null)
                 {
-                    var eventCallback = new BannerAdEventCallback();
+                    var eventCallback = new BannerAdEventCallback(adUnitId);
                     eventCallback.AdImpression += (s2, e) => SafeRaise(() => VirtualView.RaiseOnAdImpression(s2, e));
+                    eventCallback.AdPaid += (_, revenue) => SafeRaise(() => VirtualView.RaiseOnAdPaid(revenue));
                     eventCallback.AdClicked += (s2, e) => SafeRaise(() => VirtualView.RaiseOnAdClicked(s2, e));
                     eventCallback.AdOpened += (s2, e) => SafeRaise(() => VirtualView.RaiseOnAdOpened(s2, e));
                     eventCallback.AdClosed += (s2, e) => SafeRaise(() => VirtualView.RaiseOnAdClosed(s2, e));
@@ -159,7 +167,7 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
 
                     var refreshCallback = new BannerAdRefreshCallback();
                     refreshCallback.AdRefreshed += (s2, e) => SafeRaise(() => VirtualView.RaiseOnAdLoaded(s2, e));
-                    refreshCallback.AdFailedToRefresh += (s2, e) => SafeRaise(() => VirtualView.RaiseOnAdFailedToLoad(s2, new AdError(e.Message)));
+                    refreshCallback.AdFailedToRefresh += (s2, error) => SafeRaise(() => VirtualView.RaiseOnAdFailedToLoad(s2, error.ToAdError()));
                     bannerAd.BannerAdRefreshCallback = refreshCallback;
                 }
 
@@ -172,7 +180,7 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
                     return;
                 }
 
-                SafeRaise(() => VirtualView.RaiseOnAdFailedToLoad(s, new AdError(e.Message)));
+                SafeRaise(() => VirtualView.RaiseOnAdFailedToLoad(s, e.ToAdError()));
             };
 
             try
@@ -268,39 +276,7 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
         return (int)(displayMetrics.WidthPixels / displayMetrics.Density);
     }
 
-    private bool CanRequestAds()
-    {
-        if (AdConfig.DisableConsentCheck)
-        {
-            return true;
-        }
-
-        return _adConsentService?.CanRequestAds() ?? false;
-    }
-
-    private void OnConsentInfoUpdated(object? sender, IConsentInformation? e)
-    {
-        if (CanRequestAds() is false)
-        {
-            return;
-        }
-
-        // Check if the handler is still connected before accessing PlatformView
-        // In .NET MAUI 10+, PlatformView throws InvalidOperationException when disconnected
-        try
-        {
-            var adView = PlatformView;
-            if (adView is not null)
-            {
-                _adConsentService!.OnConsentInfoUpdated -= OnConsentInfoUpdated;
-                LoadAd(adView);
-            }
-        }
-        catch (InvalidOperationException)
-        {
-            // Handler has been disconnected, ignore consent update
-        }
-    }
+    private bool CanRequestAds() => _consentGate?.CanRequestAds() ?? false;
 
     private void SafeRaise(Action action)
     {

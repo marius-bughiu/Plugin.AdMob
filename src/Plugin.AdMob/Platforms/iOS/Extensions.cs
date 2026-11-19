@@ -6,6 +6,26 @@ namespace Plugin.AdMob.Platforms.iOS;
 
 internal static class Extensions
 {
+    internal static AdError ToAdError(this NSError error, string? responseId = null, string? message = null)
+    {
+        // The binding does not expose GADErrorUserInfoKeyResponseInfo, so find the SDK response by type.
+        var responseInfo = error.UserInfo?.Values.OfType<ResponseInfo>().FirstOrDefault();
+        return new AdError(message ?? error.DebugDescription, error.Code, error.Domain,
+            responseInfo?.ResponseIdentifier ?? responseId);
+    }
+
+    internal static AdRevenueEventArgs ToRevenueEventArgs(this AdValue value, string? adUnitId) => new(
+        adUnitId,
+        (decimal)value.Value.NSDecimalValue,
+        value.CurrencyCode,
+        value.Precision switch
+        {
+            AdValuePrecision.Estimated => AdRevenuePrecision.Estimated,
+            AdValuePrecision.PublisherProvided => AdRevenuePrecision.PublisherProvided,
+            AdValuePrecision.Precise => AdRevenuePrecision.Precise,
+            _ => AdRevenuePrecision.Unknown,
+        });
+
     internal static InitializationStatus ToInitializationStatus(this Google.MobileAds.InitializationStatus status) => new(
     [
         .. status.AdapterStatusesByClassName.Select((KeyValuePair<NSString, Google.MobileAds.AdapterStatus> adapter) => new AdapterStatus(

@@ -94,6 +94,7 @@ internal partial class NativeAd : NativeAdLoaderDelegate
         IsLoaded = true;
 
         _ad.ImpressionRecorded += (s, e) => OnAdImpression?.Invoke(this, EventArgs.Empty);
+        _ad.PaidEventHandler = value => OnAdPaid?.Invoke(this, value.ToRevenueEventArgs(AdUnitId));
         _ad.ClickRecorded += (s, e) => OnAdClicked?.Invoke(this, EventArgs.Empty);
         _ad.WillPresentScreen += (s, e) => OnAdOpened?.Invoke(this, EventArgs.Empty);
         _ad.ScreenDismissed += (s, e) => OnAdClosed?.Invoke(this, EventArgs.Empty);
@@ -122,6 +123,6 @@ internal partial class NativeAd : NativeAdLoaderDelegate
 
     public override void DidFailToReceiveAd(AdLoader adLoader, NSError error)
     {
-        OnAdFailedToLoad?.Invoke(this, new AdError(error.Description));
+        OnAdFailedToLoad?.Invoke(this, error.ToAdError(message: error.Description));
     }
 }

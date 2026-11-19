@@ -56,8 +56,6 @@ internal partial class NativeAd
 
     private void LoadAd()
     {
-        MobileAdsInitialization.Start();
-
         AdMobInitializer.RunWhenInitialized(() =>
         {
             var configBuilder = new RequestConfiguration.Builder();
@@ -77,7 +75,7 @@ internal partial class NativeAd
 
             var callback = new NativeAdLoaderCallback();
             callback.AdLoaded += (s, ad) => OnAdLoadedInternal(ad);
-            callback.AdFailedToLoad += (s, e) => OnAdFailedToLoad?.Invoke(this, new AdError(e.Message));
+            callback.AdFailedToLoad += (_, error) => OnAdFailedToLoad?.Invoke(this, error.ToAdError());
 
             SdkNativeAdLoader.Load(requestBuilder.Build(), callback);
         }, ex => OnAdFailedToLoad?.Invoke(this, new AdError(ex)));
@@ -98,8 +96,9 @@ internal partial class NativeAd
 
     private void RegisterEventCallback(SdkINativeAd nativeAd)
     {
-        var callback = new NativeAdEventCallback();
+        var callback = new NativeAdEventCallback(AdUnitId);
         callback.AdImpression += (s, e) => OnAdImpression?.Invoke(this, EventArgs.Empty);
+        callback.AdPaid += (_, revenue) => OnAdPaid?.Invoke(this, revenue);
         callback.AdClicked += (s, e) => OnAdClicked?.Invoke(this, EventArgs.Empty);
         callback.AdSwiped += (s, e) => OnAdSwiped?.Invoke(this, EventArgs.Empty);
         callback.AdOpened += (s, e) => OnAdOpened?.Invoke(this, EventArgs.Empty);

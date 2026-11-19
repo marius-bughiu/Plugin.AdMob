@@ -44,6 +44,15 @@ public interface IAppOpenAdService
     /// event handler of the IAppOpenAd returned by the method.
     /// </summary>
     event EventHandler<IAdError> OnAdFailedToLoad;
+
+    /// <summary>
+    /// Raised when an ad prepared by this service earns impression revenue.
+    /// </summary>
+    event EventHandler<AdRevenueEventArgs>? OnAdPaid
+    {
+        add { }
+        remove { }
+    }
 }
 
 internal class AppOpenAdService(IAdConsentService _adConsentService) 
@@ -51,14 +60,14 @@ internal class AppOpenAdService(IAdConsentService _adConsentService)
 {
     private IAppOpenAd? _appOpenAd;
     private readonly ConsentGate _consentGate = new(_adConsentService);
-    private bool _hasPendingAd;
-    private string? _pendingAdUnitId;
+    private ConsentGate.PendingRequest? _pendingAd;
     private bool _isShowingAd;
 
     public bool IsAdLoaded => _appOpenAd?.IsLoaded ?? false;
 
     public event EventHandler? OnAdLoaded;
     public event EventHandler<IAdError>? OnAdFailedToLoad;
+    public event EventHandler<AdRevenueEventArgs>? OnAdPaid;
 
     public IAppOpenAd CreateAd(string? adUnitId = null)
     {
@@ -74,8 +83,8 @@ internal class AppOpenAdService(IAdConsentService _adConsentService)
 
     public void PrepareAd(string? adUnitId = null)
     {
-        _adConsentService.OnConsentInfoUpdated -= OnConsentInfoUpdated;
-        _hasPendingAd = false;
+        _pendingAd?.Dispose();
+        _pendingAd = null;
 
         if (_appOpenAd is not null)
         {
@@ -84,17 +93,17 @@ internal class AppOpenAdService(IAdConsentService _adConsentService)
             _appOpenAd = null;
         }
 
-        if (CanRequestAds() is false)
-        {
-            _hasPendingAd = true;
-            _pendingAdUnitId = adUnitId;
-            _adConsentService.OnConsentInfoUpdated += OnConsentInfoUpdated;
-            return;
-        }
+        var pendingAd = _consentGate.CreateRequest(() => LoadPreparedAd(adUnitId));
+        _pendingAd = pendingAd;
+        pendingAd.Start();
+    }
 
+    private void LoadPreparedAd(string? adUnitId)
+    {
         var appOpenAd = CreateAd(adUnitId);
         appOpenAd.OnAdLoaded += OnAdLoadedInternal;
         appOpenAd.OnAdFailedToLoad += OnAdFailedToLoadInternal;
+        appOpenAd.OnAdPaid += (sender, revenue) => OnAdPaid?.Invoke(sender, revenue);
 
         _appOpenAd = appOpenAd;
         appOpenAd.Load();
@@ -125,24 +134,6 @@ internal class AppOpenAdService(IAdConsentService _adConsentService)
 #else
         return adUnitId ?? string.Empty;
 #endif
-    }
-
-    private bool CanRequestAds()
-    {
-        if (AdConfig.DisableConsentCheck)
-        {
-            return true;
-        }
-
-        return _adConsentService.CanRequestAds();
-    }
-
-    private void OnConsentInfoUpdated(object? sender, IConsentInformation? e)
-    {
-        if (_hasPendingAd && CanRequestAds())
-        {
-            PrepareAd(_pendingAdUnitId);
-        }
     }
 
     private void OnAdLoadedInternal(object? sender, EventArgs e)

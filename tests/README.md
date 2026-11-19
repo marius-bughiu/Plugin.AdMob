@@ -1,20 +1,27 @@
 # Integration tests & CI gates
 
-Two tiers of automated checks, both aimed at the same failure class: the plugin wraps
-third-party native bindings (`Xamarin.Google.Android.Libraries.Ads.Mobile.Sdk`, `Jc.GMA.iOS`,
-`Jc.UMP.iOS`, `Xamarin.AndroidX.*.Ktx`) that drift independently of this repo, and the
-plugin version tracks MAUI — so "the world changed under a shipped release" is a real,
-time-driven risk that source-only CI can't catch.
+The managed tests cover plugin behavior with simulated SDK callbacks. The integration
+checks also catch compatibility changes in MAUI and the native bindings that can affect
+a published release after it ships.
 
 ## Projects
 
 | Project | What it is | Used by |
 |---|---|---|
+| [`Plugin.AdMob.RegressionTests`](Plugin.AdMob.RegressionTests/) | A managed console runner that tests consent timing, Android startup failure and retry, and desktop failure callbacks with simulated SDK behavior. | `build.yml` |
 | [`Plugin.AdMob.PackageConsumer`](Plugin.AdMob.PackageConsumer/) | A MAUI **library** that references the **published** NuGet across all 4 target frameworks. Pure restore + build smoke. | `nightly.yml` |
 | [`Plugin.AdMob.DeviceTests`](Plugin.AdMob.DeviceTests/) | A MAUI **app** that runs the plugin's default consent flow, then loads every ad format with Google's test units and asserts `OnAdLoaded` fires, logging results under the `AdMobHarness` tag. | `device-tests.yml` |
 
-Both switch between referencing the **source** and the **published package** via MSBuild
-properties, so the same code validates a branch change *and* the shipped artifact:
+Run the managed regression tests with the .NET 11 SDK:
+
+```bash
+cd tests/Plugin.AdMob.RegressionTests
+dotnet run
+dotnet run -p:RegressionPlatform=Android
+dotnet run -p:RegressionPlatform=Android -- --missing-id
+```
+
+The device test project can switch between referencing the **source** and the **published package** via MSBuild properties:
 
 ```bash
 # source (default) — validates the code on this branch

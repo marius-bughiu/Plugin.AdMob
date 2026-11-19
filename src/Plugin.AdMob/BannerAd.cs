@@ -21,6 +21,11 @@ public class BannerAd : ContentView
     public event EventHandler? OnAdImpression;
 
     /// <summary>
+    /// Raised when Google Mobile Ads reports revenue for an impression.
+    /// </summary>
+    public event EventHandler<AdRevenueEventArgs>? OnAdPaid;
+
+    /// <summary>
     /// Raised when a click is recorded for an ad.
     /// </summary>
     public event EventHandler? OnAdClicked;
@@ -128,6 +133,7 @@ public class BannerAd : ContentView
     }
 
     internal void RaiseOnAdImpression(object? sender, EventArgs e) => OnAdImpression?.Invoke(this, e);
+    internal void RaiseOnAdPaid(AdRevenueEventArgs e) => OnAdPaid?.Invoke(this, e);
     internal void RaiseOnAdClicked(object? sender, EventArgs e) => OnAdClicked?.Invoke(this, e);
     internal void RaiseOnAdSwiped(object? sender, EventArgs e) => OnAdSwiped?.Invoke(this, e);
     internal void RaiseOnAdOpened(object? sender, EventArgs e) => OnAdOpened?.Invoke(this, e);

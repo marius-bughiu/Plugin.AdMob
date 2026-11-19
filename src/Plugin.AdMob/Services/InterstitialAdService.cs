@@ -44,6 +44,15 @@ public interface IInterstitialAdService
     /// event handler of the IInterstitialAd returned by the method.
     /// </summary>
     event EventHandler<IAdError> OnAdFailedToLoad;
+
+    /// <summary>
+    /// Raised when an ad prepared by this service earns impression revenue.
+    /// </summary>
+    event EventHandler<AdRevenueEventArgs>? OnAdPaid
+    {
+        add { }
+        remove { }
+    }
 }
 
 internal class InterstitialAdService(IAdConsentService _adConsentService) 
@@ -51,13 +60,13 @@ internal class InterstitialAdService(IAdConsentService _adConsentService)
 {
     private IInterstitialAd? _interstitialAd;
     private readonly ConsentGate _consentGate = new(_adConsentService);
-    private bool _hasPendingAd;
-    private string? _pendingAdUnitId;
+    private ConsentGate.PendingRequest? _pendingAd;
 
     public bool IsAdLoaded => _interstitialAd?.IsLoaded ?? false;
 
     public event EventHandler? OnAdLoaded;
     public event EventHandler<IAdError>? OnAdFailedToLoad;
+    public event EventHandler<AdRevenueEventArgs>? OnAdPaid;
 
     public IInterstitialAd CreateAd(string? adUnitId = null)
     {
@@ -73,8 +82,8 @@ internal class InterstitialAdService(IAdConsentService _adConsentService)
 
     public void PrepareAd(string? adUnitId = null)
     {
-        _adConsentService.OnConsentInfoUpdated -= OnConsentInfoUpdated;
-        _hasPendingAd = false;
+        _pendingAd?.Dispose();
+        _pendingAd = null;
 
         if (_interstitialAd is not null)
         {
@@ -83,17 +92,17 @@ internal class InterstitialAdService(IAdConsentService _adConsentService)
             _interstitialAd = null;
         }
 
-        if (CanRequestAds() is false)
-        {
-            _hasPendingAd = true;
-            _pendingAdUnitId = adUnitId;
-            _adConsentService.OnConsentInfoUpdated += OnConsentInfoUpdated;
-            return;
-        }
+        var pendingAd = _consentGate.CreateRequest(() => LoadPreparedAd(adUnitId));
+        _pendingAd = pendingAd;
+        pendingAd.Start();
+    }
 
+    private void LoadPreparedAd(string? adUnitId)
+    {
         var interstitialAd = CreateAd(adUnitId);
         interstitialAd.OnAdLoaded += OnAdLoadedInternal;
         interstitialAd.OnAdFailedToLoad += OnAdFailedToLoadInternal;
+        interstitialAd.OnAdPaid += (sender, revenue) => OnAdPaid?.Invoke(sender, revenue);
 
         _interstitialAd = interstitialAd;
         interstitialAd.Load();
@@ -116,24 +125,6 @@ internal class InterstitialAdService(IAdConsentService _adConsentService)
 #else
         return adUnitId ?? string.Empty;
 #endif
-    }
-
-    private bool CanRequestAds()
-    {
-        if (AdConfig.DisableConsentCheck)
-        {
-            return true;
-        }
-
-        return _adConsentService.CanRequestAds();
-    }
-
-    private void OnConsentInfoUpdated(object? sender, IConsentInformation? e)
-    {
-        if (_hasPendingAd && CanRequestAds())
-        {
-            PrepareAd(_pendingAdUnitId);
-        }
     }
 
     private void OnAdLoadedInternal(object? sender, EventArgs e)

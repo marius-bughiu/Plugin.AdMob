@@ -51,8 +51,10 @@ Look for `[Plugin.AdMob] Ad error:` lines in your IDE's debug output. Note two l
 ```
 ```csharp
 private void Banner_OnAdFailedToLoad(object sender, IAdError e)
-    => Console.WriteLine($"[AdMob] load failed: {e.Message}");
+    => Console.WriteLine($"[AdMob] load failed: {e.Message} (code={e.Code}, domain={e.Domain}, responseId={e.ResponseId})");
 ```
+
+The structured fields are nullable. Android's Next-Gen load and show errors supply a code without a domain. iOS supplies both through `NSError`. Plugin errors such as an expired ad or an unsupported platform have only a message.
 
 The same `OnAdFailedToLoad` event exists on `InterstitialAd`, `RewardedAd`, `RewardedInterstitialAd`, `AppOpenAd`, and `NativeAdView` / `INativeAd`, and on the interstitial, rewarded, rewarded interstitial and app open ad services for ads loaded with `PrepareAd()`. Use `Console.WriteLine` (not `Debug.WriteLine`) if you need the output to reach a physical device's console.
 
@@ -61,7 +63,7 @@ The same `OnAdFailedToLoad` event exists on `InterstitialAd`, `RewardedAd`, `Rew
 - **iOS:** `Request Error: No ad to show.` (`Error Domain=com.google.admob Code=1`)
 - **Android:** `No fill.` (error code `3`)
 
-Crucially, the error's response info includes a **`Response ID`** (e.g. `Response ID: Q8pfav...`). A populated Response ID confirms the request completed a round-trip to Google and Google chose not to serve — so it is a genuine no-fill, **not** a network block, a missing `GADApplicationIdentifier`, or a consent problem (a DNS/ad blocker would fail before any Response ID, and a consent block would keep `CanRequestAds()` `false` so no request is issued at all).
+Use the error code and message to identify no-fill. When `ResponseId` is available, include it in logs or support reports so the response can be traced.
 
 ### Fix / mitigation
 

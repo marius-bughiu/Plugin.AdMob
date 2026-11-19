@@ -15,8 +15,6 @@ internal partial class RewardedInterstitialAd
 
     private void LoadAd()
     {
-        MobileAdsInitialization.Start();
-
         AdMobInitializer.RunWhenInitialized(() =>
         {
             var configBuilder = new RequestConfiguration.Builder();
@@ -27,7 +25,7 @@ internal partial class RewardedInterstitialAd
 
             var callback = new AdLoadCallback();
             callback.Loaded += (s, ad) => AdLoaded(ad.JavaCast<SdkIRewardedInterstitialAd>()!);
-            callback.Failed += (s, e) => OnAdFailedToLoad?.Invoke(this, new AdError(e.Message));
+            callback.Failed += (_, error) => OnAdFailedToLoad?.Invoke(this, error.ToAdError());
 
             SdkRewardedInterstitialAd.Load(adRequest, callback);
         }, ex => OnAdFailedToLoad?.Invoke(this, new AdError(ex)));
@@ -35,25 +33,26 @@ internal partial class RewardedInterstitialAd
 
     public void Show()
     {
-        if (_ad is null || !TryBeginShow())
+        if (_ad is not { } ad || !TryBeginShow())
         {
             return;
         }
 
-        var callback = new FullScreenContentCallback();
+        var callback = new FullScreenContentCallback(AdUnitId);
         callback.AdShowed += (s, _) => OnAdShowed?.Invoke(this, EventArgs.Empty);
-        callback.AdFailedToShow += (s, e) => OnAdFailedToShow?.Invoke(this, new AdError(e.Message));
+        callback.AdFailedToShow += (_, error) => OnAdFailedToShow?.Invoke(this, error.ToAdError(ad.ResponseInfo?.ResponseId));
         callback.AdImpression += (s, _) => OnAdImpression?.Invoke(this, EventArgs.Empty);
+        callback.AdPaid += (_, revenue) => OnAdPaid?.Invoke(this, revenue);
         callback.AdClicked += (s, _) => OnAdClicked?.Invoke(this, EventArgs.Empty);
         callback.AdDismissed += (s, _) => OnAdDismissed?.Invoke(this, EventArgs.Empty);
 
-        _ad.AdEventCallback = callback;
+        ad.AdEventCallback = callback;
 
         var rewardListener = new UserEarnedRewardListener();
         rewardListener.UserEarnedReward += (s, reward) => OnUserEarnedReward?.Invoke(this, new RewardItem(reward.Amount, reward.Type));
 
         var activity = ActivityStateManager.Default.GetCurrentActivity()!;
-        _ad.Show(activity, rewardListener);
+        ad.Show(activity, rewardListener);
     }
 
     private void AdLoaded(SdkIRewardedInterstitialAd rewardedInterstitialAd)

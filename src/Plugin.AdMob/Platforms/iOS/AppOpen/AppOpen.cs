@@ -37,15 +37,16 @@ internal partial class AppOpenAd
     {
         if (error is not null)
         {
-            OnAdFailedToLoad?.Invoke(this, new AdError(error.DebugDescription));
+            OnAdFailedToLoad?.Invoke(this, error.ToAdError());
             return;
         }
 
         _ad = appOpenAd!;
 
         _ad.PresentedContent += (s, e) => OnAdShowed?.Invoke(s, e);
-        _ad.FailedToPresentContent += (s, e) => OnAdFailedToShow?.Invoke(s, new AdError(e.Error.DebugDescription));
+        _ad.FailedToPresentContent += (s, e) => OnAdFailedToShow?.Invoke(s, e.Error.ToAdError(appOpenAd?.ResponseInfo?.ResponseIdentifier));
         _ad.RecordedImpression += (s, e) => OnAdImpression?.Invoke(s, e);
+        _ad.PaidEventHandler = value => OnAdPaid?.Invoke(this, value.ToRevenueEventArgs(AdUnitId));
         _ad.RecordedClick += (s, e) => OnAdClicked?.Invoke(s, e);
         _ad.DismissedContent += (s, e) => OnAdDismissed?.Invoke(s, e);
 

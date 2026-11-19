@@ -46,6 +46,12 @@
                         HorizontalOptions="Fill" />
                 </Grid>
 
+                <Button
+                    Margin="16,0"
+                    Text="Open Ad Inspector"
+                    SemanticProperties.Hint="Opens Google Mobile Ads diagnostics on a registered test device"
+                    Clicked="OnAdInspectorClicked" />
+
                 <Label Padding="16,0" Text="Interstitial:" />
                 <Grid Padding="16, 0" ColumnSpacing="8">
                     <Grid.ColumnDefinitions>
