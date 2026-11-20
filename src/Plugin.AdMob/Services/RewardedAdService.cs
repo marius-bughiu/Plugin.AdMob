@@ -45,6 +45,15 @@ public interface IRewardedAdService
     /// event handler of the IRewardedAd returned by the method.
     /// </summary>
     event EventHandler<IAdError> OnAdFailedToLoad;
+
+    /// <summary>
+    /// Raised when an ad prepared by this service earns impression revenue.
+    /// </summary>
+    event EventHandler<AdRevenueEventArgs>? OnAdPaid
+    {
+        add { }
+        remove { }
+    }
 }
 
 internal class RewardedAdService(IAdConsentService _adConsentService) 
@@ -60,6 +69,7 @@ internal class RewardedAdService(IAdConsentService _adConsentService)
 
     public event EventHandler? OnAdLoaded;
     public event EventHandler<IAdError>? OnAdFailedToLoad;
+    public event EventHandler<AdRevenueEventArgs>? OnAdPaid;
 
     public IRewardedAd CreateAd(string? adUnitId = null)
     {
@@ -82,6 +92,11 @@ internal class RewardedAdService(IAdConsentService _adConsentService)
         {
             _rewardedAd.OnAdLoaded -= OnAdLoadedInternal;
             _rewardedAd.OnAdFailedToLoad -= OnAdFailedToLoadInternal;
+            if (_rewardedAd.IsLoaded)
+            {
+                _rewardedAd.OnAdPaid -= OnAdPaidInternal;
+            }
+
             _rewardedAd = null;
         }
 
@@ -97,6 +112,7 @@ internal class RewardedAdService(IAdConsentService _adConsentService)
         var rewardedAd = CreateAd(adUnitId);
         rewardedAd.OnAdLoaded += OnAdLoadedInternal;
         rewardedAd.OnAdFailedToLoad += OnAdFailedToLoadInternal;
+        rewardedAd.OnAdPaid += OnAdPaidInternal;
 
         if (onUserEarnedReward != null)
         {
@@ -146,6 +162,11 @@ internal class RewardedAdService(IAdConsentService _adConsentService)
     private void OnAdLoadedInternal(object? sender, EventArgs e)
     {
         OnAdLoaded?.Invoke(sender, e);
+    }
+
+    private void OnAdPaidInternal(object? sender, AdRevenueEventArgs revenue)
+    {
+        OnAdPaid?.Invoke(sender, revenue);
     }
 
     private void OnAdFailedToLoadInternal(object? sender, IAdError e)

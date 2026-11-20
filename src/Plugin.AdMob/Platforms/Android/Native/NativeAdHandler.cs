@@ -130,10 +130,11 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, SdkNativeAdVi
     {
         UnregisterEventHandlers();
 
-        _onAdFailedToLoad = (s, e) => VirtualView.RaiseOnAdFailedToLoad(s, new AdError(e.Message));
+        _onAdFailedToLoad = VirtualView.RaiseOnAdFailedToLoad;
 
         ad.OnAdFailedToLoad += _onAdFailedToLoad;
         ad.OnAdImpression += VirtualView.RaiseOnAdImpression;
+        ad.OnAdPaid += VirtualView.RaiseOnAdPaid;
         ad.OnAdClicked += VirtualView.RaiseOnAdClicked;
         ad.OnAdSwiped += VirtualView.RaiseOnAdSwiped;
         ad.OnAdOpened += VirtualView.RaiseOnAdOpened;
@@ -161,6 +162,7 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, SdkNativeAdVi
 
         _registeredAd.OnAdFailedToLoad -= _onAdFailedToLoad;
         _registeredAd.OnAdImpression -= VirtualView.RaiseOnAdImpression;
+        _registeredAd.OnAdPaid -= VirtualView.RaiseOnAdPaid;
         _registeredAd.OnAdClicked -= VirtualView.RaiseOnAdClicked;
         _registeredAd.OnAdSwiped -= VirtualView.RaiseOnAdSwiped;
         _registeredAd.OnAdOpened -= VirtualView.RaiseOnAdOpened;

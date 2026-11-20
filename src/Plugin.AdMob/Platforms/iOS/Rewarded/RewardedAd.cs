@@ -37,15 +37,25 @@ internal partial class RewardedAd
     {
         if (error is not null)
         {
-            OnAdFailedToLoad?.Invoke(this, new AdError(error.DebugDescription));
+            OnAdFailedToLoad?.Invoke(this, error.ToAdError());
             return;
         }
 
+        // A previously loaded ad may already be presenting. Keep its paid callback
+        // available for the impression in flight, and clear it for unshown ads.
+        if (IsLoaded && _ad is not null)
+        {
+            _ad.PaidEventHandler = null;
+        }
+
         _ad = rewardedAd!;
+        var responseId = _ad.ResponseInfo?.ResponseIdentifier;
 
         _ad.PresentedContent += (s, e) => OnAdShowed?.Invoke(s, e);
-        _ad.FailedToPresentContent += (s, e) => OnAdFailedToShow?.Invoke(s, new AdError(e.Error.DebugDescription));
+        _ad.FailedToPresentContent += (s, e) => OnAdFailedToShow?.Invoke(s, e.Error.ToAdError(responseId));
         _ad.RecordedImpression += (s, e) => OnAdImpression?.Invoke(s, e);
+        _ad.PaidEventHandler = PaidEventHandlers.Create(this, static (ad, value) =>
+            ad.OnAdPaid?.Invoke(ad, value.ToRevenueEventArgs(ad.AdUnitId)));
         _ad.DismissedContent += (s, e) => OnAdDismissed?.Invoke(s, e);
         _ad.RecordedClick += (s, e) => OnAdClicked?.Invoke(s, e);
 

@@ -44,6 +44,15 @@ public interface IInterstitialAdService
     /// event handler of the IInterstitialAd returned by the method.
     /// </summary>
     event EventHandler<IAdError> OnAdFailedToLoad;
+
+    /// <summary>
+    /// Raised when an ad prepared by this service earns impression revenue.
+    /// </summary>
+    event EventHandler<AdRevenueEventArgs>? OnAdPaid
+    {
+        add { }
+        remove { }
+    }
 }
 
 internal class InterstitialAdService(IAdConsentService _adConsentService) 
@@ -58,6 +67,7 @@ internal class InterstitialAdService(IAdConsentService _adConsentService)
 
     public event EventHandler? OnAdLoaded;
     public event EventHandler<IAdError>? OnAdFailedToLoad;
+    public event EventHandler<AdRevenueEventArgs>? OnAdPaid;
 
     public IInterstitialAd CreateAd(string? adUnitId = null)
     {
@@ -80,6 +90,11 @@ internal class InterstitialAdService(IAdConsentService _adConsentService)
         {
             _interstitialAd.OnAdLoaded -= OnAdLoadedInternal;
             _interstitialAd.OnAdFailedToLoad -= OnAdFailedToLoadInternal;
+            if (_interstitialAd.IsLoaded)
+            {
+                _interstitialAd.OnAdPaid -= OnAdPaidInternal;
+            }
+
             _interstitialAd = null;
         }
 
@@ -94,6 +109,7 @@ internal class InterstitialAdService(IAdConsentService _adConsentService)
         var interstitialAd = CreateAd(adUnitId);
         interstitialAd.OnAdLoaded += OnAdLoadedInternal;
         interstitialAd.OnAdFailedToLoad += OnAdFailedToLoadInternal;
+        interstitialAd.OnAdPaid += OnAdPaidInternal;
 
         _interstitialAd = interstitialAd;
         interstitialAd.Load();
@@ -139,6 +155,11 @@ internal class InterstitialAdService(IAdConsentService _adConsentService)
     private void OnAdLoadedInternal(object? sender, EventArgs e)
     {
         OnAdLoaded?.Invoke(sender, e);
+    }
+
+    private void OnAdPaidInternal(object? sender, AdRevenueEventArgs revenue)
+    {
+        OnAdPaid?.Invoke(sender, revenue);
     }
 
     private void OnAdFailedToLoadInternal(object? sender, IAdError e)

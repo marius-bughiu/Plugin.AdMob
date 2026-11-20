@@ -44,6 +44,15 @@ public interface IAppOpenAdService
     /// event handler of the IAppOpenAd returned by the method.
     /// </summary>
     event EventHandler<IAdError> OnAdFailedToLoad;
+
+    /// <summary>
+    /// Raised when an ad prepared by this service earns impression revenue.
+    /// </summary>
+    event EventHandler<AdRevenueEventArgs>? OnAdPaid
+    {
+        add { }
+        remove { }
+    }
 }
 
 internal class AppOpenAdService(IAdConsentService _adConsentService) 
@@ -59,6 +68,7 @@ internal class AppOpenAdService(IAdConsentService _adConsentService)
 
     public event EventHandler? OnAdLoaded;
     public event EventHandler<IAdError>? OnAdFailedToLoad;
+    public event EventHandler<AdRevenueEventArgs>? OnAdPaid;
 
     public IAppOpenAd CreateAd(string? adUnitId = null)
     {
@@ -81,6 +91,11 @@ internal class AppOpenAdService(IAdConsentService _adConsentService)
         {
             _appOpenAd.OnAdLoaded -= OnAdLoadedInternal;
             _appOpenAd.OnAdFailedToLoad -= OnAdFailedToLoadInternal;
+            if (_appOpenAd.IsLoaded)
+            {
+                _appOpenAd.OnAdPaid -= OnAdPaidInternal;
+            }
+
             _appOpenAd = null;
         }
 
@@ -95,6 +110,7 @@ internal class AppOpenAdService(IAdConsentService _adConsentService)
         var appOpenAd = CreateAd(adUnitId);
         appOpenAd.OnAdLoaded += OnAdLoadedInternal;
         appOpenAd.OnAdFailedToLoad += OnAdFailedToLoadInternal;
+        appOpenAd.OnAdPaid += OnAdPaidInternal;
 
         _appOpenAd = appOpenAd;
         appOpenAd.Load();
@@ -148,6 +164,11 @@ internal class AppOpenAdService(IAdConsentService _adConsentService)
     private void OnAdLoadedInternal(object? sender, EventArgs e)
     {
         OnAdLoaded?.Invoke(sender, e);
+    }
+
+    private void OnAdPaidInternal(object? sender, AdRevenueEventArgs revenue)
+    {
+        OnAdPaid?.Invoke(sender, revenue);
     }
 
     private void OnAdFailedToLoadInternal(object? sender, IAdError e)

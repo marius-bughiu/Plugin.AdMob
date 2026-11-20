@@ -45,6 +45,15 @@ public interface IRewardedInterstitialAdService
     /// event handler of the IRewardedInterstitialAd returned by the method.
     /// </summary>
     event EventHandler<IAdError> OnAdFailedToLoad;
+
+    /// <summary>
+    /// Raised when an ad prepared by this service earns impression revenue.
+    /// </summary>
+    event EventHandler<AdRevenueEventArgs>? OnAdPaid
+    {
+        add { }
+        remove { }
+    }
 }
 
 internal class RewardedInterstitialAdService(IAdConsentService _adConsentService) 
@@ -60,6 +69,7 @@ internal class RewardedInterstitialAdService(IAdConsentService _adConsentService
 
     public event EventHandler? OnAdLoaded;
     public event EventHandler<IAdError>? OnAdFailedToLoad;
+    public event EventHandler<AdRevenueEventArgs>? OnAdPaid;
 
     public IRewardedInterstitialAd CreateAd(string? adUnitId = null)
     {
@@ -82,6 +92,11 @@ internal class RewardedInterstitialAdService(IAdConsentService _adConsentService
         {
             _rewardedInterstitialAd.OnAdLoaded -= OnAdLoadedInternal;
             _rewardedInterstitialAd.OnAdFailedToLoad -= OnAdFailedToLoadInternal;
+            if (_rewardedInterstitialAd.IsLoaded)
+            {
+                _rewardedInterstitialAd.OnAdPaid -= OnAdPaidInternal;
+            }
+
             _rewardedInterstitialAd = null;
         }
 
@@ -97,6 +112,7 @@ internal class RewardedInterstitialAdService(IAdConsentService _adConsentService
         var rewardedInterstitialAd = CreateAd(adUnitId);
         rewardedInterstitialAd.OnAdLoaded += OnAdLoadedInternal;
         rewardedInterstitialAd.OnAdFailedToLoad += OnAdFailedToLoadInternal;
+        rewardedInterstitialAd.OnAdPaid += OnAdPaidInternal;
 
         if (onUserEarnedReward != null)
         {
@@ -146,6 +162,11 @@ internal class RewardedInterstitialAdService(IAdConsentService _adConsentService
     private void OnAdLoadedInternal(object? sender, EventArgs e)
     {
         OnAdLoaded?.Invoke(sender, e);
+    }
+
+    private void OnAdPaidInternal(object? sender, AdRevenueEventArgs revenue)
+    {
+        OnAdPaid?.Invoke(sender, revenue);
     }
 
     private void OnAdFailedToLoadInternal(object? sender, IAdError e)

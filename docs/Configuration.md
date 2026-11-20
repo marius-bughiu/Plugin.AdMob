@@ -41,6 +41,25 @@ When testing on real devices, you should register the device as a test device:
 AdConfig.AddTestDevice("<your-test-device-id>");
 ```
 
+## Impression-level revenue
+
+On Android and iOS, `OnAdPaid` reports the ad unit ID, amount, currency code, and precision when Google Mobile Ads provides revenue for an impression. Enable impression-level ad revenue in your [AdMob settings](https://support.google.com/admob/answer/11322405) first.
+
+Subscribe before the ad can be shown. For example, to track interstitials loaded through `PrepareAd()`:
+
+```csharp
+var interstitials = IPlatformApplication.Current.Services.GetRequiredService<IInterstitialAdService>();
+interstitials.OnAdPaid += (_, revenue) =>
+{
+    Debug.WriteLine($"{revenue.AdUnitId}: {revenue.Amount} {revenue.CurrencyCode} ({revenue.Precision})");
+};
+interstitials.PrepareAd();
+```
+
+Subscribe on the service for ads loaded with `PrepareAd()`, or on the returned ad instance for ads loaded with `CreateAd().Load()`. For banner and native ads displayed through a view, subscribe on `BannerAd` or `NativeAdView`. If you also have the native ad instance, subscribe on one of the two sources to count each impression once.
+
+`Amount` is expressed in whole currency units. For example, `0.005 USD` is half a cent. Use `Precision` to distinguish SDK estimates, publisher-provided amounts, precise amounts, and amounts with unknown precision.
+
 ## Consent checks
 
 By default the plugin will only request ads once consent requirements are satisfied.

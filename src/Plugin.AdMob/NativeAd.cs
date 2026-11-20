@@ -147,6 +147,15 @@ public interface INativeAd
     event EventHandler? OnAdImpression;
 
     /// <summary>
+    /// Raised when Google Mobile Ads reports revenue for an impression.
+    /// </summary>
+    event EventHandler<AdRevenueEventArgs>? OnAdPaid
+    {
+        add { }
+        remove { }
+    }
+
+    /// <summary>
     /// Raised when a click is recorded for an ad.
     /// </summary>
     event EventHandler? OnAdClicked;
@@ -210,6 +219,7 @@ internal partial class NativeAd(string adUnitId, ConsentGate consentGate, VideoO
     public event EventHandler? OnAdLoaded;
     public event EventHandler<IAdError>? OnAdFailedToLoad;
     public event EventHandler? OnAdImpression;
+    public event EventHandler<AdRevenueEventArgs>? OnAdPaid;
     public event EventHandler? OnAdClicked;
     public event EventHandler? OnAdSwiped;
     public event EventHandler? OnAdOpened;

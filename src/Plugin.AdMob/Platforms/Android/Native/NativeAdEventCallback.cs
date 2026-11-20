@@ -6,9 +6,10 @@ namespace Plugin.AdMob.Platforms.Android.Native;
 /// <summary>
 /// Bridges the next-gen <see cref="INativeAdEventCallback" /> to plain C# events.
 /// </summary>
-internal sealed class NativeAdEventCallback : Java.Lang.Object, INativeAdEventCallback
+internal sealed class NativeAdEventCallback(string adUnitId) : Java.Lang.Object, INativeAdEventCallback
 {
     public event EventHandler? AdImpression;
+    public event EventHandler<AdRevenueEventArgs>? AdPaid;
     public event EventHandler? AdClicked;
     public event EventHandler? AdSwiped;
     public event EventHandler? AdOpened;
@@ -32,8 +33,11 @@ internal sealed class NativeAdEventCallback : Java.Lang.Object, INativeAdEventCa
 
     public void OnAdFailedToShowFullScreenContent(FullScreenContentError fullScreenContentError) { }
 
-    // Not surfaced by the plugin.
-    public void OnAdPaid(AdValue value) { }
+    public void OnAdPaid(AdValue value)
+    {
+        var revenue = value.ToRevenueEventArgs(adUnitId);
+        MainThreadDispatcher.Run(() => AdPaid?.Invoke(this, revenue));
+    }
 
     public void OnCustomMuteThisAdReported() { }
 }

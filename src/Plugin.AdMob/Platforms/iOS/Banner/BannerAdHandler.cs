@@ -52,6 +52,7 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
         platformView.AdReceived -= VirtualView.RaiseOnAdLoaded;
         platformView.ReceiveAdFailed -= _onReceiveAdFailed;
         platformView.ImpressionRecorded -= VirtualView.RaiseOnAdImpression;
+        platformView.PaidEventHandler = null;
         platformView.ClickRecorded -= VirtualView.RaiseOnAdClicked;
         platformView.WillPresentScreen -= VirtualView.RaiseOnAdOpened;
         platformView.ScreenDismissed -= VirtualView.RaiseOnAdClosed;
@@ -64,18 +65,20 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
     {
         _adConsentService = IPlatformApplication.Current!.Services.GetRequiredService<IAdConsentService>();
 
+        var adUnitId = GetAdUnitId();
         var adView = new BannerView()
         {
-            AdUnitId = GetAdUnitId()
+            AdUnitId = adUnitId
         };
 
         MobileAds.SharedInstance.RequestConfiguration.ApplyGlobalAdConfiguration();
 
-        _onReceiveAdFailed = (s, e) => VirtualView.RaiseOnAdFailedToLoad(this, new AdError(e.Error.DebugDescription));
+        _onReceiveAdFailed = (_, e) => VirtualView.RaiseOnAdFailedToLoad(this, e.Error.ToAdError());
 
         adView.AdReceived += VirtualView.RaiseOnAdLoaded;
         adView.ReceiveAdFailed += _onReceiveAdFailed;
         adView.ImpressionRecorded += VirtualView.RaiseOnAdImpression;
+        adView.PaidEventHandler = value => VirtualView.RaiseOnAdPaid(value.ToRevenueEventArgs(adUnitId));
         adView.ClickRecorded += VirtualView.RaiseOnAdClicked;
         adView.WillPresentScreen += VirtualView.RaiseOnAdOpened;
         adView.ScreenDismissed += VirtualView.RaiseOnAdClosed;

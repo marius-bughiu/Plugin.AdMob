@@ -9,9 +9,10 @@ namespace Plugin.AdMob.Platforms.Android.Banner;
 /// event has no next-gen equivalent for banners (<see cref="IBannerAdEventCallback" /> has no
 /// <c>OnAdSwipeGestureClicked</c>, unlike the native ad callback).
 /// </summary>
-internal sealed class BannerAdEventCallback : Java.Lang.Object, IBannerAdEventCallback
+internal sealed class BannerAdEventCallback(string adUnitId) : Java.Lang.Object, IBannerAdEventCallback
 {
     public event EventHandler? AdImpression;
+    public event EventHandler<AdRevenueEventArgs>? AdPaid;
     public event EventHandler? AdClicked;
     public event EventHandler? AdOpened;
     public event EventHandler? AdClosed;
@@ -31,7 +32,11 @@ internal sealed class BannerAdEventCallback : Java.Lang.Object, IBannerAdEventCa
     // Not surfaced by the plugin.
     public void OnAdFailedToShowFullScreenContent(FullScreenContentError fullScreenContentError) { }
 
-    public void OnAdPaid(AdValue value) { }
+    public void OnAdPaid(AdValue value)
+    {
+        var revenue = value.ToRevenueEventArgs(adUnitId);
+        MainThreadDispatcher.Run(() => AdPaid?.Invoke(this, revenue));
+    }
 
     public void OnAppEvent(string name, string? data) { }
 }
