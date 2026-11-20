@@ -1,5 +1,11 @@
 This page lists what to change in your app when you update `Plugin.AdMob`, newest release first.
 
+## Ad loading behavior in the next release
+
+- On Android, SDK startup failure faults the current `IMobileAdsService.Initialization` task. A later ad request starts a new attempt. Handle the original exception and read the property again once the retry starts.
+- Android ad requests queued during a failed startup raise their load-failure events. Request another load to retry.
+- On Windows and Mac Catalyst, full-screen `PrepareAd()` raises `OnAdFailedToLoad`. Avoid retrying unsupported-platform failures unconditionally.
+
 ## Upgrading from 10.0.x to 11.0.0.0
 
 11.0.0.0 moves the plugin to .NET 11 and .NET MAUI 11.0.0. The changes below are the ones .NET 11 needs; also read the sections below for any 10.0 releases you skip. Apps that stay on .NET 10 can keep using 10.0.x releases.

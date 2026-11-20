@@ -11,7 +11,7 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, Google.Mobile
     // Insets applied by the constraints pinning the ad content inside the platform view.
     private const double ContentInset = 8;
 
-    private IAdConsentService? _adConsentService;
+    private ConsentGate.PendingRequest? _pendingAd;
     private bool _adContentAttached;
 
     // The ad outlives the handler on disconnect/reconnect, so the subscriptions
@@ -26,10 +26,8 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, Google.Mobile
 
     protected override void DisconnectHandler(Google.MobileAds.NativeAdView platformView)
     {
-        if (_adConsentService is not null)
-        {
-            _adConsentService.OnConsentInfoUpdated -= OnConsentInfoUpdated;
-        }
+        _pendingAd?.Dispose();
+        _pendingAd = null;
 
         UnregisterEventHandlers();
 
@@ -46,24 +44,16 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, Google.Mobile
 
         if (VirtualView._ad is null)
         {
-            _adConsentService = IPlatformApplication.Current!.Services.GetRequiredService<IAdConsentService>();
-            if (CanRequestAds())
+            var consentGate = new ConsentGate(IPlatformApplication.Current!.Services.GetRequiredService<IAdConsentService>());
+            if (consentGate.CanRequestAds())
             {
                 LoadAd();
             }
             else
             {
-                _adConsentService.OnConsentInfoUpdated += OnConsentInfoUpdated;
-            }
-
-            bool CanRequestAds()
-            {
-                if (AdConfig.DisableConsentCheck)
-                {
-                    return true;
-                }
-
-                return _adConsentService.CanRequestAds();
+                var pendingAd = consentGate.CreateRequest(LoadAdIfConnected);
+                _pendingAd = pendingAd;
+                pendingAd.Start();
             }
         }
         else
@@ -229,21 +219,14 @@ internal partial class NativeAdHandler : ViewHandler<NativeAdView, Google.Mobile
         return VirtualView.AdUnitId ?? AdConfig.DefaultNativeAdUnitId;
     }
 
-    private void OnConsentInfoUpdated(object? sender, IConsentInformation? e)
+    private void LoadAdIfConnected()
     {
-        // Consent updates repeatedly (resets, privacy forms); load a single ad once consent allows it.
-        if (!AdConfig.DisableConsentCheck && _adConsentService?.CanRequestAds() is not true)
-        {
-            return;
-        }
-
         // Check if the handler is still connected before loading ad
         // In .NET MAUI 10+, PlatformView throws InvalidOperationException when disconnected
         try
         {
             if (PlatformView is not null)
             {
-                _adConsentService!.OnConsentInfoUpdated -= OnConsentInfoUpdated;
                 LoadAd();
             }
         }

@@ -12,7 +12,8 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
 {
     private static readonly TimeSpan ResizeDelay = TimeSpan.FromMilliseconds(500);
 
-    private IAdConsentService? _adConsentService;
+    private ConsentGate? _consentGate;
+    private ConsentGate.PendingRequest? _pendingAd;
     private EventHandler<BannerViewErrorEventArgs>? _onReceiveAdFailed;
     private Google.MobileAds.AdSize? _requestedAdSize;
     private Google.MobileAds.AdSize? _pendingAdSize;
@@ -44,10 +45,8 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
         _disconnected = true;
         _resizeTimer?.Invalidate();
 
-        if (_adConsentService is not null)
-        {
-            _adConsentService.OnConsentInfoUpdated -= OnConsentInfoUpdated;
-        }
+        _pendingAd?.Dispose();
+        _pendingAd = null;
 
         platformView.AdReceived -= VirtualView.RaiseOnAdLoaded;
         platformView.ReceiveAdFailed -= _onReceiveAdFailed;
@@ -62,7 +61,9 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
 
     protected override BannerView CreatePlatformView()
     {
-        _adConsentService = IPlatformApplication.Current!.Services.GetRequiredService<IAdConsentService>();
+        var consentGate = new ConsentGate(IPlatformApplication.Current!.Services.GetRequiredService<IAdConsentService>());
+        _consentGate = consentGate;
+        _disconnected = false;
 
         var adView = new BannerView()
         {
@@ -88,7 +89,15 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
         {
             VirtualView.HeightRequest = 0;
             VirtualView.WidthRequest = 0;
-            _adConsentService.OnConsentInfoUpdated += OnConsentInfoUpdated;
+            var pendingAd = consentGate.CreateRequest(() =>
+            {
+                if (!_disconnected)
+                {
+                    LoadAd(adView);
+                }
+            });
+            _pendingAd = pendingAd;
+            pendingAd.Start();
         }
 
         return adView;
@@ -187,15 +196,7 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
     private Google.MobileAds.AdSize GetSize(int width, int height)
         => new Google.MobileAds.AdSize { Size = new CoreGraphics.CGSize(width, height) };
 
-    private bool CanRequestAds()
-    {
-        if (AdConfig.DisableConsentCheck)
-        {
-            return true;
-        }
-
-        return _adConsentService?.CanRequestAds() ?? false;
-    }
+    private bool CanRequestAds() => _consentGate?.CanRequestAds() ?? false;
 
     private string? GetAdUnitId()
     {
@@ -205,29 +206,5 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, BannerView>
         }
 
         return VirtualView.AdUnitId ?? AdConfig.DefaultBannerAdUnitId;
-    }
-
-    private void OnConsentInfoUpdated(object? sender, IConsentInformation? e)
-    {
-        if (CanRequestAds() is false)
-        {
-            return;
-        }
-
-        // Check if the handler is still connected before accessing PlatformView
-        // In .NET MAUI 10+, PlatformView throws InvalidOperationException when disconnected
-        try
-        {
-            var adView = PlatformView;
-            if (adView is not null)
-            {
-                _adConsentService!.OnConsentInfoUpdated -= OnConsentInfoUpdated;
-                LoadAd(adView);
-            }
-        }
-        catch (InvalidOperationException)
-        {
-            // Handler has been disconnected, ignore consent update
-        }
     }
 }

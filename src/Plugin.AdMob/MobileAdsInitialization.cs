@@ -9,6 +9,11 @@ namespace Plugin.AdMob;
 
 internal static class MobileAdsInitialization
 {
+#if ANDROID
+    internal static Task<IInitializationStatus> Completed => AdMobInitializer.Initialization;
+
+    internal static void Start() => AdMobInitializer.EnsureInitialized();
+#else
     private static readonly TaskCompletionSource<IInitializationStatus> _completed = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private static int _started;
 
@@ -35,5 +40,6 @@ internal static class MobileAdsInitialization
             _completed.TrySetException(ex);
         }
     }
+#endif
 }
 #endif

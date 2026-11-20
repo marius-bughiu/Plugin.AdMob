@@ -22,6 +22,29 @@ permissions:
   contents: read
 
 jobs:
+  regression-tests:
+    name: Managed regression tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tests/Plugin.AdMob.RegressionTests
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 11.0.x
+
+      - name: Check desktop ad failures
+        run: dotnet run
+
+      - name: Check consent and Android SDK startup
+        run: |
+          dotnet run -p:RegressionPlatform=Android
+          dotnet run -p:RegressionPlatform=Android -- --missing-id
+
   build:
     name: ${{ matrix.tfm }}
     runs-on: ${{ matrix.os }}

@@ -56,8 +56,6 @@ internal partial class NativeAd
 
     private void LoadAd()
     {
-        MobileAdsInitialization.Start();
-
         AdMobInitializer.RunWhenInitialized(() =>
         {
             var configBuilder = new RequestConfiguration.Builder();
