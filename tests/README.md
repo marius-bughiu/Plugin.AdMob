@@ -138,3 +138,28 @@ with `ref: support/net10`. Its nightly tests the newest published 10.x package, 
 is validated on `bump-maui-support-net10-validate` and proposed from `bump-maui-support-net10`
 into `support/net10`. A broken copy on the branch fails `main`'s scheduled run as well, and the
 jobs go when the branch is retired. `binding-drift.yml` runs for `main` only.
+
+## Paid callbacks and native error metadata
+
+From the repository root, run the managed checks with the .NET 11 SDK:
+
+```bash
+dotnet run -c Release --project tests/Plugin.AdMob.DiagnosticsTests
+```
+
+The managed runner uses a stand-in for the SDK delegate. Test the native paths separately
+on registered Android and iOS test devices:
+
+- Compare a paid callback on the banner, native, and four full-screen formats with
+  the native SDK payload. Check the amount, currency code, precision, and ad unit ID.
+  Exercise both `PrepareAd()` service events and direct ad events, plus native view
+  forwarding. Record one paid delivery per subscribed path for each SDK event.
+- Exercise native load and presentation errors and compare the fields with the SDK error.
+  Include a message-only plugin failure and verify its native metadata is null.
+- On iOS, repeat load and replacement without showing the ads or subscribing to
+  `OnAdPaid`. Cover all four full-screen formats and native ads. Wait for SDK work to
+  finish and release references to the old ads and any views. Trace managed wrappers
+  with weak references and native objects with Instruments Allocations across repeated
+  runs. Then show a live ad with a subscriber and verify the paid callback still arrives.
+- Record the device, OS, build configuration, and results. Run the callback and
+  lifetime checks in the .NET 11 Release build with Native AOT as well.

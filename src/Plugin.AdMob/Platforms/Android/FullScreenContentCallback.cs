@@ -12,7 +12,7 @@ namespace Plugin.AdMob;
 /// event-callback interface of every full-screen format, so it can be assigned to any ad's
 /// <c>AdEventCallback</c> property.
 /// </summary>
-internal sealed class FullScreenContentCallback :
+internal sealed class FullScreenContentCallback(string adUnitId) :
     Java.Lang.Object,
     IInterstitialAdEventCallback,
     IAppOpenAdEventCallback,
@@ -22,6 +22,7 @@ internal sealed class FullScreenContentCallback :
     public event EventHandler? AdShowed;
     public event EventHandler<FullScreenContentError>? AdFailedToShow;
     public event EventHandler? AdImpression;
+    public event EventHandler<AdRevenueEventArgs>? AdPaid;
     public event EventHandler? AdClicked;
     public event EventHandler? AdDismissed;
 
@@ -40,8 +41,11 @@ internal sealed class FullScreenContentCallback :
     public void OnAdDismissedFullScreenContent()
         => MainThreadDispatcher.Run(() => AdDismissed?.Invoke(this, EventArgs.Empty));
 
-    // Revenue callback is not surfaced by the plugin's public API.
-    public void OnAdPaid(AdValue value) { }
+    public void OnAdPaid(AdValue value)
+    {
+        var revenue = value.ToRevenueEventArgs(adUnitId);
+        MainThreadDispatcher.Run(() => AdPaid?.Invoke(this, revenue));
+    }
 
     // IOnAppEventListener (interstitial) — not surfaced by the plugin.
     public void OnAppEvent(string name, string? data) { }

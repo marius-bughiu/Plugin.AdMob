@@ -8,6 +8,26 @@ namespace Plugin.AdMob.Platforms.Android;
 
 internal static class Extensions
 {
+    internal static AdError ToAdError(this LoadAdError error)
+        => new(error.Message, error.Code?.Value, null, error.ResponseInfo?.ResponseId);
+
+    internal static AdError ToAdError(this FullScreenContentError error, string? responseId)
+        => new(error.Message, error.Code?.Value, null, responseId);
+
+    internal static AdRevenueEventArgs ToRevenueEventArgs(this AdValue value, string adUnitId)
+    {
+        var precision = value.PrecisionType;
+        var revenuePrecision = precision switch
+        {
+            _ when PrecisionType.Estimated?.Equals(precision) == true => AdRevenuePrecision.Estimated,
+            _ when PrecisionType.PublisherProvided?.Equals(precision) == true => AdRevenuePrecision.PublisherProvided,
+            _ when PrecisionType.Precise?.Equals(precision) == true => AdRevenuePrecision.Precise,
+            _ => AdRevenuePrecision.Unknown,
+        };
+
+        return new AdRevenueEventArgs(adUnitId, value.ValueMicros / 1_000_000m, value.CurrencyCode, revenuePrecision);
+    }
+
     internal static InitializationStatus ToInitializationStatus(this SdkIInitializationStatus status) => new(
     [
         .. status.AdapterStatusMap.Select(adapter => new AdapterStatus(

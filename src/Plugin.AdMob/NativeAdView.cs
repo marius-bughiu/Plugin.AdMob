@@ -23,6 +23,11 @@ public class NativeAdView : ContentView
     public event EventHandler? OnAdImpression;
 
     /// <summary>
+    /// Raised when Google Mobile Ads reports revenue for an impression.
+    /// </summary>
+    public event EventHandler<AdRevenueEventArgs>? OnAdPaid;
+
+    /// <summary>
     /// Raised when a click is recorded for an ad.
     /// </summary>
     public event EventHandler? OnAdClicked;
@@ -121,6 +126,7 @@ public class NativeAdView : ContentView
     internal void RaiseOnAdLoaded(object? sender, EventArgs e) => OnAdLoaded?.Invoke(sender, e);
     internal void RaiseOnAdFailedToLoad(object? sender, IAdError e) => OnAdFailedToLoad?.Invoke(sender, e);
     internal void RaiseOnAdImpression(object? sender, EventArgs e) => OnAdImpression?.Invoke(sender, e);
+    internal void RaiseOnAdPaid(object? sender, AdRevenueEventArgs e) => OnAdPaid?.Invoke(this, e);
     internal void RaiseOnAdClicked(object? sender, EventArgs e) => OnAdClicked?.Invoke(sender, e);
     internal void RaiseOnAdSwiped(object? sender, EventArgs e) => OnAdSwiped?.Invoke(sender, e);
     internal void RaiseOnAdOpened(object? sender, EventArgs e) => OnAdOpened?.Invoke(sender, e);

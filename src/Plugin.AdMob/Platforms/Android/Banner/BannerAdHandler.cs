@@ -150,8 +150,9 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
                 var bannerAd = ad.JavaCast<IBannerAd>();
                 if (bannerAd is not null)
                 {
-                    var eventCallback = new BannerAdEventCallback();
+                    var eventCallback = new BannerAdEventCallback(adUnitId);
                     eventCallback.AdImpression += (s2, e) => SafeRaise(() => VirtualView.RaiseOnAdImpression(s2, e));
+                    eventCallback.AdPaid += (_, revenue) => SafeRaise(() => VirtualView.RaiseOnAdPaid(revenue));
                     eventCallback.AdClicked += (s2, e) => SafeRaise(() => VirtualView.RaiseOnAdClicked(s2, e));
                     eventCallback.AdOpened += (s2, e) => SafeRaise(() => VirtualView.RaiseOnAdOpened(s2, e));
                     eventCallback.AdClosed += (s2, e) => SafeRaise(() => VirtualView.RaiseOnAdClosed(s2, e));
@@ -159,7 +160,7 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
 
                     var refreshCallback = new BannerAdRefreshCallback();
                     refreshCallback.AdRefreshed += (s2, e) => SafeRaise(() => VirtualView.RaiseOnAdLoaded(s2, e));
-                    refreshCallback.AdFailedToRefresh += (s2, e) => SafeRaise(() => VirtualView.RaiseOnAdFailedToLoad(s2, new AdError(e.Message)));
+                    refreshCallback.AdFailedToRefresh += (s2, error) => SafeRaise(() => VirtualView.RaiseOnAdFailedToLoad(s2, error.ToAdError()));
                     bannerAd.BannerAdRefreshCallback = refreshCallback;
                 }
 
@@ -172,7 +173,7 @@ internal partial class BannerAdHandler : ViewHandler<BannerAd, AdView>
                     return;
                 }
 
-                SafeRaise(() => VirtualView.RaiseOnAdFailedToLoad(s, new AdError(e.Message)));
+                SafeRaise(() => VirtualView.RaiseOnAdFailedToLoad(s, e.ToAdError()));
             };
 
             try
