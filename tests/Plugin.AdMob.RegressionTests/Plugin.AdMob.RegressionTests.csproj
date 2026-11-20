@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net11.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RegressionPlatform Condition="'$(RegressionPlatform)' == ''">Desktop</RegressionPlatform>
+    <PluginSource>../../src/Plugin.AdMob</PluginSource>
+    <!-- Linked partial classes declare events implemented by other platform targets. -->
+    <NoWarn>$(NoWarn);CS0067</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(RegressionPlatform)' == 'Android'">
+    <DefineConstants>$(DefineConstants);ANDROID</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="$(PluginSource)/Services/Consent/*.cs;$(PluginSource)/Configuration/AdConfig.cs" />
+    <Compile Include="$(PluginSource)/TagFor*.cs;$(PluginSource)/MaxAdContentRating.cs" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(RegressionPlatform)' == 'Android'">
+    <Compile Remove="Desktop/**/*.cs" />
+    <Compile Include="$(PluginSource)/Platforms/Android/AdMobInitializer.cs;$(PluginSource)/MobileAdsInitialization.cs;$(PluginSource)/InitializationStatus.cs" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(RegressionPlatform)' == 'Desktop'">
+    <Compile Remove="Android/**/*.cs" />
+    <Compile Include="$(PluginSource)/*Ad.cs" Exclude="$(PluginSource)/BannerAd.cs" />
+    <Compile Include="$(PluginSource)/AdError.cs;$(PluginSource)/RewardItem.cs;$(PluginSource)/UnsupportedPlatform.cs" />
+    <Compile Include="$(PluginSource)/Services/*AdService.cs;$(PluginSource)/Configuration/VideoOptions.cs" />
+  </ItemGroup>
+</Project>

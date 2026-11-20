@@ -13,28 +13,31 @@ internal static class AdMobInitializer
     private const string ApplicationIdMetadataKey = "com.google.android.gms.ads.APPLICATION_ID";
 
     private static readonly object _lock = new();
-    private static readonly List<Action> _pending = [];
+    private static readonly List<AdRequestCallbacks> _pending = [];
+    private static TaskCompletionSource<IInitializationStatus> _initialization = CreateInitialization();
     private static bool _initializing;
     private static bool _initialized;
 
-    internal static void EnsureInitialized() => RunWhenInitialized(null);
-
-    internal static void RunWhenInitialized(Action request, Action<Exception> onFailed) => RunWhenInitialized(() =>
+    internal static Task<IInitializationStatus> Initialization
     {
-        try
+        get
         {
-            request();
+            lock (_lock)
+            {
+                return _initialization.Task;
+            }
         }
-        catch (Exception ex)
-        {
-            MainThreadDispatcher.Post(() => onFailed(ex));
-        }
-    });
+    }
 
-    private static void RunWhenInitialized(Action? onInitialized)
+    internal static void EnsureInitialized() => StartOrQueue(null);
+
+    internal static void RunWhenInitialized(Action request, Action<Exception> onFailed)
+        => StartOrQueue(new AdRequestCallbacks(request, onFailed));
+
+    private static void StartOrQueue(AdRequestCallbacks? callbacks)
     {
         bool initialized;
-        var start = false;
+        TaskCompletionSource<IInitializationStatus>? attempt = null;
 
         lock (_lock)
         {
@@ -42,62 +45,98 @@ internal static class AdMobInitializer
 
             if (!initialized)
             {
-                if (onInitialized is not null)
+                if (callbacks is { } request)
                 {
-                    _pending.Add(onInitialized);
+                    _pending.Add(request);
                 }
 
-                start = !_initializing;
-                _initializing = true;
+                // After a failed attempt, a new ad request starts the retry.
+                if (!_initializing && (callbacks.HasValue || !_initialization.Task.IsFaulted))
+                {
+                    if (_initialization.Task.IsFaulted)
+                    {
+                        _initialization = CreateInitialization();
+                    }
+
+                    _initializing = true;
+                    attempt = _initialization;
+                }
             }
         }
 
         if (initialized)
         {
-            onInitialized?.Invoke();
+            callbacks?.Run();
         }
-        else if (start)
+        else if (attempt is not null)
         {
-            StartInitialization();
+            StartInitialization(attempt);
         }
     }
 
-    private static void StartInitialization()
-    {
-        var context = global::Android.App.Application.Context;
-        var applicationId = ReadApplicationId(context);
+    private static TaskCompletionSource<IInitializationStatus> CreateInitialization()
+        => new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        if (string.IsNullOrEmpty(applicationId))
+    private static void StartInitialization(TaskCompletionSource<IInitializationStatus> attempt)
+    {
+        try
         {
-            throw new InvalidOperationException(
-                $"[Plugin.AdMob] The AdMob application ID is missing. Add a '<meta-data " +
-                $"android:name=\"{ApplicationIdMetadataKey}\" android:value=\"ca-app-pub-XXXXXXXX~YYYYYYYY\" />' " +
-                "entry to your Android app's AndroidManifest.xml.");
+            var context = global::Android.App.Application.Context;
+            var applicationId = ReadApplicationId(context);
+
+            if (string.IsNullOrEmpty(applicationId))
+            {
+                throw new InvalidOperationException(
+                    $"[Plugin.AdMob] The AdMob application ID is missing. Add a '<meta-data " +
+                    $"android:name=\"{ApplicationIdMetadataKey}\" android:value=\"ca-app-pub-XXXXXXXX~YYYYYYYY\" />' " +
+                    "entry to your Android app's AndroidManifest.xml.");
+            }
+
+            var requestConfiguration = new RequestConfiguration.Builder();
+            requestConfiguration.ApplyGlobalAdConfiguration();
+
+            var config = new InitializationConfig.Builder(applicationId)
+                .SetRequestConfiguration(requestConfiguration.Build())
+                .Build();
+
+            Task.Run(() =>
+            {
+                try
+                {
+                    MobileAds.Initialize(context, config, new InitializationCompleteListener(attempt));
+                }
+                catch (Exception ex)
+                {
+                    OnInitializationFailed(attempt, ex);
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            OnInitializationFailed(attempt, ex);
+        }
+    }
+
+    private static void OnInitializationFailed(TaskCompletionSource<IInitializationStatus> attempt, Exception exception)
+    {
+        List<AdRequestCallbacks> callbacks;
+        lock (_lock)
+        {
+            if (!IsCurrentAttempt(attempt))
+            {
+                return;
+            }
+
+            _initializing = false;
+            callbacks = DrainPendingRequests();
+            attempt.TrySetException(exception);
         }
 
-        var requestConfiguration = new RequestConfiguration.Builder();
-        requestConfiguration.ApplyGlobalAdConfiguration();
-
-        var config = new InitializationConfig.Builder(applicationId)
-            .SetRequestConfiguration(requestConfiguration.Build())
-            .Build();
-
-        Task.Run(() =>
+        Debug.WriteLine($"[Plugin.AdMob] Mobile Ads SDK initialization failed: {exception.Message}");
+        foreach (var callback in callbacks)
         {
-            try
-            {
-                MobileAds.Initialize(context, config, new InitializationCompleteListener());
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[Plugin.AdMob] Mobile Ads SDK initialization failed: {ex.Message}");
-
-                lock (_lock)
-                {
-                    _initializing = false;
-                }
-            }
-        });
+            callback.Fail(exception);
+        }
     }
 
     private static string? ReadApplicationId(Context context)
@@ -130,30 +169,74 @@ internal static class AdMobInitializer
         }
     }
 
-    private static void OnInitializationComplete(SdkIInitializationStatus status)
+    private static void OnInitializationComplete(TaskCompletionSource<IInitializationStatus> attempt, SdkIInitializationStatus status)
     {
-        List<Action> callbacks;
+        List<AdRequestCallbacks> callbacks;
 
         lock (_lock)
         {
+            if (!IsCurrentAttempt(attempt))
+            {
+                return;
+            }
+
             _initialized = true;
-            callbacks = [.. _pending];
-            _pending.Clear();
+            _initializing = false;
+            callbacks = DrainPendingRequests();
+        }
+
+        try
+        {
+            attempt.TrySetResult(status.ToInitializationStatus());
+        }
+        catch (Exception ex)
+        {
+            attempt.TrySetException(ex);
         }
 
         MainThreadDispatcher.Run(() =>
         {
             foreach (var callback in callbacks)
             {
-                callback();
+                callback.Run();
             }
         });
-
-        MobileAdsInitialization.Complete(status.ToInitializationStatus);
     }
 
-    private sealed class InitializationCompleteListener : Java.Lang.Object, IOnAdapterInitializationCompleteListener
+    private static bool IsCurrentAttempt(TaskCompletionSource<IInitializationStatus> attempt)
+        => _initializing && ReferenceEquals(attempt, _initialization);
+
+    private static List<AdRequestCallbacks> DrainPendingRequests()
     {
-        public void OnAdapterInitializationComplete(SdkIInitializationStatus status) => OnInitializationComplete(status);
+        var callbacks = new List<AdRequestCallbacks>(_pending);
+        _pending.Clear();
+        return callbacks;
+    }
+
+    private readonly record struct AdRequestCallbacks(Action Request, Action<Exception> OnFailed)
+    {
+        public void Run()
+        {
+            try
+            {
+                Request();
+            }
+            catch (Exception ex)
+            {
+                Fail(ex);
+            }
+        }
+
+        public void Fail(Exception exception)
+        {
+            var onFailed = OnFailed;
+            MainThreadDispatcher.Post(() => onFailed(exception));
+        }
+    }
+
+    private sealed class InitializationCompleteListener(TaskCompletionSource<IInitializationStatus> attempt)
+        : Java.Lang.Object, IOnAdapterInitializationCompleteListener
+    {
+        public void OnAdapterInitializationComplete(SdkIInitializationStatus status) => OnInitializationComplete(attempt, status);
     }
 }

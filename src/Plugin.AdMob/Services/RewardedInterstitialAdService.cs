@@ -52,9 +52,7 @@ internal class RewardedInterstitialAdService(IAdConsentService _adConsentService
 {
     private IRewardedInterstitialAd? _rewardedInterstitialAd;
     private readonly ConsentGate _consentGate = new(_adConsentService);
-    private bool _hasPendingAd;
-    private string? _pendingAdUnitId;
-    private Action<RewardItem>? _pendingOnUserEarnedReward;
+    private ConsentGate.PendingRequest? _pendingAd;
 
     public bool IsAdLoaded => _rewardedInterstitialAd?.IsLoaded ?? false;
 
@@ -75,8 +73,8 @@ internal class RewardedInterstitialAdService(IAdConsentService _adConsentService
     
     public void PrepareAd(string? adUnitId = null, Action<RewardItem>? onUserEarnedReward = null)
     {
-        _adConsentService.OnConsentInfoUpdated -= OnConsentInfoUpdated;
-        _hasPendingAd = false;
+        _pendingAd?.Dispose();
+        _pendingAd = null;
 
         if (_rewardedInterstitialAd is not null)
         {
@@ -85,15 +83,13 @@ internal class RewardedInterstitialAdService(IAdConsentService _adConsentService
             _rewardedInterstitialAd = null;
         }
 
-        if (CanRequestAds() is false)
-        {
-            _hasPendingAd = true;
-            _pendingAdUnitId = adUnitId;
-            _pendingOnUserEarnedReward = onUserEarnedReward;
-            _adConsentService.OnConsentInfoUpdated += OnConsentInfoUpdated;
-            return;
-        }
+        var pendingAd = _consentGate.CreateRequest(() => LoadPreparedAd(adUnitId, onUserEarnedReward));
+        _pendingAd = pendingAd;
+        pendingAd.Start();
+    }
 
+    private void LoadPreparedAd(string? adUnitId, Action<RewardItem>? onUserEarnedReward)
+    {
         var rewardedInterstitialAd = CreateAd(adUnitId);
         rewardedInterstitialAd.OnAdLoaded += OnAdLoadedInternal;
         rewardedInterstitialAd.OnAdFailedToLoad += OnAdFailedToLoadInternal;
@@ -123,24 +119,6 @@ internal class RewardedInterstitialAdService(IAdConsentService _adConsentService
 #else
         return adUnitId ?? string.Empty;
 #endif
-    }
-
-    private bool CanRequestAds()
-    {
-        if (AdConfig.DisableConsentCheck)
-        {
-            return true;
-        }
-
-        return _adConsentService.CanRequestAds();
-    }
-
-    private void OnConsentInfoUpdated(object? sender, IConsentInformation? e)
-    {
-        if (_hasPendingAd && CanRequestAds())
-        {
-            PrepareAd(_pendingAdUnitId, _pendingOnUserEarnedReward);
-        }
     }
 
     private void OnAdLoadedInternal(object? sender, EventArgs e)

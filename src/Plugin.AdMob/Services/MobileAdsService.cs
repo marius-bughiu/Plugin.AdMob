@@ -12,6 +12,8 @@ public interface IMobileAdsService
     /// with the status of each adapter. The plugin starts the SDK once consent allows ad requests, or right before the first ad
     /// request when <see cref="AdConfig.DisableConsentCheck" /> is true, so this doesn't complete before then. It never completes
     /// on platforms other than Android and iOS. If the SDK's status can't be read, the task fails with that exception.
+    /// On Android, the task also fails if SDK startup throws. A later ad request retries startup and
+    /// this property returns a new task once that retry starts.
     /// </summary>
     Task<IInitializationStatus> Initialization { get; }
 }

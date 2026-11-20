@@ -22,10 +22,12 @@ foreach (var adapter in status.AdapterStatuses)
 
 The list includes the Google Mobile Ads SDK itself (`com.google.android.libraries.ads.mobile.sdk.MobileAds` on Android, `GADMobileAds` on iOS) and the adapters the SDK looks for. An adapter that initialized is `Ready`; one that failed, timed out or isn't in your app is `NotReady`, and `Description` is the SDK's explanation (on iOS it also repeats the state). `Initialization` completes only after the plugin has started the SDK, which waits for consent, and never on MacCatalyst or Windows, so give it a timeout if your code waits for it, for example `Initialization.WaitAsync(TimeSpan.FromSeconds(60))`. The first start on a newly created iOS simulator can take close to a minute.
 
+On Android, if SDK startup throws, pending ad requests raise their load-failure events and `Initialization` faults with the startup exception. A later ad request starts a new attempt. Read `Initialization` again after the retry starts to await that attempt.
+
 ## Platform support
 
 - **Android / iOS**: fully supported.
-- **MacCatalyst / Windows**: the plugin registers handlers so your app can compile and run cross-platform, but ads are not displayed on these platforms.
+- **MacCatalyst / Windows**: the plugin registers handlers so your app can compile and run cross-platform, but ads are not displayed on these platforms. Full-screen ad services report the unsupported platform through `OnAdFailedToLoad` when you call `PrepareAd()`. Calling `CreateAd().Load()` reports the same error on the ad instance.
 
 ## Android setup
 

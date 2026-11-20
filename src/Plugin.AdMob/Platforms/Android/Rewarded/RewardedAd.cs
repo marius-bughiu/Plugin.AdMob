@@ -15,8 +15,6 @@ internal partial class RewardedAd
 
     private void LoadAd()
     {
-        MobileAdsInitialization.Start();
-
         AdMobInitializer.RunWhenInitialized(() =>
         {
             var configBuilder = new RequestConfiguration.Builder();
