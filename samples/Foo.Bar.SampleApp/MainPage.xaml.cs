@@ -144,6 +144,48 @@ namespace Foo.Bar.SampleApp
             _adConsentService.Reset();
         }
 
+        private async void OnAdInspectorClicked(object? sender, EventArgs e)
+        {
+            if (sender is not Button { IsEnabled: true } button)
+            {
+                return;
+            }
+
+            button.IsEnabled = false;
+            try
+            {
+                const string consentRequired = "Complete the consent flow before opening Ad Inspector.";
+                if (!_adConsentService.CanRequestAds())
+                {
+                    await DisplayAlertAsync("Ad Inspector", consentRequired, "OK");
+                    return;
+                }
+
+                var mobileAdsService = ServiceProvider.GetRequiredService<IMobileAdsService>();
+                await mobileAdsService.Initialization.WaitAsync(TimeSpan.FromSeconds(60));
+
+                var error = _adConsentService.CanRequestAds()
+                    ? await AdInspector.OpenAsync()
+                    : consentRequired;
+                if (error is not null)
+                {
+                    await DisplayAlertAsync("Ad Inspector", error, "OK");
+                }
+            }
+            catch (TimeoutException)
+            {
+                await DisplayAlertAsync("Ad Inspector", "The Mobile Ads SDK took too long to initialize.", "OK");
+            }
+            catch (Exception exception)
+            {
+                await DisplayAlertAsync("Ad Inspector", exception.Message, "OK");
+            }
+            finally
+            {
+                button.IsEnabled = true;
+            }
+        }
+
         private void UpdateCanRequestAds()
         {
             CanRequestAdsLabel.Text = _adConsentService.CanRequestAds().ToString();
